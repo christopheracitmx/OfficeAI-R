@@ -185,8 +185,36 @@ export function agentRouter(d: Deps): Router {
     }
   }));
 
+  // Caché local de páginas leídas con Obscura (TTL 7 días)
+  r.get('/cache', ah((q, res) => {
+    const url = qstr(q.query['url']);
+    if (!url) throw new HttpError(400, 'Falta url');
+    const fila = db
+      .prepare("SELECT url, texto_compacto, emails, telefonos, obtenida_en FROM paginas_cache WHERE url = ? AND obtenida_en >= datetime('now','-7 days')")
+      .get(url);
+    res.json(fila ?? null);
+  }));
+
+  r.post('/cache', ah((q, res) => {
+    const c = parse(
+      z.object({
+        url: z.string().url().max(1000),
+        texto_compacto: z.string().max(8000),
+        emails: z.array(z.string()).max(20),
+        telefonos: z.array(z.string()).max(20),
+      }),
+      q.body,
+    );
+    db.prepare(
+      `INSERT INTO paginas_cache (url, texto_compacto, emails, telefonos, obtenida_en) VALUES (?,?,?,?,?)
+       ON CONFLICT(url) DO UPDATE SET texto_compacto=excluded.texto_compacto, emails=excluded.emails,
+         telefonos=excluded.telefonos, obtenida_en=excluded.obtenida_en`,
+    ).run(c.url, c.texto_compacto, JSON.stringify(c.emails), JSON.stringify(c.telefonos), new Date().toISOString());
+    res.status(201).json({ ok: true });
+  }));
+
   r.post('/actividad', ah((q, res) => {
-    const a = parse(actividadInput, q.body);
+    const a = parse(actividadInput, { ...(q.body as object), agente: agenteDe(q) });
     res.status(201).json(registrarActividad(db, bus, a));
   }));
 

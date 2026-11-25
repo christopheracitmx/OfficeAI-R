@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { numeroSeguro } from '../lib/types';
 import { Button, Card, ErrorBanner, PageHeader, cx, useToast } from '../components/ui';
 import { api, useApi } from '../lib/api';
 import type { Config, Destinatario, EstadoApp } from '../lib/types';
@@ -173,7 +174,7 @@ function Corridas() {
           max={50}
           className={cx(inp, 'mt-1 w-full')}
           value={max ?? cfg.data.max_empresas_por_corrida}
-          onChange={(e) => setMax(Number(e.target.value))}
+          onChange={(e) => setMax(numeroSeguro(e.target.value, 10))}
         />
       </label>
       <label className="block text-muted">

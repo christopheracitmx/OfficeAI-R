@@ -29,7 +29,7 @@ const ESTADOS = [
 
 export function Prospectos() {
   const [sp, setSp] = useSearchParams();
-  const [q, setQ] = useState(sp.get('q') ?? '');
+  const [q, setQ] = useState(() => sp.get('q') ?? '');
   const query = new URLSearchParams();
   for (const k of ['estado', 'nivel', 'metodo', 'sinVer', 'zona'])
     if (sp.get(k)) query.set(k, sp.get(k)!);

@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { Button, Card, EmptyState, ErrorBanner, PageHeader, useToast } from '../components/ui';
 import { ProgresoCorrida } from '../components/ProgresoCorrida';
 import { api, useApi } from '../lib/api';
-import { fechaCorta, type Config, type Corrida as CorridaT, type EstadoApp } from '../lib/types';
+import {
+  fechaCorta,
+  type Config,
+  type Corrida as CorridaT,
+  type EstadoApp,
+  numeroSeguro,
+} from '../lib/types';
 
 const FIN: Record<string, string> = {
   en_curso: 'En curso',
@@ -122,7 +128,7 @@ export function Corrida() {
                     max={50}
                     className={sel}
                     value={maxSel}
-                    onChange={(e) => setMax(Number(e.target.value))}
+                    onChange={(e) => setMax(numeroSeguro(e.target.value, 10))}
                   />
                 </label>
               </div>

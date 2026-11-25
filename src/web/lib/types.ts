@@ -283,3 +283,19 @@ export interface ResumenConsumo {
   ms_medio: number | null;
   no_ok: number;
 }
+
+/** Número de un input: si no es finito devuelve el valor de respaldo (evita NaN en estados y envíos). */
+export const numeroSeguro = (v: string, respaldo: number): number => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : respaldo;
+};
+
+/** Lista de textos guardada como JSON; ante datos dañados devuelve []. */
+export function jsonLista(s: string): string[] {
+  try {
+    const x: unknown = JSON.parse(s);
+    return Array.isArray(x) ? x.map(String) : [];
+  } catch {
+    return [];
+  }
+}

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Button, Card, Chip, CopyButton } from '../components/ui';
-import { METODO_ETIQUETA, fechaCorta, type ProspectoDetalle } from '../lib/types';
+import { METODO_ETIQUETA, fechaCorta, type ProspectoDetalle, jsonLista } from '../lib/types';
 
 export function Contactos({ d }: { d: ProspectoDetalle }) {
   if (d.contactos.length === 0)
@@ -108,7 +108,7 @@ export function Paquetes({ d }: { d: ProspectoDetalle }) {
               <div key={p.nombre} className="rounded-lg border border-line p-4">
                 <h3 className="font-semibold text-brand-strong">{p.nombre}</h3>
                 <div className="my-2 flex flex-wrap gap-1">
-                  {(JSON.parse(p.componentes) as string[]).map((c) => (
+                  {jsonLista(p.componentes).map((c) => (
                     <Chip key={c}>{c}</Chip>
                   ))}
                 </div>
@@ -131,8 +131,8 @@ export function Productos({ d }: { d: ProspectoDetalle }) {
       {d.productos.length > 0 && (
         <Seccion titulo="Productos propuestos">
           <ul className="divide-y divide-line">
-            {d.productos.map((p, i) => (
-              <li key={i} className="flex items-start gap-3 py-2">
+            {d.productos.map((p) => (
+              <li key={`${p.marca}|${p.categoria}`} className="flex items-start gap-3 py-2">
                 <Chip>{p.marca}</Chip>
                 <span className="w-48 font-medium">{p.categoria}</span>
                 <span className="flex-1 text-muted">{p.razon}</span>
@@ -190,8 +190,8 @@ export function FichaNecesidades({ d }: { d: ProspectoDetalle }) {
             <p className="text-muted">Sin necesidades registradas.</p>
           ) : (
             <ul className="space-y-2">
-              {d.necesidades.map((n, i) => (
-                <li key={i} className="flex items-start gap-2">
+              {d.necesidades.map((n) => (
+                <li key={`${n.tipo}|${n.texto}`} className="flex items-start gap-2">
                   <Chip tono={n.tipo}>{n.tipo === 'evidencia' ? 'Evidencia' : 'Inferencia'}</Chip>
                   <span>{n.texto}</span>
                 </li>

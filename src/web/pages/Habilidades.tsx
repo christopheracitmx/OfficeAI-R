@@ -99,6 +99,7 @@ export function Habilidades() {
       toast(x instanceof Error ? x.message : 'Error', 'error');
     }
   };
+  const asignados = new Set(e?.agentes ?? []);
   const alternarAgente = (a: string) =>
     e &&
     setE({
@@ -194,12 +195,12 @@ export function Habilidades() {
                   key={a.id}
                   className={cx(
                     'flex cursor-pointer items-center gap-1 rounded-full border px-3 py-1 text-sm',
-                    e.agentes.includes(a.id) ? 'border-brand bg-brand-soft' : 'border-line',
+                    asignados.has(a.id) ? 'border-brand bg-brand-soft' : 'border-line',
                   )}
                 >
                   <input
                     type="checkbox"
-                    checked={e.agentes.includes(a.id)}
+                    checked={asignados.has(a.id)}
                     onChange={() => alternarAgente(a.id)}
                   />
                   {a.id}

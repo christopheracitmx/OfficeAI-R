@@ -15,6 +15,16 @@ export async function api<T>(path: string, init?: { method?: string; body?: unkn
     headers: { 'Content-Type': 'application/json' },
     ...(init?.body === undefined ? {} : { body: JSON.stringify(init.body) }),
   });
+  if (!res.ok) {
+    const cuerpo = await res.text();
+    let msg = `Error ${res.status}`;
+    try {
+      msg = (JSON.parse(cuerpo) as { error?: string }).error ?? msg;
+    } catch {
+      /* no JSON */
+    }
+    throw new ApiError(res.status, msg);
+  }
   const texto = await res.text();
   let json: unknown = null;
   try {
@@ -22,11 +32,6 @@ export async function api<T>(path: string, init?: { method?: string; body?: unkn
   } catch {
     /* no JSON */
   }
-  if (!res.ok)
-    throw new ApiError(
-      res.status,
-      (json as { error?: string } | null)?.error ?? `Error ${res.status}`,
-    );
   return json as T;
 }
 

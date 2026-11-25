@@ -13,7 +13,7 @@ import {
   useToast,
 } from '../components/ui';
 import { api, useApi } from '../lib/api';
-import { fechaCorta, type ProspectoDetalle } from '../lib/types';
+import { fechaCorta, type ProspectoDetalle, jsonLista } from '../lib/types';
 
 import {
   Canalizacion,
@@ -193,12 +193,12 @@ export function DetalleProspecto() {
 
       <Seccion titulo="Historial">
         <ul className="space-y-1.5">
-          {d.revisiones.map((r, i) => (
-            <li key={`r${i}`}>
+          {d.revisiones.map((r) => (
+            <li key={`r${r.etapa}${r.creado_en}${String(r.aprobado)}`}>
               {r.etapa.toUpperCase()}{' '}
               {r.aprobado ? '✓ aprobó' : `↩ devolvió${r.devolver_a ? ` a ${r.devolver_a}` : ''}`}{' '}
               <span className="text-muted">
-                · {(JSON.parse(r.motivos) as string[]).join(' | ')} · {fechaCorta(r.creado_en)}
+                · {jsonLista(r.motivos).join(' | ')} · {fechaCorta(r.creado_en)}
               </span>
             </li>
           ))}
@@ -208,8 +208,8 @@ export function DetalleProspecto() {
               {e.error && <span className="text-bad"> · {e.error}</span>}
             </li>
           ))}
-          {d.actividad.map((a, i) => (
-            <li key={`a${i}`} className="text-muted">
+          {d.actividad.map((a) => (
+            <li key={`a${a.creado_en}${a.accion}`} className="text-muted">
               {a.agente} · {a.accion}
               {a.detalle ? ` · ${a.detalle}` : ''} · {fechaCorta(a.creado_en)}
             </li>

@@ -139,6 +139,7 @@ export function crearCorrida(
   db: Db,
   c: z.infer<typeof corridaInput>,
   motor: string,
+  officeId = 'prospeccion',
 ): ResultadoCorrida {
   const cfg = getConfig(db);
   if (!cfg.zonas_piloto.includes(c.zona))
@@ -150,8 +151,17 @@ export function crearCorrida(
   if (activa)
     return { ok: false, error: 'Ya hay una corrida en curso. Deténla antes de iniciar otra.' };
   const r = db
-    .prepare('INSERT INTO corridas (zona, giro, max_empresas, motor) VALUES (?,?,?,?)')
-    .run(c.zona, c.giro, c.max_empresas, motor);
+    .prepare(
+      'INSERT INTO corridas (zona, giro, max_empresas, motor, office_id, params) VALUES (?,?,?,?,?,?)',
+    )
+    .run(
+      c.zona,
+      c.giro,
+      c.max_empresas,
+      motor,
+      officeId,
+      JSON.stringify({ zona: c.zona, giro: c.giro, max_empresas: c.max_empresas }),
+    );
   return { ok: true, id: Number(r.lastInsertRowid) };
 }
 
@@ -165,11 +175,30 @@ export function cerrarCorrida(db: Db, id: number, estado: string, motivo?: strin
   );
 }
 
+/** Corrida pausada o con error que el dueño quiere retomar (el runner la re-deriva desde la base). */
+export function reanudarCorrida(db: Db, id: number): ResultadoCorrida {
+  const c = db.prepare('SELECT estado FROM corridas WHERE id = ?').get(id) as
+    { estado: string } | undefined;
+  if (!c) return { ok: false, error: 'Corrida no encontrada' };
+  if (!['pausada_limite_plan', 'pausada_cuota_places', 'error'].includes(c.estado))
+    return { ok: false, error: 'Solo se reanudan corridas pausadas o con error' };
+  if (db.prepare("SELECT 1 FROM corridas WHERE estado='en_curso'").get())
+    return { ok: false, error: 'Ya hay una corrida en curso' };
+  db.prepare(
+    "UPDATE corridas SET estado='en_curso', motivo_fin=NULL, terminada_en=NULL WHERE id=?",
+  ).run(id);
+  return { ok: true, id };
+}
+
 export const corridaActivaId = (db: Db): number | undefined =>
   (
     db.prepare("SELECT id FROM corridas WHERE estado='en_curso' LIMIT 1").get() as
       { id: number } | undefined
   )?.id;
 
-export const listarCorridas = (db: Db): unknown[] =>
-  db.prepare('SELECT * FROM corridas ORDER BY id DESC LIMIT 50').all();
+export const listarCorridas = (db: Db, officeId?: string): unknown[] =>
+  officeId
+    ? db
+        .prepare('SELECT * FROM corridas WHERE office_id = ? ORDER BY id DESC LIMIT 50')
+        .all(officeId)
+    : db.prepare('SELECT * FROM corridas ORDER BY id DESC LIMIT 50').all();

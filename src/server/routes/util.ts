@@ -1,6 +1,7 @@
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { ZodType } from 'zod';
 import type { Db } from '../db';
+import type { Runner } from '../runner/runner';
 import type { EventBus } from '../services/events';
 import type { Mailer } from '../services/mailer';
 
@@ -14,6 +15,8 @@ export interface Deps {
   uiOrigins: string[];
   /** Ejecuta una búsqueda (Places) o lectura web; se inyecta para poder simularla en tests. */
   env?: NodeJS.ProcessEnv;
+  /** Orquestador de corridas. Sin runner (tests de API) las corridas solo se registran. */
+  runner?: Runner;
 }
 
 export class HttpError extends Error {

@@ -134,6 +134,11 @@ export const corridaInput = z.object({
   zona: z.string().trim().min(2).max(80),
   giro: z.string().trim().min(2).max(120),
   max_empresas: z.number().int().min(1).max(50).default(10),
+  /** Oficina que ejecuta la corrida (por defecto la de prospección). */
+  office_id: z
+    .string()
+    .regex(/^[a-z0-9_-]+$/)
+    .default('prospeccion'),
 });
 
 export const prospectoPatch = z.object({

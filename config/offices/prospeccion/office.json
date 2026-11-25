@@ -1,0 +1,7 @@
+{
+  "office_id": "prospeccion",
+  "nombre": "Oficina de prospección",
+  "descripcion": "Descubre, investiga, califica y reporta prospectos B2B para el equipo de ventas.",
+  "workflow": "workflow.json",
+  "prompts": "agents/"
+}

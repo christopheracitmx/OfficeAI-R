@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { createApp } from './app';
 import { openDb } from './db';
+import { crearRunner } from './offices';
 import { EventBus } from './services/events';
 import { DisabledMailer, ResendMailer, type Mailer } from './services/mailer';
 
@@ -33,15 +34,40 @@ const uiOrigins = [
   'http://localhost:5174',
 ];
 
-const app = createApp({
-  db: openDb(dbPath),
-  bus: new EventBus(),
+const db = openDb(dbPath);
+const bus = new EventBus();
+const token = agentToken();
+const baseUrl = 'http://127.0.0.1:5174';
+
+// Runner: orquesta las oficinas (config/offices/*) con el motor de config/engine.yaml.
+// Solo arranca una corrida cuando el dueño la inicia desde la UI; al levantar el servidor no corre nada.
+const runner = crearRunner({
+  db,
+  bus,
   mailer,
   from,
-  baseUrl: 'http://127.0.0.1:5174',
-  agentToken: agentToken(),
+  baseUrl,
+  raiz: resolve('.'),
+  puerto: port,
+  tokenFile: resolve(dirname(dbPath), 'agent.token'),
+  env: process.env,
+});
+const huerfanas = runner.recuperarHuerfanas();
+if (huerfanas > 0)
+  console.warn(
+    `Aviso: ${huerfanas} corrida(s) quedaron en curso al cerrar el servidor; marcadas con error.`,
+  );
+
+const app = createApp({
+  db,
+  bus,
+  mailer,
+  from,
+  baseUrl,
+  agentToken: token,
   uiOrigins,
   env: process.env,
+  runner,
 });
 
 // Solo local: jamás exponer a la red.

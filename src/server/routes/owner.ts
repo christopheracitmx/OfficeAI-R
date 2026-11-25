@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { AGENTES } from '../../shared/domain';
 import {
   configPatch,
-  corridaInput,
   destinatarioInput,
   empresaInput,
   noContactarInput,
@@ -19,6 +18,7 @@ import {
 } from '../services/consultas';
 import { cambiarEtapa, upsertEmpresa } from '../services/empresas';
 import { assertDestinoPermitido, procesarEnvios } from '../services/mailer';
+import { corridasRouter } from './corridas';
 import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
 
 export function ownerRouter(d: Deps): Router {
@@ -43,7 +43,8 @@ export function ownerRouter(d: Deps): Router {
       const corrida =
         db.prepare("SELECT * FROM corridas WHERE estado='en_curso' LIMIT 1").get() ?? null;
       res.json({
-        motor_ia: cfg.motor_ia,
+        motor_ia: d.runner?.motor ?? cfg.motor_ia,
+        runner: d.runner?.estado() ?? null,
         places: { usado, tope: cfg.places_tope_pro, mes },
         resend_configurado: Boolean(d.env?.['RESEND_API_KEY']),
         remitente: d.from,
@@ -147,6 +148,11 @@ export function ownerRouter(d: Deps): Router {
         where.push('corrida_id = ?');
         params.push(corrida);
       }
+      const of = qstr(q.query['office_id']);
+      if (of) {
+        where.push('office_id = ?');
+        params.push(of);
+      }
       const ag = qstr(q.query['agente']);
       if (ag && (AGENTES as readonly string[]).includes(ag)) {
         where.push('agente = ?');
@@ -163,27 +169,8 @@ export function ownerRouter(d: Deps): Router {
     }),
   );
 
-  // ---- Corridas
-  r.get(
-    '/corridas',
-    ah((_q, res) => void res.json(admin.listarCorridas(db))),
-  );
-  r.post(
-    '/corridas',
-    ah((q, res) => {
-      const out = admin.crearCorrida(db, parse(corridaInput, q.body), admin.getConfig(db).motor_ia);
-      if (!out.ok) throw new HttpError(409, out.error);
-      res.status(201).json(out);
-    }),
-  );
-  r.post(
-    '/corridas/:id/detener',
-    ah((q, res) => {
-      if (!admin.cerrarCorrida(db, idParam(q), 'detenida', 'Detenida por el dueño'))
-        throw new HttpError(404, 'No hay corrida en curso con ese id');
-      res.json({ ok: true });
-    }),
-  );
+  // ---- Corridas, runner y salidas: ver corridas.ts
+  r.use(corridasRouter(d));
 
   // ---- Configuración
   r.get(

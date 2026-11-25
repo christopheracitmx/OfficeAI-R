@@ -1,0 +1,368 @@
+{
+  "version": 1,
+  "office_id": "prospeccion",
+  "titulo": "Prospección B2B ACITMX",
+  "coordinador": "Coordinador",
+  "entidad_item": "empresa",
+  "tope_items": "max_empresas",
+  "topes": {
+    "pasos_por_item": 16,
+    "pasos_extra": 12,
+    "max_repeticiones_paso": 4
+  },
+  "capacidades": {
+    "places": {
+      "env": "GOOGLE_PLACES_API_KEY"
+    }
+  },
+  "variables": {
+    "prospecto_id": "SELECT id FROM prospectos WHERE empresa_id=:item"
+  },
+  "mensajes": {
+    "item": "empresa_id={item}[ prospecto_id={prospecto_id}] — {tarea}[ — {extra}][ — Propuestas del Estratega: {salida_previa}]"
+  },
+  "resultados": {
+    "reportada": "Reportadas",
+    "descartada": "Descartadas",
+    "revision_humana": "Revisión humana",
+    "incompleta": "Incompletas"
+  },
+  "progreso": [
+    {
+      "id": "descubiertas",
+      "etiqueta": "Empresas del lote",
+      "sql": "SELECT COUNT(*) FROM empresas WHERE corrida_id=:corrida AND fusionada_con IS NULL AND metodo_descubrimiento!='hallazgo_oportunista'"
+    },
+    {
+      "id": "descartadas",
+      "etiqueta": "Descartadas",
+      "sql": "SELECT COUNT(*) FROM empresas WHERE corrida_id=:corrida AND fusionada_con IS NULL AND metodo_descubrimiento!='hallazgo_oportunista' AND etapa='descartada'"
+    },
+    {
+      "id": "prospectos",
+      "etiqueta": "Con expediente",
+      "sql": "SELECT COUNT(*) FROM prospectos WHERE corrida_id=:corrida"
+    },
+    {
+      "id": "reportados",
+      "etiqueta": "Reportados al dueño",
+      "sql": "SELECT COUNT(*) FROM prospectos WHERE corrida_id=:corrida AND estado='Reportado'"
+    },
+    {
+      "id": "revision_humana",
+      "etiqueta": "Revisión humana",
+      "sql": "SELECT COUNT(*) FROM prospectos WHERE corrida_id=:corrida AND estado='Revision humana'"
+    }
+  ],
+  "pasos": {
+    "cartografo": {
+      "agente": "Cartografo",
+      "roles": ["Cartografo"],
+      "prompts": ["cartografo"],
+      "herramientas": [
+        "places_search",
+        "crm_directorio_buscar",
+        "crm_registrar_busqueda",
+        "crm_upsert_empresa",
+        "crm_actividad"
+      ],
+      "web": false,
+      "max_turnos": 14
+    },
+    "explorador": {
+      "agente": "Explorador",
+      "roles": ["Explorador"],
+      "prompts": ["explorador"],
+      "herramientas": [
+        "obscura_extract",
+        "crm_directorio_buscar",
+        "crm_registrar_busqueda",
+        "crm_upsert_empresa",
+        "crm_actividad"
+      ],
+      "web": true,
+      "max_turnos": 40
+    },
+    "guardian": {
+      "agente": "Guardian",
+      "roles": ["Guardian"],
+      "prompts": ["guardian"],
+      "herramientas": [
+        "crm_directorio_buscar",
+        "crm_etapa_empresa",
+        "crm_expediente",
+        "crm_actividad"
+      ],
+      "web": false,
+      "max_turnos": 30
+    },
+    "rastreador": {
+      "agente": "Rastreador",
+      "roles": ["Rastreador"],
+      "prompts": ["rastreador"],
+      "herramientas": [
+        "obscura_extract",
+        "crm_add_contacto",
+        "crm_registrar_hallazgo",
+        "crm_etapa_empresa",
+        "crm_expediente",
+        "crm_directorio_buscar",
+        "crm_actividad"
+      ],
+      "web": true,
+      "max_turnos": 30
+    },
+    "analista": {
+      "agente": "Analista",
+      "roles": ["Analista"],
+      "prompts": ["analista"],
+      "herramientas": [
+        "obscura_extract",
+        "crm_guardar_ficha",
+        "crm_registrar_hallazgo",
+        "crm_etapa_empresa",
+        "crm_expediente",
+        "crm_actividad"
+      ],
+      "web": true,
+      "max_turnos": 20
+    },
+    "estratega": {
+      "agente": "Estratega",
+      "roles": ["Estratega"],
+      "prompts": ["estratega"],
+      "herramientas": ["crm_expediente", "crm_actividad"],
+      "web": false,
+      "max_turnos": 6
+    },
+    "armador": {
+      "agente": "Armador",
+      "roles": ["Armador"],
+      "prompts": ["armador"],
+      "herramientas": ["crm_expediente", "crm_guardar_propuestas", "crm_actividad"],
+      "web": false,
+      "max_turnos": 8
+    },
+    "estratega_armador": {
+      "agente": "Armador",
+      "roles": ["Estratega", "Armador"],
+      "prompts": ["estratega", "armador"],
+      "herramientas": ["crm_expediente", "crm_guardar_propuestas", "crm_actividad"],
+      "web": false,
+      "max_turnos": 10
+    },
+    "qa1": {
+      "agente": "QA-1",
+      "roles": ["QA-1"],
+      "prompts": ["qa1"],
+      "herramientas": ["crm_expediente", "crm_qa", "obscura_extract", "crm_actividad"],
+      "web": false,
+      "max_turnos": 14
+    },
+    "calificador": {
+      "agente": "Calificador",
+      "roles": ["Calificador"],
+      "prompts": ["calificador"],
+      "herramientas": ["crm_expediente", "crm_guardar_score", "crm_actividad"],
+      "web": false,
+      "max_turnos": 6
+    },
+    "redactor": {
+      "agente": "Redactor",
+      "roles": ["Redactor"],
+      "prompts": ["redactor"],
+      "herramientas": ["crm_expediente", "crm_guardar_reporte", "crm_actividad"],
+      "web": false,
+      "max_turnos": 6
+    },
+    "calificador_redactor": {
+      "agente": "Redactor",
+      "roles": ["Calificador", "Redactor"],
+      "prompts": ["calificador", "redactor"],
+      "herramientas": [
+        "crm_expediente",
+        "crm_guardar_score",
+        "crm_guardar_reporte",
+        "crm_actividad"
+      ],
+      "web": false,
+      "max_turnos": 10
+    },
+    "qa2": {
+      "agente": "QA-2",
+      "roles": ["QA-2"],
+      "prompts": ["qa2"],
+      "herramientas": ["crm_expediente", "crm_qa", "crm_finalizar_prospecto", "crm_actividad"],
+      "web": false,
+      "max_turnos": 10
+    }
+  },
+  "fases": [
+    {
+      "tipo": "descubrir",
+      "id": "descubriendo",
+      "cuenta": "SELECT COUNT(*) FROM empresas WHERE corrida_id=:corrida AND fusionada_con IS NULL AND metodo_descubrimiento!='hallazgo_oportunista'",
+      "fuentes": [
+        {
+          "paso": "cartografo",
+          "rondas": 1,
+          "requiere": "places",
+          "mensaje": "corrida_id={corrida} zona={zona} giro={giro} faltan={faltan} — Descubre hasta {faltan} empresa(s) NUEVAS (no repitas las del directorio).",
+          "agotado": "SELECT COALESCE((SELECT contador FROM places_uso WHERE mes=strftime('%Y-%m','now') AND sku='pro'),0) >= COALESCE((SELECT CAST(valor AS INTEGER) FROM configuracion WHERE clave='places_tope_pro'),4900)"
+        },
+        {
+          "paso": "explorador",
+          "rondas": 2,
+          "mensaje": "corrida_id={corrida} zona={zona} giro={giro} faltan={faltan} — Descubre hasta {faltan} empresa(s) NUEVAS (no repitas las del directorio)."
+        }
+      ]
+    },
+    {
+      "tipo": "lote",
+      "id": "filtrando",
+      "paso": "guardian",
+      "solo_agrupado": true,
+      "items": "SELECT id FROM (SELECT id, etapa FROM empresas WHERE corrida_id=:corrida AND fusionada_con IS NULL AND metodo_descubrimiento!='hallazgo_oportunista' ORDER BY id LIMIT :meta) WHERE etapa='descubierta'",
+      "mensaje": "corrida_id={corrida} empresa_ids={ids} — Filtra este lote (duplicado, gobierno, no_contactar, B2B viable, zona piloto)."
+    },
+    {
+      "tipo": "por_item",
+      "id": "procesando",
+      "items": "SELECT id, nombre FROM empresas WHERE corrida_id=:corrida AND fusionada_con IS NULL AND metodo_descubrimiento!='hallazgo_oportunista' ORDER BY id LIMIT :meta",
+      "terminales": [
+        {
+          "si": "SELECT COALESCE((SELECT etapa='descartada' FROM empresas WHERE id=:item),0)",
+          "resultado": "descartada"
+        },
+        {
+          "si": "SELECT COALESCE((SELECT estado='Revision humana' FROM prospectos WHERE empresa_id=:item),0)",
+          "resultado": "revision_humana"
+        },
+        {
+          "si": "SELECT COALESCE((SELECT etapa='prospecto' FROM empresas WHERE id=:item),0)",
+          "resultado": "reportada"
+        }
+      ],
+      "flujo": [
+        {
+          "tipo": "paso",
+          "paso": "guardian",
+          "tarea": "Filtra esta empresa (duplicado, gobierno, no_contactar, B2B viable, zona piloto).",
+          "si": "SELECT COALESCE((SELECT etapa='descubierta' FROM empresas WHERE id=:item),0)",
+          "verifica": "SELECT COALESCE((SELECT etapa IN ('filtrada','descartada') FROM empresas WHERE id=:item),0)",
+          "falta": "la etapa de la empresa debe quedar en filtrada o descartada"
+        },
+        {
+          "tipo": "paso",
+          "paso": "rastreador",
+          "tarea": "Encuentra su sitio web oficial y sus contactos de negocio.",
+          "si": "SELECT COALESCE((SELECT etapa='filtrada' FROM empresas WHERE id=:item),0)",
+          "verifica": "SELECT COALESCE((SELECT etapa IN ('enriquecida','descartada') FROM empresas WHERE id=:item),0)",
+          "falta": "la etapa de la empresa debe quedar en enriquecida o descartada (crm_etapa_empresa)"
+        },
+        {
+          "tipo": "paso",
+          "paso": "analista",
+          "tarea": "Analiza la empresa y guarda la ficha.",
+          "si": "SELECT COALESCE((SELECT etapa='enriquecida' FROM empresas WHERE id=:item),0)",
+          "verifica": "SELECT COALESCE((SELECT etapa IN ('analizada','descartada') FROM empresas WHERE id=:item),0)",
+          "falta": "falta guardar la ficha y cerrar la etapa como analizada"
+        },
+        {
+          "tipo": "paso",
+          "paso": "estratega_armador",
+          "tarea": "Propón categorías Lenovo/Aruba y arma los paquetes (sin precios).",
+          "si": "SELECT COALESCE((SELECT etapa='analizada' FROM empresas WHERE id=:item),0) AND NOT EXISTS(SELECT 1 FROM paquetes pa JOIN prospectos p ON p.id=pa.prospecto_id WHERE p.empresa_id=:item)",
+          "verifica": "SELECT EXISTS(SELECT 1 FROM paquetes pa JOIN prospectos p ON p.id=pa.prospecto_id WHERE p.empresa_id=:item)",
+          "falta": "falta guardar propuestas y paquetes con crm_guardar_propuestas",
+          "sin_agrupar": [
+            {
+              "paso": "estratega",
+              "tarea": "Propón categorías Lenovo/Aruba. Tu salida pasa al Armador.",
+              "pasa_salida": true
+            },
+            {
+              "paso": "armador",
+              "tarea": "Arma los paquetes con lo propuesto.",
+              "verifica": "SELECT EXISTS(SELECT 1 FROM paquetes pa JOIN prospectos p ON p.id=pa.prospecto_id WHERE p.empresa_id=:item)",
+              "falta": "falta guardar propuestas y paquetes"
+            }
+          ]
+        },
+        {
+          "tipo": "ciclo",
+          "max_vueltas": 14,
+          "devolucion": {
+            "consulta": "SELECT r.id AS id, (r.aprobado=0) AS pendiente, r.etapa AS origen, r.devolver_a AS destino, r.motivos AS motivos FROM revisiones_qa r JOIN prospectos p ON p.id=r.prospecto_id WHERE p.empresa_id=:item ORDER BY r.id DESC LIMIT 1",
+            "mapa": {
+              "rastr": "rastreador",
+              "analis": "analista",
+              "estrat": {
+                "agrupado": "estratega_armador",
+                "separado": "armador"
+              },
+              "armad": {
+                "agrupado": "estratega_armador",
+                "separado": "armador"
+              },
+              "calific": {
+                "agrupado": "calificador_redactor",
+                "separado": "calificador"
+              },
+              "redact": "redactor"
+            },
+            "defecto": {
+              "qa1": {
+                "agrupado": "estratega_armador",
+                "separado": "armador"
+              },
+              "qa2": "redactor"
+            }
+          },
+          "etapas": [
+            {
+              "si": "SELECT COALESCE((SELECT r.aprobado FROM revisiones_qa r JOIN prospectos p ON p.id=r.prospecto_id WHERE p.empresa_id=:item AND r.etapa='qa1' ORDER BY r.id DESC LIMIT 1),0)=0",
+              "paso": "qa1",
+              "tarea": "Revisa el expediente.",
+              "aumenta": "SELECT COUNT(*) FROM revisiones_qa r JOIN prospectos p ON p.id=r.prospecto_id WHERE p.empresa_id=:item AND r.etapa='qa1'",
+              "falta": "falta registrar tu veredicto con crm_qa (etapa qa1)"
+            },
+            {
+              "si": "SELECT COALESCE((SELECT score IS NULL OR COALESCE(reporte_md,'')='' FROM prospectos WHERE empresa_id=:item),0)",
+              "paso": "calificador_redactor",
+              "tarea": "Califica y redacta el reporte.",
+              "verifica": "SELECT COALESCE((SELECT score IS NOT NULL AND COALESCE(reporte_md,'')!='' FROM prospectos WHERE empresa_id=:item),0)",
+              "falta": "falta guardar el score (crm_guardar_score) y el reporte (crm_guardar_reporte)",
+              "sin_agrupar": [
+                {
+                  "paso": "calificador",
+                  "tarea": "Califica el prospecto.",
+                  "si": "SELECT COALESCE((SELECT score IS NULL FROM prospectos WHERE empresa_id=:item),0)",
+                  "verifica": "SELECT COALESCE((SELECT score IS NOT NULL FROM prospectos WHERE empresa_id=:item),0)",
+                  "falta": "falta guardar el score"
+                },
+                {
+                  "paso": "redactor",
+                  "tarea": "Redacta el reporte interno.",
+                  "si": "SELECT COALESCE((SELECT COALESCE(reporte_md,'')='' FROM prospectos WHERE empresa_id=:item),0)",
+                  "verifica": "SELECT COALESCE((SELECT COALESCE(reporte_md,'')!='' FROM prospectos WHERE empresa_id=:item),0)",
+                  "falta": "falta guardar el reporte"
+                }
+              ]
+            },
+            {
+              "si": "SELECT COALESCE((SELECT r.aprobado FROM revisiones_qa r JOIN prospectos p ON p.id=r.prospecto_id WHERE p.empresa_id=:item AND r.etapa='qa2' ORDER BY r.id DESC LIMIT 1),0)=0",
+              "paso": "qa2",
+              "tarea": "Revisión final.",
+              "aumenta": "SELECT COUNT(*) FROM revisiones_qa r JOIN prospectos p ON p.id=r.prospecto_id WHERE p.empresa_id=:item AND r.etapa='qa2'",
+              "falta": "falta registrar tu veredicto con crm_qa (etapa qa2)"
+            }
+          ],
+          "cierre": {
+            "gancho": "finalizar_prospecto"
+          }
+        }
+      ]
+    }
+  ]
+}

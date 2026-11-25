@@ -2,8 +2,11 @@ import { EventEmitter } from 'node:events';
 import type { Db } from '../db';
 import { nowIso } from '../db';
 
+export const OFICINA_POR_DEFECTO = 'prospeccion';
+
 export interface ActividadEvento {
   id: number;
+  office_id: string;
   corrida_id: number | null;
   agente: string;
   accion: string;
@@ -20,6 +23,7 @@ export interface ActividadInput {
   entidad_id?: number | undefined;
   detalle?: string | undefined;
   corrida_id?: number | undefined;
+  office_id?: string | undefined;
 }
 
 /** Bus en memoria: la pantalla "Ver oficina" y la bitácora se alimentan por SSE. */
@@ -33,8 +37,8 @@ export function registrarActividad(db: Db, bus: EventBus, input: ActividadInput)
   const creado = nowIso();
   const r = db
     .prepare(
-      `INSERT INTO actividad_agentes (corrida_id, agente, accion, entidad, entidad_id, detalle, creado_en)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO actividad_agentes (corrida_id, agente, accion, entidad, entidad_id, detalle, creado_en, office_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       input.corrida_id ?? null,
@@ -44,9 +48,11 @@ export function registrarActividad(db: Db, bus: EventBus, input: ActividadInput)
       input.entidad_id ?? null,
       input.detalle ?? null,
       creado,
+      input.office_id ?? OFICINA_POR_DEFECTO,
     );
   const evento: ActividadEvento = {
     id: Number(r.lastInsertRowid),
+    office_id: input.office_id ?? OFICINA_POR_DEFECTO,
     corrida_id: input.corrida_id ?? null,
     agente: input.agente,
     accion: input.accion,

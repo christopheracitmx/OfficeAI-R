@@ -41,7 +41,9 @@ export function createApp(d: Deps): express.Express {
       Connection: 'keep-alive',
     });
     res.write('retry: 3000\n\n');
+    const oficina = typeof req.query['office_id'] === 'string' ? req.query['office_id'] : null;
     const onEvent = (e: ActividadEvento) =>
+      (oficina === null || e.office_id === oficina) &&
       res.write(`event: actividad\ndata: ${JSON.stringify(e)}\n\n`);
     d.bus.on('actividad', onEvent);
     const ping = setInterval(() => res.write(': ping\n\n'), 20000);

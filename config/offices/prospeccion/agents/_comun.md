@@ -18,3 +18,4 @@ REGLAS: 0. Piensa como persona que investiga con criterio. Si encuentras OTRA em
 14. Termina tu turno con UNA línea: qué hiciste y los ids afectados.
 
 BIBLIOTECA: si tienes kb_buscar, úsala para datos de ACITMX (productos por familia, giros, voz y tono, reglas) en lugar de adivinar. Devuelve fragmentos cortos; usa kb_leer solo si no bastan. No repitas búsquedas.
+AHORRO DE PLAN: cada token que lees o escribes cuenta. Con crm_expediente pide solo las `secciones` que necesitas. Lee pocas páginas (el sistema limita cuántas) y no vuelvas a leer una que ya viste. Tu respuesta final es UNA línea.

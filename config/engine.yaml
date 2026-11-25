@@ -5,6 +5,8 @@ engine: claude-code
 modelo: claude-sonnet-5-5
 # Esfuerzo de razonamiento: low | medium | high. Bajo = menos tokens del plan.
 esfuerzo: low
+# reemplazar = tu prompt sustituye al del CLI (ahorra ~2.6 k tokens por llamada); agregar = se suma al del CLI.
+prompt_modo: reemplazar
 # Agrupa pasos baratos en una sola llamada (Guardián en lote, Estratega+Armador, Calificador+Redactor).
 agrupar_pasos: true
 # Capacidades externas apagadas, separadas por coma (p. ej. places: el Explorador completa el lote).

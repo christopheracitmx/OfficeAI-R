@@ -23,6 +23,8 @@ const paso = z.object({
   herramientas: z.array(z.string()),
   web: z.boolean().default(false),
   max_turnos: z.number().int().positive(),
+  /** Tope de lecturas de páginas web por llamada (cuida el plan). */
+  max_lecturas: z.number().int().min(1).max(30).optional(),
 });
 
 const verificacion = {

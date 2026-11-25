@@ -10,6 +10,8 @@ export interface WebDeps {
   obscura: OpcionesFetch;
   placesKey: string;
   fetchFn?: typeof fetch;
+  /** Topes por llamada del agente (cada llamada es un proceso MCP nuevo): páginas y caracteres devueltos. */
+  limites?: { paginas: number; texto: number; leidas: number };
 }
 
 export const placesSchema = {
@@ -33,6 +35,29 @@ type RespuestaCache = { texto_compacto: string; emails: string; telefonos: strin
 
 /** Cadena de lectura: caché → obscura fetch → (el agente usa web_search si devuelve ok:false). */
 export async function obscuraExtract(
+  url: string,
+  d: WebDeps,
+): Promise<
+  | (Extraccion & { origen: 'cache' | 'obscura' })
+  | { ok: false; error: string; siguiente: 'web_search' | 'terminar' }
+> {
+  const lim = d.limites;
+  if (lim) {
+    if (lim.leidas >= lim.paginas)
+      return {
+        ok: false,
+        error: `Tope de ${lim.paginas} páginas para este paso: trabaja con lo que ya leíste y guárdalo.`,
+        siguiente: 'terminar',
+      };
+    lim.leidas++;
+  }
+  const r = await leerPagina(url, d);
+  return lim && 'texto_compacto' in r
+    ? { ...r, texto_compacto: r.texto_compacto.slice(0, lim.texto) }
+    : r;
+}
+
+async function leerPagina(
   url: string,
   d: WebDeps,
 ): Promise<

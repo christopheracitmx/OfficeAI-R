@@ -27,6 +27,11 @@ const web: WebDeps = {
   api,
   obscura: { bin: resolve(raiz, process.env['OBSCURA_BIN'] ?? '../tools/obscura/obscura.exe') },
   placesKey: process.env['GOOGLE_PLACES_API_KEY'] ?? '',
+  limites: {
+    paginas: Number(process.env['CRM_MAX_PAGINAS']) || 8,
+    texto: Number(process.env['CRM_TEXTO_MAX']) || 3500,
+    leidas: 0,
+  },
 };
 
 const salida = (data: unknown, isError = false) => ({

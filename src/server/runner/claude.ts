@@ -46,7 +46,7 @@ export function argsClaude(
     '--mcp-config',
     mcpConfig,
     '--strict-mcp-config',
-    '--append-system-prompt',
+    ctx.promptModo === 'agregar' ? '--append-system-prompt' : '--system-prompt',
     i.prompt,
     '--permission-mode',
     'dontAsk',
@@ -67,6 +67,7 @@ export function argsClaude(
 }
 
 type Json = Record<string, unknown>;
+const num = (v: unknown): number => (typeof v === 'number' ? v : 0);
 const obj = (v: unknown): Json | null => (v && typeof v === 'object' ? (v as Json) : null);
 
 export interface EstadoLectura {
@@ -152,8 +153,17 @@ export function resultadoClaude(
         .map((k) => (typeof u[k] === 'number' ? u[k] : 0))
         .reduce((a, b) => a + b, 0)
     : undefined;
+  const pond = u
+    ? Math.round(
+        num(u['input_tokens']) +
+          num(u['output_tokens']) +
+          1.25 * num(u['cache_creation_input_tokens']) +
+          0.1 * num(u['cache_read_input_tokens']),
+      )
+    : undefined;
   const extra = {
     ...(tokens !== undefined ? { tokens } : {}),
+    ...(pond !== undefined ? { tokens_ponderados: pond } : {}),
     ...(turnos !== undefined ? { turnos } : {}),
     ...(st.cuotaAgotada ? { cuota_agotada: true } : {}),
   };

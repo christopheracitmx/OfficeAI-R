@@ -84,7 +84,10 @@ describe('adaptador claude-code (flags verificadas en el spike)', () => {
     expect(a[a.indexOf('--model') + 1]).toBe('claude-sonnet-5-5');
     expect(a[a.indexOf('--effort') + 1]).toBe('low');
     expect(a[a.indexOf('--max-turns') + 1]).toBe('30');
-    expect(a[a.indexOf('--append-system-prompt') + 1]).toBe(entrada.prompt);
+    expect(a[a.indexOf('--system-prompt') + 1]).toBe(entrada.prompt);
+    expect(argsClaude({ ...ctx, promptModo: 'agregar' }, entrada, 'm.json')).toContain(
+      '--append-system-prompt',
+    );
     expect(a[a.indexOf('--tools') + 1]).toBe('WebSearch');
     const permitidas = a.slice(a.indexOf('--allowedTools') + 1);
     expect(permitidas).toEqual([

@@ -70,8 +70,29 @@ export function crmTools(api: CrmApi): ToolDef[] {
       name: 'crm_expediente',
       description:
         'Lee (solo lectura) el expediente completo de una empresa por empresa_id: datos, contactos con fuente, necesidades, prospecto, productos, paquetes, score, reporte y revisiones de QA. Es la forma de ver el trabajo de los agentes anteriores.',
-      schema: { empresa_id: z.number().int().positive() },
-      run: (a) => api.get(`/expediente/${String(a['empresa_id'])}`),
+      schema: {
+        empresa_id: z.number().int().positive(),
+        secciones: z
+          .array(
+            z.enum([
+              'empresa',
+              'contactos',
+              'necesidades',
+              'prospecto',
+              'productos',
+              'paquetes',
+              'revisiones_qa',
+            ]),
+          )
+          .optional()
+          .describe(
+            'Pide solo las secciones que necesitas (ahorra plan). Sin esto trae todo, resumido.',
+          ),
+      },
+      run: (a) =>
+        api.get(
+          `/expediente/${String(a['empresa_id'])}${Array.isArray(a['secciones']) ? `?secciones=${(a['secciones'] as string[]).join(',')}` : ''}`,
+        ),
     },
     {
       name: 'crm_directorio_buscar',

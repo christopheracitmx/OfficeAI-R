@@ -140,4 +140,5 @@ CREATE INDEX idx_cambios_office ON cambios_log (office_id, id DESC);
 ALTER TABLE salidas_agente ADD COLUMN rol TEXT;
 ALTER TABLE salidas_agente ADD COLUMN prompt_tokens INTEGER;
 ALTER TABLE salidas_agente ADD COLUMN turnos INTEGER;
+ALTER TABLE salidas_agente ADD COLUMN tokens_brutos INTEGER;
 ALTER TABLE salidas_agente ADD COLUMN herramientas TEXT;

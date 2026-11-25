@@ -16,6 +16,7 @@ export interface AgenteDef {
   /** Si el motor debe darle su búsqueda web nativa. */
   webSearch: boolean;
   maxTurnos: number;
+  maxLecturas?: number | undefined;
 }
 
 export interface ProgresoAgente {
@@ -49,8 +50,10 @@ export interface ResultadoAgente {
   reset_en?: number;
   /** Una herramienta devolvió quota_exceeded (cuota de un servicio externo). */
   cuota_agotada?: boolean;
-  /** Tokens consumidos en el paso (si el motor lo informa). */
+  /** Tokens brutos del paso (suma de todo lo que reporta el motor, incluida la caché leída en cada turno). */
   tokens?: number;
+  /** Consumo equivalente: entrada + salida + 1.25×caché escrita + 0.1×caché leída (refleja mejor el costo real). */
+  tokens_ponderados?: number;
   timeout?: boolean;
   abortado?: boolean;
   error?: string;
@@ -76,6 +79,7 @@ export interface ContextoMotor {
   modelo?: string | undefined;
   /** Esfuerzo de razonamiento del motor (bajo = menos tokens). */
   esfuerzo?: string | undefined;
+  promptModo?: 'reemplazar' | 'agregar' | undefined;
   /** Para tests: variables extra del proceso hijo. */
   env?: NodeJS.ProcessEnv | undefined;
 }

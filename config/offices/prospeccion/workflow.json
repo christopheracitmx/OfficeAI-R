@@ -81,7 +81,8 @@
         "crm_actividad"
       ],
       "web": true,
-      "max_turnos": 40
+      "max_turnos": 40,
+      "max_lecturas": 10
     },
     "guardian": {
       "agente": "Guardian",
@@ -94,7 +95,8 @@
         "crm_actividad"
       ],
       "web": false,
-      "max_turnos": 30
+      "max_turnos": 30,
+      "max_lecturas": 3
     },
     "rastreador": {
       "agente": "Rastreador",
@@ -110,7 +112,8 @@
         "crm_actividad"
       ],
       "web": true,
-      "max_turnos": 30
+      "max_turnos": 30,
+      "max_lecturas": 8
     },
     "analista": {
       "agente": "Analista",
@@ -127,7 +130,8 @@
         "kb_leer"
       ],
       "web": true,
-      "max_turnos": 20
+      "max_turnos": 20,
+      "max_lecturas": 4
     },
     "estratega": {
       "agente": "Estratega",

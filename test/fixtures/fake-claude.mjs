@@ -29,7 +29,7 @@ log({
   esfuerzo: val('--effort'),
   maxTurns: val('--max-turns'),
   placesKey: env.GOOGLE_PLACES_API_KEY,
-  prompt: val('--append-system-prompt'),
+  prompt: val('--system-prompt'),
 });
 
 const emit = (o) =>

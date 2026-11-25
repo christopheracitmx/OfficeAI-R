@@ -12,6 +12,8 @@ export interface ConfigRunner {
   agrupar_pasos: boolean;
   /** Esfuerzo de razonamiento (low | medium | high...). Bajo = menos tokens del plan. */
   esfuerzo: string | undefined;
+  /** `reemplazar` = nuestro prompt sustituye al del CLI (ahorra ~2.6 k tokens por llamada); `agregar` = se suma. */
+  prompt_modo: 'reemplazar' | 'agregar';
   /** Capacidades externas apagadas (p. ej. `places`): sus pasos se omiten y su llave se vacía. */
   capacidades_off: string[];
   timeout_paso_min: number;
@@ -28,6 +30,7 @@ export const CONFIG_POR_DEFECTO: ConfigRunner = {
   modelo: MODELO_BASE,
   agrupar_pasos: true,
   esfuerzo: 'low',
+  prompt_modo: 'reemplazar',
   capacidades_off: [],
   timeout_paso_min: 10,
   max_minutos_corrida: 240,
@@ -64,6 +67,7 @@ export function parsearEngineYaml(texto: string): ConfigRunner {
       explicito = true;
     } else if (k === 'agrupar_pasos') c.agrupar_pasos = v !== 'false';
     else if (k === 'esfuerzo') c.esfuerzo = v || undefined;
+    else if (k === 'prompt_modo') c.prompt_modo = v === 'agregar' ? 'agregar' : 'reemplazar';
     else if (k === 'capacidades_off')
       c.capacidades_off = v
         .split(',')
@@ -93,6 +97,7 @@ export function crearEjecutor(cfg: ConfigRunner, ctx: ContextoMotor): EjecutarAg
     bin: ctx.bin ?? cfg.bin,
     modelo: ctx.modelo ?? cfg.modelo,
     esfuerzo: ctx.esfuerzo ?? cfg.esfuerzo,
+    promptModo: ctx.promptModo ?? cfg.prompt_modo,
   };
   switch (cfg.engine) {
     case 'claude-code':

@@ -5,7 +5,27 @@ import type { Db } from '../db';
  * Solo lectura. Es el único canal por el que un agente ve lo que hicieron los anteriores
  * (los mensajes entre agentes llevan solo ids).
  */
-export function expedienteEmpresa(db: Db, empresaId: number): unknown | null {
+const rec = (t: unknown, n: number): unknown =>
+  typeof t === 'string' && t.length > n ? `${t.slice(0, n)}… [recortado]` : t;
+const recortar = <T extends Record<string, unknown>>(o: T, tope: Record<string, number>): T => {
+  const c: Record<string, unknown> = { ...o };
+  for (const [k, n] of Object.entries(tope)) if (k in c) c[k] = rec(c[k], n);
+  return c as T;
+};
+
+/** `secciones` filtra lo que se devuelve; los textos largos se recortan (los agentes pagan por cada token que leen). */
+export function expedienteEmpresa(
+  db: Db,
+  empresaId: number,
+  secciones?: string[],
+): Record<string, unknown> | null {
+  const todo = expedienteCompleto(db, empresaId);
+  if (!todo || !secciones || secciones.length === 0) return todo;
+  const pedidas = new Set(secciones);
+  return Object.fromEntries(Object.entries(todo).filter(([k]) => pedidas.has(k)));
+}
+
+function expedienteCompleto(db: Db, empresaId: number): Record<string, unknown> | null {
   const q = (sql: string, ...a: unknown[]) => db.prepare(sql).all(...a);
   const e = db
     .prepare(
@@ -23,13 +43,24 @@ export function expedienteEmpresa(db: Db, empresaId: number): unknown | null {
     )
     .get(empresaId) as { prospecto_id: number } | undefined;
   return {
-    empresa: e,
+    empresa: recortar(e as Record<string, unknown>, { resumen: 700, origen_nota: 300 }),
     contactos: q(
       'SELECT tipo, valor, nombre, puesto, fuente_url FROM contactos WHERE empresa_id = ? ORDER BY tipo, id',
       empresaId,
     ),
-    necesidades: q('SELECT texto, tipo FROM necesidades WHERE empresa_id = ?', empresaId),
-    prospecto: p ?? null,
+    necesidades: (
+      q('SELECT texto, tipo FROM necesidades WHERE empresa_id = ?', empresaId) as Record<
+        string,
+        unknown
+      >[]
+    ).map((n) => recortar(n, { texto: 300 })),
+    prospecto: p
+      ? recortar(p as Record<string, unknown>, {
+          justificacion: 500,
+          reporte_md: 4000,
+          borrador_correo: 1800,
+        })
+      : null,
     productos: p
       ? q(
           'SELECT marca, categoria, razon, prioridad FROM propuestas_producto WHERE prospecto_id = ?',

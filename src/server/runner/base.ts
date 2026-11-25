@@ -96,6 +96,7 @@ export class RunnerBase {
       herramientas: p.herramientas,
       webSearch: p.web,
       maxTurnos: p.max_turnos,
+      maxLecturas: p.max_lecturas,
     };
   }
 
@@ -112,6 +113,7 @@ export class RunnerBase {
       CRM_AGENT: def.id,
       CRM_OFFICE: e.corrida.office_id,
       CRM_TOOLS: def.herramientas.join(','),
+      ...(def.maxLecturas ? { CRM_MAX_PAGINAS: String(def.maxLecturas) } : {}),
       ...Object.fromEntries(apagadas),
     };
     for (const rol of def.roles) this.evento(rol, 'recibió una tarea', mensaje, itemId);
@@ -173,8 +175,8 @@ export class RunnerBase {
     const e = this.ej!;
     const n = def.roles.length;
     const ins = this.d.db.prepare(
-      `INSERT INTO salidas_agente (office_id, corrida_id, agente, rol, paso, item_id, tipo, resumen, contenido, tokens_estimados, duracion_ms, resultado, prompt_tokens, turnos, herramientas)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      `INSERT INTO salidas_agente (office_id, corrida_id, agente, rol, paso, item_id, tipo, resumen, contenido, tokens_estimados, tokens_brutos, duracion_ms, resultado, prompt_tokens, turnos, herramientas)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     );
     for (const rol of def.roles)
       ins.run(
@@ -187,6 +189,9 @@ export class RunnerBase {
         'paso',
         (r.ok ? r.salida : (r.error ?? r.salida)).slice(0, 300),
         (r.salida || r.error || '').slice(0, 8000),
+        (r.tokens_ponderados ?? r.tokens) === undefined
+          ? null
+          : Math.ceil((r.tokens_ponderados ?? r.tokens ?? 0) / n),
         r.tokens === undefined ? null : Math.ceil(r.tokens / n),
         Math.round(ms / n),
         resultado,

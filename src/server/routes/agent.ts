@@ -103,7 +103,8 @@ export function agentRouter(d: Deps): Router {
   r.get(
     '/expediente/:id',
     ah((q, res) => {
-      const ex = expedienteEmpresa(db, idParam(q));
+      const sec = qstr(q.query['secciones']);
+      const ex = expedienteEmpresa(db, idParam(q), sec ? sec.split(',') : undefined);
       if (!ex) throw new HttpError(404, 'Empresa no encontrada');
       res.json(ex);
     }),

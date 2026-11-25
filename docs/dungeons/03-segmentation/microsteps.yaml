@@ -183,3 +183,14 @@ segmentation:
       - id: P7b-8
         titulo: "Cierre: gates, guía, meta-dungeon, Save Point"
         depende: [P7b-4, P7b-5, P7b-7]
+
+  P6.5:
+    - {id: P6.5-1, titulo: "Migración 005 + feedback + lecciones versionadas + validador", estado: hecho, commit: ec12dc2}
+    - {id: P6.5-2, titulo: "Reflexión a petición con estimado, reserva y salidas_agente", estado: hecho, commit: ec12dc2}
+    - {id: P6.5-3, titulo: "Desempeño por agente y oficina", estado: hecho, commit: ec12dc2}
+    - {id: P6.5-4, titulo: "Casos dorados y evaluaciones comparables", estado: hecho, commit: ec12dc2}
+    - {id: P6.5-5, titulo: "Respaldos manuales, CSV y registro de cambios (API)", estado: hecho, commit: ec12dc2}
+    - {id: P6.5-6, titulo: "Tests con CLI simulado y persistencia en archivo", estado: hecho, commit: ec12dc2}
+    - {id: P6.5-7, titulo: "UI Aprendizaje, feedback por etapa, Desempeño, Casos dorados", estado: hecho, commit: ee7de45}
+    - {id: P6.5-8, titulo: "UI Respaldos, Registro de cambios, Exportar CSV", estado: hecho, commit: ee7de45}
+    - {id: P6.5-9, titulo: "Panel 3D Aprendizaje + clic en sala + humo 3D con capturas", estado: hecho, commit: ee7de45}

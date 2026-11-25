@@ -73,3 +73,10 @@ En `crm\` (con `tools\node22` en el PATH): `npm run build` y luego `npx tsx test
 - Cada agente solo tiene las herramientas que necesita; no tiene acceso a archivos ni a la terminal.
 - El servidor escucha solo en 127.0.0.1; las acciones del dueño exigen el origen de la interfaz.
 - Tope duro de Places 4,900/mes; solo CDMX y Estado de México; sin gobierno; lista «No contactar».
+
+## 3f. Aprendizaje de los agentes (nada cambia solo)
+- En cada prospecto da 👍/👎 por etapa (contactos, ficha, paquetes, reporte), con etiqueta y nota. QA y tus resultados también quedan como retroalimentación.
+- **Aprendizaje** (barra lateral): bandeja de propuestas (aprobar/editar/descartar/archivar), lecciones activas por agente, historial, Desempeño y Casos dorados. Solo lo que apruebas llega a los prompts (máx. 10 por agente).
+- **Reflexión** es un botón: muestra el consumo estimado y pide confirmación; respeta la reserva del plan. Nunca corre sola.
+- **Casos dorados > Evaluar** mide un cambio de prompt contra casos de prueba (gasta plan, pide confirmación).
+- **Configuración > Respaldos**: crear respaldo y restaurar (escribe RESTAURAR; antes se respalda el estado actual). **Registro de cambios** y **Exportar CSV** (Prospectos).

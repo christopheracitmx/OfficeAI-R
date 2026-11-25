@@ -1,20 +1,18 @@
 import type { Request } from 'express';
 import { Router } from 'express';
-import { AGENTES, puedeCambiarEstado } from '../../shared/domain';
+import { AGENTES } from '../../shared/domain';
 import {
-  actividadInput,
   contactoInput,
   empresaInput,
   etapaInput,
   fichaInput,
-  finalizarInput,
   hallazgoInput,
   propuestasInput,
   reporteInput,
   revisionQaInput,
   scoreInput,
 } from '../../shared/schemas';
-import { consumirPlaces, corridaActivaId, QuotaExceededError } from '../services/admin';
+import { corridaActivaId } from '../services/admin';
 import {
   agregarContacto,
   buscarEnDirectorio,
@@ -25,16 +23,15 @@ import {
 } from '../services/empresas';
 import { expedienteEmpresa } from '../services/expediente';
 import { registrarActividad } from '../services/events';
-import { procesarEnvios } from '../services/mailer';
 import {
-  finalizarProspecto,
   guardarPropuestas,
   guardarReporte,
   guardarScore,
   registrarQa,
 } from '../services/prospectos';
-import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
 import { z } from 'zod';
+import { agentExtra } from './agent-extra';
+import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
 
 function agenteDe(req: Request): string {
   const n = req.header('x-agent-name') ?? '';
@@ -244,91 +241,7 @@ export function agentRouter(d: Deps): Router {
     }),
   );
 
-  r.post(
-    '/finalizar',
-    ah(async (q, res) => {
-      const { prospecto_id } = parse(finalizarInput, q.body);
-      if (!puedeCambiarEstado('agent', 'Reportado')) throw new HttpError(403, 'No permitido');
-      const out = finalizarProspecto(db, prospecto_id);
-      if (!out.ok) throw new HttpError(409, out.razones.join('; '));
-      log(q, 'guardó el prospecto en el CRM', 'prospecto', prospecto_id);
-      // Guardar primero, avisar después: un fallo de correo no deshace lo guardado.
-      const envio = await procesarEnvios(db, d.mailer, prospecto_id, {
-        from: d.from,
-        baseUrl: d.baseUrl,
-      });
-      log(
-        q,
-        `correo: ${envio.enviados} enviado(s), ${envio.fallidos} fallido(s)`,
-        'prospecto',
-        prospecto_id,
-      );
-      res.json({ ...out, ...envio });
-    }),
-  );
-
-  r.post(
-    '/places/consumir',
-    ah((q, res) => {
-      const n = parse(z.object({ n: z.number().int().min(1).max(10).default(1) }), q.body).n;
-      try {
-        res.json(consumirPlaces(db, n));
-      } catch (e) {
-        if (e instanceof QuotaExceededError) throw new HttpError(429, e.message);
-        throw e;
-      }
-    }),
-  );
-
-  // Caché local de páginas leídas con Obscura (TTL 7 días)
-  r.get(
-    '/cache',
-    ah((q, res) => {
-      const url = qstr(q.query['url']);
-      if (!url) throw new HttpError(400, 'Falta url');
-      const fila = db
-        .prepare(
-          "SELECT url, texto_compacto, emails, telefonos, obtenida_en FROM paginas_cache WHERE url = ? AND obtenida_en >= datetime('now','-7 days')",
-        )
-        .get(url);
-      res.json(fila ?? null);
-    }),
-  );
-
-  r.post(
-    '/cache',
-    ah((q, res) => {
-      const c = parse(
-        z.object({
-          url: z.string().url().max(1000),
-          texto_compacto: z.string().max(8000),
-          emails: z.array(z.string()).max(20),
-          telefonos: z.array(z.string()).max(20),
-        }),
-        q.body,
-      );
-      db.prepare(
-        `INSERT INTO paginas_cache (url, texto_compacto, emails, telefonos, obtenida_en) VALUES (?,?,?,?,?)
-       ON CONFLICT(url) DO UPDATE SET texto_compacto=excluded.texto_compacto, emails=excluded.emails,
-         telefonos=excluded.telefonos, obtenida_en=excluded.obtenida_en`,
-      ).run(
-        c.url,
-        c.texto_compacto,
-        JSON.stringify(c.emails),
-        JSON.stringify(c.telefonos),
-        new Date().toISOString(),
-      );
-      res.status(201).json({ ok: true });
-    }),
-  );
-
-  r.post(
-    '/actividad',
-    ah((q, res) => {
-      const a = parse(actividadInput, { ...(q.body as object), agente: agenteDe(q) });
-      res.status(201).json(registrarActividad(db, bus, a));
-    }),
-  );
+  agentExtra(r, d, log);
 
   return r;
 }

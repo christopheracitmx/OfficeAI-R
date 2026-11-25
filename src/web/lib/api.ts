@@ -95,20 +95,25 @@ export interface EventoActividad {
 }
 
 /** Suscripción SSE a la actividad de agentes (alimenta "Ver oficina"). */
-export function useEventosEnVivo(onEvento: (e: EventoActividad) => void): boolean {
+export function useEventosEnVivo(
+  onEvento: (e: EventoActividad) => void,
+  officeId?: string,
+): boolean {
   const [conectado, setConectado] = useState(false);
   const cb = useRef(onEvento);
   useEffect(() => {
     cb.current = onEvento;
   });
   useEffect(() => {
-    const es = new EventSource('/api/events');
+    const es = new EventSource(
+      officeId ? `/api/events?office_id=${encodeURIComponent(officeId)}` : '/api/events',
+    );
     es.onopen = () => setConectado(true);
     es.onerror = () => setConectado(false);
     es.addEventListener('actividad', (m) =>
       cb.current(JSON.parse((m as MessageEvent<string>).data) as EventoActividad),
     );
     return () => es.close();
-  }, []);
+  }, [officeId]);
   return conectado;
 }

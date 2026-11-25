@@ -182,7 +182,7 @@ export function defaultSala(texto: string, ancho = 6, fondo = 5): AparienciaSala
     piso: 'alfombra',
     colorPiso: '#D7DEE0',
     colorPared: '#F4F8FA',
-    alturaPared: 0.9,
+    alturaPared: 0.6,
     acento: '#00ADA9',
     mobiliario: 'cubiculos',
     utileria: ['plantas'],

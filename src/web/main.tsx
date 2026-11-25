@@ -13,7 +13,7 @@ import { Directorio } from './pages/Directorio';
 import { Embudo } from './pages/Embudo';
 import { Habilidades } from './pages/Habilidades';
 import { Inicio } from './pages/Inicio';
-import { Oficina } from './pages/Oficina';
+import { Oficina } from './oficina3d/Oficina3D';
 import { Prompts } from './pages/Prompts';
 import { Prospectos } from './pages/Prospectos';
 import { Salidas } from './pages/Salidas';

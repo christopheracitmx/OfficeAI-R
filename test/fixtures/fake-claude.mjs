@@ -84,6 +84,35 @@ function fallar(texto, extra = {}, code = 1) {
 const num = (re) => Number(re.exec(mensaje)?.[1] ?? 0);
 const sufijo = () => Math.random().toString(36).slice(2, 8);
 
+// Ventanas del plan como las emite el CLI real: `plan` fija el % de la ventana de 5 h para todos los
+// agentes y `plan_por_agente` lo fija por agente (0..1). `credito` simula un modelo que exige créditos.
+const uso5h = escenario.plan_por_agente?.[agente] ?? escenario.plan;
+if (uso5h !== undefined) {
+  const reinicio = Math.floor(Date.now() / 1000) + 3 * 3600;
+  emit({
+    type: 'rate_limit_event',
+    rate_limit_info: {
+      status: 'allowed',
+      resetsAt: reinicio,
+      rateLimitType: 'five_hour',
+      unifiedWindows: {
+        five_hour: { utilization: uso5h, resetsAt: reinicio, status: 'allowed' },
+        seven_day: {
+          utilization: escenario.semanal ?? 0.1,
+          resetsAt: reinicio + 86400,
+          status: 'allowed',
+        },
+      },
+    },
+  });
+}
+if (escenario.credito === agente) {
+  emit({
+    type: 'rate_limit_event',
+    rate_limit_info: { status: 'rejected', errorCode: 'credits_required', resetsAt: 1796083200 },
+  });
+  fallar('Fable 5.2 requires usage credits', { api_error_status: 429 });
+}
 if (escenario.limite === agente) {
   emit({ type: 'rate_limit_event', rate_limit_info: { status: 'rejected', resetsAt: 1795644000 } });
   fallar('Claude AI usage limit reached', { api_error_status: 429 });

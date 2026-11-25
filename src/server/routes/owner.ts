@@ -47,6 +47,7 @@ export function ownerRouter(d: Deps): Router {
         motor_ia: d.runner?.motor ?? cfg.motor_ia,
         runner: d.runner?.estado() ?? null,
         places: { usado, tope: cfg.places_tope_pro, mes },
+        base_datos: { ruta: db.name, modo: d.dbModo ?? 'demo' },
         resend_configurado: Boolean(d.env?.['RESEND_API_KEY']),
         remitente: d.from,
         corrida_activa: corrida,

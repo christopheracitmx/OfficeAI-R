@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod';
 import type { Db } from '../db';
+import { MODELOS_CLAUDE } from './types';
 
 /**
  * Definición de workflow de una oficina (JSON versionable). El motor genérico solo interpreta esta
@@ -25,6 +26,8 @@ const paso = z.object({
   max_turnos: z.number().int().positive(),
   /** Tope de lecturas de páginas web por llamada (cuida el plan). */
   max_lecturas: z.number().int().min(1).max(30).optional(),
+  /** Modelo de este paso (ahorro de plan). Sin valor usa el `modelo` de engine.yaml. */
+  modelo: z.enum(MODELOS_CLAUDE).optional(),
 });
 
 const verificacion = {

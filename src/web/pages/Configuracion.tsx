@@ -5,11 +5,13 @@ import { api, useApi } from '../lib/api';
 import type { Config, Destinatario, EstadoApp } from '../lib/types';
 
 import { NoContactar, Giros, inp } from './ConfListas';
+import { ConfPlan } from './ConfPlan';
 
 const TABS = [
   'Correos de reportes',
   'Corridas',
   'Cuotas y motor',
+  'Plan y reserva',
   'No contactar',
   'Giros',
 ] as const;
@@ -215,6 +217,15 @@ function Cuotas() {
         </p>
       </Card>
       <Card>
+        <div className="text-muted">Base de datos</div>
+        <div className="break-all font-mono text-sm font-semibold">{e.data.base_datos.ruta}</div>
+        <p className="mt-2 text-sm text-muted">
+          Modo: <b>{e.data.base_datos.modo === 'real' ? 'real' : 'DEMOSTRACIÓN (no es tu base)'}</b>
+          . Antes de cada migración se respalda en la carpeta <code>backups</code> junto a la base
+          (se conservan los últimos 5).
+        </p>
+      </Card>
+      <Card>
         <div className="text-muted">Motor de IA activo</div>
         <div className="text-2xl font-bold">{e.data.motor_ia}</div>
         <p className="mt-2 text-sm text-muted">
@@ -252,6 +263,7 @@ export function Configuracion() {
       {tab === 'Correos de reportes' && <Correos />}
       {tab === 'Corridas' && <Corridas />}
       {tab === 'Cuotas y motor' && <Cuotas />}
+      {tab === 'Plan y reserva' && <ConfPlan />}
       {tab === 'No contactar' && <NoContactar />}
       {tab === 'Giros' && <Giros />}
     </>

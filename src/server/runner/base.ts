@@ -3,6 +3,7 @@ import { registrarActividad } from '../services/events';
 import { leerCorrida, type CorridaFila } from './datos';
 import type { Ejecucion, RunnerDeps } from './estado';
 import { FinCorrida } from './fin';
+import { guardarLimites, motivoReserva } from './plan';
 import type { ConfigRunner } from './motor';
 import type { AgenteDef, Motor, ResultadoAgente } from './types';
 import type { Workflow } from './workflow';
@@ -80,6 +81,10 @@ export class RunnerBase {
         'error',
         `Tiempo máximo de la corrida (${this.d.cfg.max_minutos_corrida} min) excedido`,
       );
+    if (!e.ignorarReserva) {
+      const reserva = motivoReserva(this.d.db);
+      if (reserva) throw new FinCorrida('pausada_reserva_plan', reserva);
+    }
     if (e.pasos >= this.pasosMax(e))
       throw new FinCorrida(
         'error',
@@ -97,6 +102,7 @@ export class RunnerBase {
       webSearch: p.web,
       maxTurnos: p.max_turnos,
       maxLecturas: p.max_lecturas,
+      modelo: p.modelo,
     };
   }
 
@@ -136,6 +142,7 @@ export class RunnerBase {
       },
     });
     e.paso = null;
+    if (r.plan) guardarLimites(this.d.db, r.plan, def.modelo ?? this.d.cfg.modelo);
     const resultado = r.abortado
       ? 'abortado'
       : r.limite_plan
@@ -175,8 +182,8 @@ export class RunnerBase {
     const e = this.ej!;
     const n = def.roles.length;
     const ins = this.d.db.prepare(
-      `INSERT INTO salidas_agente (office_id, corrida_id, agente, rol, paso, item_id, tipo, resumen, contenido, tokens_estimados, tokens_brutos, duracion_ms, resultado, prompt_tokens, turnos, herramientas)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      `INSERT INTO salidas_agente (office_id, corrida_id, agente, rol, paso, item_id, tipo, resumen, contenido, tokens_estimados, tokens_brutos, duracion_ms, resultado, prompt_tokens, turnos, herramientas, modelo)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     );
     for (const rol of def.roles)
       ins.run(
@@ -198,6 +205,7 @@ export class RunnerBase {
         extra.promptTokens,
         r.turnos ?? null,
         JSON.stringify(extra.usadas),
+        def.modelo ?? this.d.cfg.modelo ?? null,
       );
   }
 

@@ -46,7 +46,20 @@ export function Camara({ d, t, quieto }: { d: DefinicionOficina; t: Tienda; quie
   // Seleccionar agente => centrar y acercar
   useEffect(() => {
     let previo = t.get().seleccionado;
+    let previoEnc = t.get().encuadre?.n ?? 0;
     return t.suscribir(() => {
+      const enc = t.get().encuadre;
+      if (enc && enc.n !== previoEnc) {
+        previoEnc = enc.n;
+        s.current.ox = enc.x;
+        s.current.oz = enc.z;
+        s.current.zoomMeta = THREE.MathUtils.clamp(
+          ajuste * enc.k,
+          lim.current.min,
+          lim.current.max,
+        );
+        invalidate();
+      }
       const sel = t.get().seleccionado;
       if (sel === previo) return;
       previo = sel;

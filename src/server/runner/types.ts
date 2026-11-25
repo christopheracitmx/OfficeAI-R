@@ -1,4 +1,5 @@
 // Contratos del runner: la interfaz común de motor y las definiciones de agentes.
+import type { InfoPlan } from './plan';
 
 export type Motor = 'claude-code' | 'opencode' | 'gemini';
 export const MOTORES: readonly Motor[] = ['claude-code', 'opencode', 'gemini'];
@@ -17,6 +18,8 @@ export interface AgenteDef {
   webSearch: boolean;
   maxTurnos: number;
   maxLecturas?: number | undefined;
+  /** Modelo de este paso (ahorro de plan). Sin valor usa el `modelo` de engine.yaml. */
+  modelo?: string | undefined;
 }
 
 export interface ProgresoAgente {
@@ -48,6 +51,10 @@ export interface ResultadoAgente {
   limite_plan?: boolean;
   /** Epoch en segundos en que el motor dice que se libera el límite (si lo informa). */
   reset_en?: number;
+  /** Estado de las ventanas del plan que emitió el CLI (rate_limit_event), si lo informó. */
+  plan?: InfoPlan;
+  /** El modelo exige créditos de uso que la cuenta no tiene (no es el límite del plan). */
+  requiere_creditos?: boolean;
   /** Una herramienta devolvió quota_exceeded (cuota de un servicio externo). */
   cuota_agotada?: boolean;
   /** Tokens brutos del paso (suma de todo lo que reporta el motor, incluida la caché leída en cada turno). */
@@ -83,5 +90,13 @@ export interface ContextoMotor {
   /** Para tests: variables extra del proceso hijo. */
   env?: NodeJS.ProcessEnv | undefined;
 }
+
+/** Modelos que acepta `claude --model` en el plan Pro (verificado con el CLI real; ver consumo-tokens.md). */
+export const MODELOS_CLAUDE = [
+  'claude-haiku-5-5',
+  'claude-sonnet-5-5',
+  'claude-opus-5-5',
+  'claude-fable-5-2',
+] as const;
 
 export const NOMBRE_MCP = 'acitmx-crm';

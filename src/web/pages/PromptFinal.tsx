@@ -36,6 +36,14 @@ export function PromptFinal() {
             ))}
           </select>
         </label>
+        {pasos.data.find((p) => p.paso === elegido)?.modelo && (
+          <span
+            className="rounded-full border border-line px-3 py-1 text-sm"
+            title="Se cambia con el campo «modelo» del paso en workflow.json o con «modelo:» en engine.yaml"
+          >
+            Modelo: {pasos.data.find((p) => p.paso === elegido)?.modelo}
+          </span>
+        )}
         {f && (
           <span className="rounded-full bg-brand-soft px-3 py-1 text-sm">
             ≈ {f.tokens.toLocaleString('es-MX')} tokens de prompt

@@ -112,6 +112,7 @@ export interface EstadoApp {
   motor_ia: string;
   runner?: EstadoRunner | null;
   places: { usado: number; tope: number; mes: string };
+  base_datos: { ruta: string; modo: 'real' | 'demo' };
   resend_configurado: boolean;
   remitente: string;
   corrida_activa: Corrida | null;
@@ -157,6 +158,10 @@ export interface Config {
   zonas_piloto: string[];
   places_tope_pro: number;
   motor_ia: string;
+  reserva_5h_pct: number;
+  reserva_semanal_pct: number;
+  presupuesto_5h_tokens: number;
+  umbral_confirmacion_tokens: number;
 }
 
 export const METODO_ETIQUETA: Record<string, string> = {
@@ -174,6 +179,7 @@ export const fechaCorta = (iso: string | null | undefined): string =>
   iso ? new Date(iso).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
 
 export * from './types-cerebro';
+export * from './types-plan';
 
 /** Número de un input: si no es finito devuelve el valor de respaldo (evita NaN en estados y envíos). */
 export const numeroSeguro = (v: string, respaldo: number): number => {

@@ -252,20 +252,34 @@ describe('Configuración, cuota y corridas', () => {
   it('corridas: solo zonas piloto y una a la vez', async () => {
     const h = harness();
     expect(
-      (await h.owner.post('/api/corridas', { zona: 'Querétaro', giro: 'Manufactura' })).status,
+      (
+        await h.owner.post('/api/corridas', {
+          zona: 'Querétaro',
+          giro: 'Manufactura',
+          confirmado: true,
+        })
+      ).status,
     ).toBe(409);
     const ok = await h.owner.post('/api/corridas', {
       zona: 'CDMX',
       giro: 'Manufactura',
       max_empresas: 10,
+      confirmado: true,
     });
     expect(ok.status).toBe(201);
-    expect((await h.owner.post('/api/corridas', { zona: 'CDMX', giro: 'Logística' })).status).toBe(
-      409,
-    );
+    expect(
+      (await h.owner.post('/api/corridas', { zona: 'CDMX', giro: 'Logística', confirmado: true }))
+        .status,
+    ).toBe(409);
     expect((await h.owner.post(`/api/corridas/${ok.body.id}/detener`)).status).toBe(200);
     expect(
-      (await h.owner.post('/api/corridas', { zona: 'Estado de México', giro: 'Logística' })).status,
+      (
+        await h.owner.post('/api/corridas', {
+          zona: 'Estado de México',
+          giro: 'Logística',
+          confirmado: true,
+        })
+      ).status,
     ).toBe(201);
   });
 

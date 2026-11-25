@@ -1,5 +1,10 @@
 export type EstadoFinal =
-  'terminada' | 'detenida' | 'pausada_limite_plan' | 'pausada_cuota_places' | 'error';
+  | 'terminada'
+  | 'detenida'
+  | 'pausada_limite_plan'
+  | 'pausada_cuota_places'
+  | 'pausada_reserva_plan'
+  | 'error';
 
 /** Se lanza para cortar la corrida con un estado final (pausa, detención, circuit breaker...). */
 export class FinCorrida extends Error {

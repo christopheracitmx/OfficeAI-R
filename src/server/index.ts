@@ -1,16 +1,20 @@
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { cerrarLimpio, escuchar } from './arranque';
 import { createApp } from './app';
 import { openDb } from './db';
 import { crearRunner } from './offices';
 import { EventBus } from './services/events';
 import { DisabledMailer, ResendMailer, type Mailer } from './services/mailer';
 
-if (existsSync('.env')) process.loadEnvFile('.env');
+// Raíz del proyecto (carpeta crm): las rutas NO dependen del directorio desde el que se lance.
+const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+if (existsSync(resolve(RAIZ, '.env'))) process.loadEnvFile(resolve(RAIZ, '.env'));
 
 const port = Number(process.env['CRM_PORT'] ?? 4010);
-const dbPath = resolve(process.env['CRM_DB_PATH'] ?? './data/crm.db');
+const dbPath = resolve(RAIZ, process.env['CRM_DB_PATH'] ?? 'data/crm.db');
 const from = process.env['RESEND_FROM'] ?? 'info@mail.acitmx.net';
 
 /** Token que comparten el servidor y el proceso MCP (archivo local, no versionado). */
@@ -47,7 +51,7 @@ const runner = crearRunner({
   mailer,
   from,
   baseUrl,
-  raiz: resolve('.'),
+  raiz: RAIZ,
   puerto: port,
   tokenFile: resolve(dirname(dbPath), 'agent.token'),
   env: process.env,
@@ -68,11 +72,25 @@ const app = createApp({
   uiOrigins,
   env: process.env,
   runner,
+  dbModo: 'real',
 });
 
-// Solo local: jamás exponer a la red.
-app.listen(port, '127.0.0.1', () => {
-  console.info(`CRM ACITMX escuchando en http://127.0.0.1:${port} (DB: ${dbPath})`);
-  if (!process.env['RESEND_API_KEY'])
-    console.warn('Aviso: RESEND_API_KEY vacío; los correos fallarán de forma controlada.');
-});
+// Solo local: jamás exponer a la red. Si el puerto está ocupado, sale con error claro (código 1).
+let server;
+try {
+  server = await escuchar(app, port);
+} catch (e) {
+  console.error(`ERROR: ${e instanceof Error ? e.message : String(e)}`);
+  db.close();
+  process.exit(1);
+}
+console.info(`CRM ACITMX escuchando en http://127.0.0.1:${port}`);
+console.info(`Base de datos (real): ${dbPath}`);
+if (!process.env['RESEND_API_KEY'])
+  console.warn('Aviso: RESEND_API_KEY vacío; los correos fallarán de forma controlada.');
+
+// Cierre limpio: vuelca el WAL y cierra la base.
+for (const senal of ['SIGINT', 'SIGTERM'] as const)
+  process.once(senal, () => {
+    void cerrarLimpio(server, db).then(() => process.exit(0));
+  });

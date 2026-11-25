@@ -3,6 +3,8 @@
 engine: claude-code
 # Modelo base del plan Pro (bajo consumo). Solo aplica a claude-code salvo que lo fijes tú.
 modelo: claude-sonnet-5-5
+# Cada paso puede fijar su propio "modelo" en config/offices/<oficina>/workflow.json (claude-haiku-5-5 | claude-sonnet-5-5 | claude-opus-5-5).
+# Hoy ninguno lo fija: Haiku se evaluó y no se aprobó (docs/dungeons/04-execution/consumo-tokens.md). Reserva del plan y presupuesto: Configuración > Plan y reserva.
 # Esfuerzo de razonamiento: low | medium | high. Bajo = menos tokens del plan.
 esfuerzo: low
 # reemplazar = tu prompt sustituye al del CLI (ahorra ~2.6 k tokens por llamada); agregar = se suma al del CLI.

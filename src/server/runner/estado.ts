@@ -47,6 +47,8 @@ export interface Ejecucion {
   cuotaAgotada: boolean;
   resumen: Record<string, number>;
   salidaPrevia: string;
+  /** El dueño reanudó pese a la reserva: no se vuelve a pausar por ella en esta ejecución. */
+  ignorarReserva: boolean;
 }
 
 export interface EstadoRunner {

@@ -47,6 +47,27 @@ const ACCIONES: [RegExp, string][] = [
   [/devolvió/, 'Devolución'],
   [/^omitido/, 'Paso omitido'],
 ];
+/** Qué produjo cada agente al terminar (sin datos de la empresa: seguro también en modo presentación). */
+const TERMINADO: Record<string, string> = {
+  Cartografo: 'Mapa de empresas listo',
+  Explorador: 'Empresas nuevas halladas',
+  Guardian: 'Lote filtrado',
+  Rastreador: 'Sitio y contactos listos',
+  Analista: 'Ficha de la empresa lista',
+  Estratega: 'Categorías propuestas',
+  Armador: 'Paquetes armados',
+  'QA-1': 'Revisión 1 terminada',
+  Calificador: 'Score calculado',
+  Redactor: 'Reporte redactado',
+  'QA-2': 'Revisión final terminada',
+};
+
+/** El mensaje de trabajo es «ids — tarea[ — extra]»: la burbuja muestra solo la tarea. */
+function tareaDe(detalle: string): string {
+  const partes = detalle.split(' — ');
+  return (partes.length > 1 ? partes[1]! : detalle).replace(/\.$/, '');
+}
+
 const ALERTA = /devolvió|^falló|registró un fallo|no pudo|cortó un bucle|error/i;
 const FIN = /^corrida (terminada|detenida|pausada|error|cancelada)|^cerró/;
 const ENTREGA = /^terminó su tarea|aprobó$|^guardó el prospecto/;
@@ -73,8 +94,10 @@ export function interpretarEvento(
   const fin = FIN.test(e.accion);
   const fija = ACCIONES.find(([re]) => re.test(e.accion));
   let burbuja = fija && fija[1] ? fija[1] : e.accion.charAt(0).toUpperCase() + e.accion.slice(1);
-  if (!presentacion && e.detalle && !/^terminó su tarea/.test(e.accion))
-    burbuja = `${burbuja} · ${e.detalle}`;
+  const terminada = /^terminó su tarea/.test(e.accion);
+  if (terminada) burbuja = TERMINADO[e.agente] ?? burbuja;
+  else if (!presentacion && e.detalle)
+    burbuja = `${burbuja} · ${/^recibió una tarea/.test(e.accion) ? tareaDe(e.detalle) : e.detalle}`;
   let traslado: Traslado | null = null;
   if (/devolvió$/.test(e.accion)) {
     const a = anteriorEnFlujo(flujo, e.agente);
@@ -83,10 +106,11 @@ export function interpretarEvento(
     const a = siguienteEnFlujo(flujo, e.agente);
     if (a) traslado = { de: e.agente, a, tipo: 'entrega' };
   }
+  if (terminada && traslado?.tipo === 'entrega') burbuja = `${burbuja} → ${traslado.a}`;
   return {
     agente: e.agente,
     estado: alerta ? 'alerta' : fin ? 'inactivo' : 'trabajando',
-    burbuja: recortar(burbuja),
+    burbuja: recortar(burbuja, 58),
     traslado,
   };
 }

@@ -168,6 +168,18 @@ describe('evento -> animación', () => {
     expect(i.estado).toBe('alerta');
     expect(i.traslado).toEqual({ de: 'QA-1', a: 'Armador', tipo: 'devolucion' });
   });
+  it('las burbujas dicen qué se hizo y a quién pasa el expediente (sin «Tarea terminada»)', () => {
+    const t = interpretarEvento(ev('Analista', 'terminó su tarea', 'Ficha guardada'), flujo);
+    expect(t.burbuja).toBe('Ficha de la empresa lista → Estratega');
+    const n = interpretarEvento(
+      ev('Rastreador', 'recibió una tarea', 'empresa_id=3 — Encuentra su sitio web oficial.'),
+      flujo,
+    );
+    expect(n.burbuja).toBe('Nueva tarea · Encuentra su sitio web oficial');
+    expect(
+      interpretarEvento(ev('Analista', 'terminó su tarea', 'x'), flujo, true).burbuja,
+    ).not.toContain('x');
+  });
   it('el modo presentación oculta el detalle (datos sensibles)', () => {
     const e = ev('Rastreador', 'guardó contacto', 'ventas@empresa.mx');
     expect(interpretarEvento(e, flujo).burbuja).toContain('ventas@');

@@ -1,5 +1,6 @@
 /** Barra de controles de la vista 3D: piso (preparado), calidad, iluminación y giro de 90°. */
 import { CALIDADES, type Calidad } from '../../shared/oficina3d/apariencia';
+import type { DefinicionOficina } from '../../shared/oficina3d/definicion';
 import { Button } from '../components/ui';
 import type { Tienda } from './tienda';
 import type { usePreferencias } from './usarOficina';
@@ -15,11 +16,24 @@ export function Controles({
   nombre,
   pref,
   t,
+  d,
 }: {
   nombre: string;
   pref: ReturnType<typeof usePreferencias>;
   t: Tienda;
+  d: DefinicionOficina | null;
 }) {
+  /** Encuadre por área: centra la cámara en una sala y la acerca (los personajes se leen mejor). */
+  const encuadrar = (id: string) => {
+    if (!d) return;
+    const s = d.salas.find((x) => x.id === id);
+    const n = (t.get().encuadre?.n ?? 0) + 1;
+    t.set({
+      encuadre: s
+        ? { x: s.x + s.apariencia.ancho / 2, z: s.z + s.apariencia.fondo / 2, k: 2.3, n }
+        : { x: d.planta.ancho / 2, z: d.planta.fondo / 2, k: 1, n },
+    });
+  };
   const rotar = (d: number) => t.set({ rotacion: t.get().rotacion + d });
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -27,6 +41,23 @@ export function Controles({
         Piso
         <select aria-label="Piso" className={sel} value="1" onChange={() => undefined}>
           <option value="1">1 · {nombre}</option>
+        </select>
+      </label>
+      <label className="flex items-center gap-1 text-sm">
+        Vista
+        <select
+          aria-label="Vista por área"
+          className={sel}
+          defaultValue=""
+          disabled={!d}
+          onChange={(e) => encuadrar(e.target.value)}
+        >
+          <option value="">General</option>
+          {(d?.salas ?? []).map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.nombre}
+            </option>
+          ))}
         </select>
       </label>
       <label className="flex items-center gap-1 text-sm">

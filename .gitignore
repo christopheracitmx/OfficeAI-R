@@ -3,5 +3,7 @@ dist
 data/*.db
 data/*.db-*
 .env
-data/live-last.txt
+data/live-*
 data/live2.log
+data/runner/
+data/runner-test/

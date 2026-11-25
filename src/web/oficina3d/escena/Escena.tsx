@@ -13,6 +13,7 @@ import { useTienda, type Tienda } from '../tienda';
 import { Camara } from './Camara';
 import { Diagnostico } from './Diagnostico';
 import { Estatico } from './Estatico';
+import { Perimetro } from './Perimetro';
 import { Personaje } from './Personaje';
 
 const AJUSTES: Record<
@@ -122,6 +123,7 @@ export default function Escena({ d, t, calidad, noche, quieto, onSeleccion, onSa
       <Luces d={d} sombra={aj.sombra} noche={noche} />
       <Camara d={d} t={t} quieto={quieto} />
       <Estatico d={d} detalle={aj.detalle} sombras={aj.sombra > 0} onSala={onSala} />
+      <Perimetro d={d} noche={noche} />
       {d.agentes.map((a) => (
         <Personaje
           key={a.id}

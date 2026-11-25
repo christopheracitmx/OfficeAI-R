@@ -2,13 +2,14 @@
  * «Ver oficina»: SIEMPRE 3D (Three.js en un chunk diferido). Sin 2D alterno: solo lista textual
  * accesible y el modo de bajo consumo (calidad Baja) del mismo 3D.
  */
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { SalaDef } from '../../shared/oficina3d/definicion';
 import { Button, ErrorBanner, PageHeader, Skeleton, cx, useToast } from '../components/ui';
 import { Controles } from './Controles';
 import { ListaAgentes } from './ListaAgentes';
 import { PanelAgente } from './PanelAgente';
+import { BarraPantalla, usePantallaCompleta } from './PantallaCompleta';
 import { useTienda } from './tienda';
 import { hayWebGL, movimientoReducido, useOficina, usePreferencias } from './usarOficina';
 
@@ -19,6 +20,8 @@ export function Oficina() {
   const pref = usePreferencias();
   const [webgl] = useState(hayWebGL);
   const [quieto] = useState(movimientoReducido);
+  const pantalla = useRef<HTMLDivElement>(null);
+  const fs = usePantallaCompleta(pantalla);
   const enPausa = useTienda(tienda, (e) => e.enPausa);
   const selId = useTienda(tienda, (e) => e.seleccionado);
   const navegar = useNavigate();
@@ -27,13 +30,15 @@ export function Oficina() {
 
   useEffect(() => {
     if (!presentacion) return;
-    const k = (e: KeyboardEvent) => e.key === 'Escape' && setPresentacion(false);
+    const k = (e: KeyboardEvent) =>
+      e.key === 'Escape' && !document.fullscreenElement && setPresentacion(false);
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
   }, [presentacion]);
 
   const alSala = (s: SalaDef) => {
     if (presentacion) return;
+    if (fs.activa) fs.alternar();
     if (s.accion === 'biblioteca') navegar('/biblioteca');
     else toast('Sala de aprendizaje: próximamente (P6.5).');
   };
@@ -53,7 +58,7 @@ export function Oficina() {
     <div
       className={cx(
         'relative overflow-hidden rounded-2xl bg-deep shadow-md',
-        presentacion ? 'h-full' : 'h-[600px]',
+        presentacion || fs.activa ? 'h-full' : 'h-[600px]',
       )}
     >
       <Suspense
@@ -91,15 +96,19 @@ export function Oficina() {
           </div>
         </div>
       )}
+      {fs.disponible && (
+        <BarraPantalla activa={fs.activa} alternar={fs.alternar} pref={pref} t={tienda} />
+      )}
       <p className="pointer-events-none absolute bottom-3 left-4 text-xs text-ice/70">
-        Arrastra para mover · rueda para acercar · clic en un agente para ver su panel
+        Arrastra para mover · rueda para acercar · clic en un agente para ver su panel · F: pantalla
+        completa
       </p>
     </div>
   );
 
   if (presentacion)
     return (
-      <div className="fixed inset-0 z-40 flex flex-col bg-deep p-6">
+      <div ref={pantalla} className="fixed inset-0 z-40 flex flex-col bg-deep p-6">
         <div className="mb-3 flex items-center justify-between text-ice">
           <div className="flex items-center gap-3">
             <img src="/logo-acit.png" alt="ACITMX" className="h-9 rounded bg-ice p-1" />
@@ -128,9 +137,9 @@ export function Oficina() {
         }
       />
       <div className="mb-3">
-        <Controles nombre={def?.office.nombre ?? 'Prospección'} pref={pref} t={tienda} />
+        <Controles nombre={def?.office.nombre ?? 'Prospección'} pref={pref} t={tienda} d={def} />
       </div>
-      <div className="flex gap-4">
+      <div ref={pantalla} className={cx('flex gap-4', fs.activa && 'h-screen bg-deep p-3')}>
         <div className="min-w-0 flex-1">{escena}</div>
         {seleccionado && (
           <PanelAgente

@@ -29,6 +29,9 @@ describe.skipIf(process.env['LIVE'] !== '1')('LIVE: una corrida real con Claude 
     await new Promise<void>((r) => server.listen(0, '127.0.0.1', () => r()));
     const puerto = (server.address() as { port: number }).port;
     const cfg = leerEngineYaml(resolve('config/engine.yaml'));
+    // P7b: LIVE_HAIKU="guardian,calificador_redactor" prueba esos pasos con Haiku; LIVE_ETIQUETA nombra el informe.
+    const etiqueta = process.env['LIVE_ETIQUETA'] ?? 'last';
+    const haiku = (process.env['LIVE_HAIKU'] ?? '').split(',').filter(Boolean);
     const runner = crearRunner({
       db,
       bus,
@@ -60,6 +63,8 @@ describe.skipIf(process.env['LIVE'] !== '1')('LIVE: una corrida real con Claude 
       eventos.push(`${e.agente}: ${e.accion}`),
     );
 
+    const wf = runner.oficina('prospeccion')!.workflow;
+    for (const p of haiku) wf.pasos[p]!.modelo = 'claude-haiku-5-5';
     const c = crearCorrida(
       db,
       { zona: 'CDMX', giro: 'Cualquiera', max_empresas: 1, office_id: 'prospeccion' },
@@ -107,7 +112,30 @@ describe.skipIf(process.env['LIVE'] !== '1')('LIVE: una corrida real con Claude 
       (x) =>
         `  ${x.agente} ${x.resultado} pond=${x.tokens_estimados ?? '?'} bruto=${x.tokens_brutos ?? '?'} turnos=${x.turnos ?? '?'} prompt=${x.prompt_tokens ?? '?'} ${Math.round(x.duracion_ms / 1000)}s ${x.herramientas ?? ''}`,
     );
-    writeFileSync(resolve('data/live-last.txt'), [cab, pros, ...det, ...eventos, ''].join('\n'));
+    const lim = db.prepare('SELECT ventana, utilizacion FROM limites_plan').all();
+    const calidad = {
+      contactos: db.prepare('SELECT tipo, valor, nombre, fuente_url FROM contactos').all(),
+      ficha: db
+        .prepare(
+          'SELECT nombre, etapa, descartada_motivo, sitio_web, sitio_verificado, tamano, sucursales, resumen FROM empresas',
+        )
+        .all(),
+      necesidades: db.prepare('SELECT texto, tipo FROM necesidades').all(),
+      qa: db.prepare('SELECT etapa, aprobado, devolver_a, motivos FROM revisiones_qa').all(),
+      prospecto: db
+        .prepare(
+          'SELECT estado, score, nivel, justificacion, reporte_md, borrador_correo FROM prospectos',
+        )
+        .all(),
+      paquetes: db.prepare('SELECT nombre, componentes, argumento FROM paquetes').all(),
+      pasos_haiku: haiku,
+      plan_despues: lim,
+    };
+    writeFileSync(
+      resolve(`data/live-${etiqueta}.txt`),
+      [cab, pros, `límites: ${JSON.stringify(lim)}`, ...det, ...eventos, ''].join('\n'),
+    );
+    writeFileSync(resolve(`data/live-${etiqueta}.json`), JSON.stringify(calidad, null, 2));
     server.close();
     rmSync(dir, { recursive: true, force: true });
 

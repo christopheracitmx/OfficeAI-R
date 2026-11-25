@@ -1,12 +1,22 @@
 import { useState } from 'react';
-import { Button, Card, EmptyState, ErrorBanner, PageHeader, useToast } from '../components/ui';
+import {
+  Button,
+  Card,
+  ConfirmDialog,
+  EmptyState,
+  ErrorBanner,
+  PageHeader,
+  useToast,
+} from '../components/ui';
+import { PlanMedidor } from '../components/PlanMedidor';
 import { ProgresoCorrida } from '../components/ProgresoCorrida';
-import { api, useApi } from '../lib/api';
+import { api, ApiError, useApi } from '../lib/api';
 import {
   fechaCorta,
   type Config,
   type Corrida as CorridaT,
   type EstadoApp,
+  type EstimadoCorridaUi,
   numeroSeguro,
 } from '../lib/types';
 
@@ -16,6 +26,7 @@ const FIN: Record<string, string> = {
   detenida: 'Detenida',
   pausada_limite_plan: 'Pausada: límite del plan de IA',
   pausada_cuota_places: 'Pausada: cuota de Places',
+  pausada_reserva_plan: 'Pausada: reserva del plan',
   error: 'Error',
 };
 
@@ -28,22 +39,27 @@ export function Corrida() {
   const [zona, setZona] = useState('');
   const [giro, setGiro] = useState('Cualquiera');
   const [max, setMax] = useState<number | null>(null);
+  const [pedir, setPedir] = useState<EstimadoCorridaUi | null>(null);
 
   const zonas = cfg.data?.zonas_piloto ?? [];
   const zonaSel = zona || zonas[0] || '';
   const maxSel = max ?? cfg.data?.max_empresas_por_corrida ?? 10;
   const activa = estado.data?.corrida_activa ?? null;
 
-  const iniciar = async () => {
+  const est = useApi<EstimadoCorridaUi>(`/corridas/estimado?max_empresas=${maxSel}`);
+  const iniciar = async (confirmado = false) => {
     try {
       await api('/corridas', {
         method: 'POST',
-        body: { zona: zonaSel, giro, max_empresas: maxSel },
+        body: { zona: zonaSel, giro, max_empresas: maxSel, confirmado },
       });
+      setPedir(null);
       toast('Corrida iniciada: los agentes ya están trabajando.');
       estado.reload();
       hist.reload();
     } catch (e) {
+      if (e instanceof ApiError && e.status === 409 && est.data?.requiere_confirmacion)
+        return setPedir(est.data);
       toast(e instanceof Error ? e.message : 'No se pudo iniciar', 'error');
     }
   };
@@ -137,10 +153,23 @@ export function Corrida() {
                 {estado.data?.motor_ia ?? '—'}). Lotes pequeños cuidan tu plan; puedes detenerla
                 cuando quieras.
               </p>
+              {est.data && (
+                <p className="rounded-lg border border-line bg-ice px-3 py-2 text-sm">
+                  Consumo estimado: ≈ <b>{est.data.tokens.toLocaleString('es-MX')}</b> tokens
+                  ponderados ({est.data.items} × {est.data.tokens_por_item.toLocaleString('es-MX')};{' '}
+                  {est.data.base === 'historial'
+                    ? 'promedio de tus corridas recientes'
+                    : 'referencia medida, aún sin historial'}
+                  )
+                  {est.data.pct_presupuesto !== null &&
+                    `, ≈ ${est.data.pct_presupuesto} % de tu presupuesto de 5 h`}
+                  .{est.data.requiere_confirmacion && ' Supera tu umbral: se pedirá confirmación.'}
+                </p>
+              )}
               <Button
                 variante="primario"
                 disabled={!zonaSel || maxSel < 1 || maxSel > 50}
-                onClick={() => void iniciar()}
+                onClick={() => void iniciar(false)}
               >
                 Iniciar corrida
               </Button>
@@ -150,6 +179,12 @@ export function Corrida() {
         <Card>
           <h2 className="mb-3 font-semibold">Antes de iniciar</h2>
           <dl className="space-y-3">
+            <div>
+              <dt className="mb-1 text-muted">Plan de suscripción</dt>
+              <dd>
+                <PlanMedidor />
+              </dd>
+            </div>
             <div>
               <dt className="text-muted">Cuota de Places este mes</dt>
               <dd className="font-semibold">
@@ -204,7 +239,11 @@ export function Corrida() {
                     {c.motivo_fin ? <span className="text-muted"> · {c.motivo_fin}</span> : null}
                     {!activa && /^(pausada|error)/.test(c.estado) && (
                       <span className="ml-3">
-                        <Button onClick={() => void reanudar(c.id)}>Reanudar</Button>
+                        <Button onClick={() => void reanudar(c.id)}>
+                          {c.estado === 'pausada_reserva_plan'
+                            ? 'Reanudar de todos modos'
+                            : 'Reanudar'}
+                        </Button>
                       </span>
                     )}
                   </td>
@@ -213,6 +252,15 @@ export function Corrida() {
             </tbody>
           </table>
         </div>
+      )}
+      {pedir && (
+        <ConfirmDialog
+          titulo="Esta corrida consumirá bastante plan"
+          mensaje={`Consumo estimado ≈ ${pedir.tokens.toLocaleString('es-MX')} tokens ponderados, sobre tu umbral de ${pedir.umbral.toLocaleString('es-MX')}. ¿Iniciar de todos modos?`}
+          confirmar="Iniciar corrida"
+          onConfirm={() => void iniciar(true)}
+          onCancel={() => setPedir(null)}
+        />
       )}
     </>
   );

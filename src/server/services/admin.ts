@@ -24,6 +24,10 @@ export function getConfig(db: Db): {
   zonas_piloto: string[];
   places_tope_pro: number;
   motor_ia: string;
+  reserva_5h_pct: number;
+  reserva_semanal_pct: number;
+  presupuesto_5h_tokens: number;
+  umbral_confirmacion_tokens: number;
 } {
   const rows = db.prepare('SELECT clave, valor FROM configuracion').all() as {
     clave: string;
@@ -35,6 +39,10 @@ export function getConfig(db: Db): {
     zonas_piloto: JSON.parse(m['zonas_piloto'] ?? '["CDMX","Estado de México"]') as string[],
     places_tope_pro: Number(m['places_tope_pro'] ?? 4900),
     motor_ia: m['motor_ia'] ?? 'claude-code',
+    reserva_5h_pct: Number(m['reserva_5h_pct'] ?? 70),
+    reserva_semanal_pct: Number(m['reserva_semanal_pct'] ?? 90),
+    presupuesto_5h_tokens: Number(m['presupuesto_5h_tokens'] ?? 0),
+    umbral_confirmacion_tokens: Number(m['umbral_confirmacion_tokens'] ?? 600_000),
   };
 }
 
@@ -46,6 +54,13 @@ export function patchConfig(db: Db, p: z.infer<typeof configPatch>): void {
     if (p.max_empresas_por_corrida !== undefined)
       up.run('max_empresas_por_corrida', String(p.max_empresas_por_corrida), nowIso());
     if (p.zonas_piloto) up.run('zonas_piloto', JSON.stringify(p.zonas_piloto), nowIso());
+    for (const k of [
+      'reserva_5h_pct',
+      'reserva_semanal_pct',
+      'presupuesto_5h_tokens',
+      'umbral_confirmacion_tokens',
+    ] as const)
+      if (p[k] !== undefined) up.run(k, String(p[k]), nowIso());
   })();
 }
 
@@ -180,7 +195,11 @@ export function reanudarCorrida(db: Db, id: number): ResultadoCorrida {
   const c = db.prepare('SELECT estado FROM corridas WHERE id = ?').get(id) as
     { estado: string } | undefined;
   if (!c) return { ok: false, error: 'Corrida no encontrada' };
-  if (!['pausada_limite_plan', 'pausada_cuota_places', 'error'].includes(c.estado))
+  if (
+    !['pausada_limite_plan', 'pausada_cuota_places', 'pausada_reserva_plan', 'error'].includes(
+      c.estado,
+    )
+  )
     return { ok: false, error: 'Solo se reanudan corridas pausadas o con error' };
   if (db.prepare("SELECT 1 FROM corridas WHERE estado='en_curso'").get())
     return { ok: false, error: 'Ya hay una corrida en curso' };

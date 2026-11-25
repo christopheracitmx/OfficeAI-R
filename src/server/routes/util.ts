@@ -17,6 +17,8 @@ export interface Deps {
   env?: NodeJS.ProcessEnv;
   /** Orquestador de corridas. Sin runner (tests de API) las corridas solo se registran. */
   runner?: Runner;
+  /** `real` solo lo fija el servidor del CRM; todo lo demás (demo, pruebas) se muestra como demo. */
+  dbModo?: 'real' | 'demo';
 }
 
 export class HttpError extends Error {

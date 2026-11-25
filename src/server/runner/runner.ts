@@ -48,13 +48,16 @@ export class Runner extends RunnerBase implements FlujoCtx {
   }
 
   /** Pasos de una oficina con sus prompts (para la vista «prompt final» de la UI). */
-  pasosDe(office: string): { paso: string; agente: string; roles: string[]; prompts: string[] }[] {
+  pasosDe(
+    office: string,
+  ): { paso: string; agente: string; roles: string[]; prompts: string[]; modelo: string | null }[] {
     const wf = this.d.oficinas[office]?.workflow;
     return Object.entries(wf?.pasos ?? {}).map(([paso, p]) => ({
       paso,
       agente: p.agente,
       roles: p.roles,
       prompts: p.prompts,
+      modelo: p.modelo ?? this.d.cfg.modelo ?? null,
     }));
   }
 
@@ -70,13 +73,14 @@ export class Runner extends RunnerBase implements FlujoCtx {
         herramientas: p.herramientas,
         webSearch: p.web,
         maxTurnos: p.max_turnos,
+        modelo: p.modelo,
       },
       { id: 0, office_id: office, params: { ejemplo: 'vista previa' } },
     );
   }
 
   /** Arranca el pipeline de una corrida YA registrada y en curso. Nada corre sin esto. */
-  iniciar(corridaId: number): void {
+  iniciar(corridaId: number, opts: { ignorarReserva?: boolean } = {}): void {
     if (this.ej) throw new Error('Ya hay un pipeline activo; solo se permite uno a la vez');
     const c = leerCorrida(this.d.db, corridaId);
     if (!c || c.estado !== 'en_curso') throw new Error('La corrida no existe o no está en curso');
@@ -96,6 +100,7 @@ export class Runner extends RunnerBase implements FlujoCtx {
       cuotaAgotada: false,
       resumen: Object.fromEntries(Object.keys(oficina.workflow.resultados).map((k) => [k, 0])),
       salidaPrevia: '',
+      ignorarReserva: opts.ignorarReserva === true,
     };
     this.ej = ej;
     this.fin = this.correr(ej);

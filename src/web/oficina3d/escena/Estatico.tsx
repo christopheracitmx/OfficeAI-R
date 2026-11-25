@@ -1,5 +1,6 @@
 /** Todo lo que no se mueve: planta, salas, mobiliario y utilería fusionados (2 draw calls) + rótulos. */
-import { useEffect, useMemo } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { textoLegible } from '../../../shared/oficina3d/apariencia';
 import type { DefinicionOficina, SalaDef } from '../../../shared/oficina3d/definicion';
@@ -47,7 +48,15 @@ function texturaRotulo(texto: string, fondo: string): THREE.CanvasTexture {
   return t;
 }
 
+/** Tamaño del rótulo en píxeles de pantalla: constante con cualquier zoom. */
+const ROTULO_PX = { ancho: 98, alto: 25 };
+
 function Rotulo({ s }: { s: SalaDef }) {
+  const ref = useRef<THREE.Sprite>(null);
+  useFrame(({ camera }) => {
+    const z = camera.zoom || 1;
+    ref.current?.scale.set(ROTULO_PX.ancho / z, ROTULO_PX.alto / z, 1);
+  });
   const { ancho, fondo, alturaPared, rotulo } = s.apariencia;
   const tex = useMemo(
     () => texturaRotulo(rotulo.texto, rotulo.color),
@@ -58,7 +67,7 @@ function Rotulo({ s }: { s: SalaDef }) {
   const x = s.x + (p.lado === 'n' || p.lado === 's' ? p.pos : p.lado === 'e' ? ancho : 0);
   const z = s.z + (p.lado === 'e' || p.lado === 'o' ? p.pos : p.lado === 's' ? fondo : 0);
   return (
-    <sprite position={[x, alturaPared + 0.75, z]} scale={[2.2, 0.55, 1]} renderOrder={5}>
+    <sprite ref={ref} position={[x, alturaPared + 0.75, z]} scale={[2.2, 0.55, 1]} renderOrder={5}>
       <spriteMaterial map={tex} transparent depthWrite={false} toneMapped={false} />
     </sprite>
   );

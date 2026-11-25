@@ -62,6 +62,8 @@ export interface PasoOficina {
   agente: string;
   roles: string[];
   prompts: string[];
+  /** Modelo efectivo del paso (el del workflow o el de engine.yaml). */
+  modelo: string | null;
 }
 export interface Habilidad {
   id: number;

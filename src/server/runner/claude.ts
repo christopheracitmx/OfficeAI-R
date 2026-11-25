@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import type { InfoPlan, VentanaPlan } from './plan';
 import { ejecutarProceso } from './proceso';
 import {
   NOMBRE_MCP,
@@ -56,7 +57,7 @@ export function argsClaude(
     '--disable-slash-commands',
     '--setting-sources',
     '',
-    ...(ctx.modelo ? ['--model', ctx.modelo] : []),
+    ...(i.agente.modelo || ctx.modelo ? ['--model', (i.agente.modelo ?? ctx.modelo)!] : []),
     ...(ctx.esfuerzo ? ['--effort', ctx.esfuerzo] : []),
     // Variádicos al final: se detienen en el siguiente flag o al agotarse los argumentos.
     '--tools',
@@ -77,6 +78,8 @@ export interface EstadoLectura {
   resultado: Json | null;
   ultimoTexto: string;
   mcpFallo: boolean;
+  plan: InfoPlan | null;
+  requiereCreditos: boolean;
 }
 
 export const lecturaVacia = (): EstadoLectura => ({
@@ -86,7 +89,25 @@ export const lecturaVacia = (): EstadoLectura => ({
   resultado: null,
   ultimoTexto: '',
   mcpFallo: false,
+  plan: null,
+  requiereCreditos: false,
 });
+
+/** Ventanas (5 h / semanal) con porcentaje, tal como las emite el CLI en `unifiedWindows`. */
+function leerVentanas(info: Json): InfoPlan {
+  const ventanas: Record<string, VentanaPlan> = {};
+  const u = obj(info['unifiedWindows']) ?? {};
+  for (const [nombre, w] of Object.entries(u)) {
+    const o = obj(w);
+    if (!o) continue;
+    ventanas[nombre] = {
+      utilizacion: typeof o['utilization'] === 'number' ? o['utilization'] : null,
+      reinicia_en: typeof o['resetsAt'] === 'number' ? o['resetsAt'] : null,
+      estado: typeof o['status'] === 'string' ? o['status'] : 'allowed',
+    };
+  }
+  return { ventanas, estado: typeof info['status'] === 'string' ? info['status'] : 'allowed' };
+}
 
 /** Interpreta UNA línea del stream-json. Devuelve el nombre de la herramienta si el agente la invocó. */
 export function leerLineaClaude(linea: string, st: EstadoLectura): string | null {
@@ -101,7 +122,11 @@ export function leerLineaClaude(linea: string, st: EstadoLectura): string | null
   if (tipo === 'rate_limit_event') {
     const info = obj(j['rate_limit_info']);
     const estado = typeof info?.['status'] === 'string' ? info['status'] : 'allowed';
-    if (estado !== 'allowed' && estado !== 'allowed_warning') {
+    if (info && Object.keys(obj(info['unifiedWindows']) ?? {}).length > 0)
+      st.plan = leerVentanas(info);
+    // Un modelo que exige créditos (p. ej. Fable en plan Pro) no es el límite del plan.
+    if (info?.['errorCode'] === 'credits_required') st.requiereCreditos = true;
+    else if (estado !== 'allowed' && estado !== 'allowed_warning') {
       st.limite = true;
       if (typeof info?.['resetsAt'] === 'number') st.resetEn = info['resetsAt'];
     }
@@ -166,11 +191,13 @@ export function resultadoClaude(
     ...(pond !== undefined ? { tokens_ponderados: pond } : {}),
     ...(turnos !== undefined ? { turnos } : {}),
     ...(st.cuotaAgotada ? { cuota_agotada: true } : {}),
+    ...(st.plan ? { plan: st.plan } : {}),
+    ...(st.requiereCreditos ? { requiere_creditos: true } : {}),
   };
   if (!r) {
     const msg =
       stderr.trim().slice(-300) || `El CLI terminó (código ${String(codigo)}) sin resultado`;
-    const limite = st.limite || LIMITE_RE.test(msg);
+    const limite = !st.requiereCreditos && (st.limite || LIMITE_RE.test(msg));
     return {
       ok: false,
       salida: st.ultimoTexto,
@@ -186,9 +213,10 @@ export function resultadoClaude(
   const errores = Array.isArray(r['errors']) ? r['errors'].join('; ') : '';
   const detalle = errores || texto || String(r['subtype']);
   const limite =
-    st.limite ||
-    r['api_error_status'] === 429 ||
-    (r['is_error'] === true && LIMITE_RE.test(detalle));
+    !st.requiereCreditos &&
+    (st.limite ||
+      r['api_error_status'] === 429 ||
+      (r['is_error'] === true && LIMITE_RE.test(detalle)));
   return {
     ok: false,
     salida: texto,

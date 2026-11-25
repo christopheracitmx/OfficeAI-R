@@ -139,6 +139,8 @@ export const corridaInput = z.object({
     .string()
     .regex(/^[a-z0-9_-]+$/)
     .default('prospeccion'),
+  /** El dueño vio el consumo estimado y lo acepta (obligatorio si supera el umbral). */
+  confirmado: z.boolean().optional(),
 });
 
 export const prospectoPatch = z.object({
@@ -152,4 +154,10 @@ export const prospectoPatch = z.object({
 export const configPatch = z.object({
   max_empresas_por_corrida: z.number().int().min(1).max(50).optional(),
   zonas_piloto: z.array(z.string().trim().min(2).max(60)).min(1).max(20).optional(),
+  /** Pausa la corrida al llegar a este % de uso de la ventana de 5 h del plan. */
+  reserva_5h_pct: z.number().int().min(10).max(100).optional(),
+  reserva_semanal_pct: z.number().int().min(10).max(100).optional(),
+  /** Presupuesto (tokens ponderados por 5 h) para el estimado cuando el CLI no informa porcentaje; 0 = sin definir. */
+  presupuesto_5h_tokens: z.number().int().min(0).max(100_000_000).optional(),
+  umbral_confirmacion_tokens: z.number().int().min(10_000).max(100_000_000).optional(),
 });

@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
 
 const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const canal = process.argv.find((a) => a.startsWith('--channel='))?.split('=')[1] ?? 'msedge';
-const url = args[0] ?? 'http://127.0.0.1:4010/oficina';
+const url = args[0] ?? 'http://127.0.0.1:4099/oficina';
 const salida = args[1] ?? 'humo-3d.png';
 const require = createRequire(resolve('../tools/pw-shot/package.json'));
 const { chromium } = require('playwright-core');
@@ -49,6 +49,46 @@ ok(
 ok(
   await page.getByRole('tab', { name: 'Aprendizaje' }).isVisible(),
   'pestañas del panel presentes',
+);
+// P7b: pantalla completa real (Fullscreen API): botón, atajo F, controles mínimos y salida
+await page.getByRole('button', { name: 'Cerrar panel' }).click();
+await page.getByRole('button', { name: 'Pantalla completa' }).click();
+await page.waitForTimeout(1200);
+ok(
+  await page.evaluate(() => document.fullscreenElement !== null),
+  'el botón expande a pantalla completa',
+);
+const tam = await page.evaluate(() => {
+  const c = document.querySelector('canvas');
+  return { w: c.clientWidth, h: c.clientHeight, iw: innerWidth, ih: innerHeight };
+});
+ok(
+  tam.h >= tam.ih - 40 && tam.w > tam.iw * 0.9,
+  `el canvas ocupa la pantalla (${tam.w}x${tam.h} de ${tam.iw}x${tam.ih})`,
+);
+ok(
+  await page.getByRole('button', { name: 'Girar vista a la derecha' }).last().isVisible(),
+  'controles mínimos visibles (girar)',
+);
+ok(
+  await page.getByLabel('Calidad gráfica en pantalla completa').isVisible(),
+  'selector de calidad visible',
+);
+await page.screenshot({ path: salida.replace('.png', '-fs.png') });
+await page.getByRole('button', { name: 'Salir de pantalla completa' }).click();
+await page.waitForTimeout(800);
+ok(await page.evaluate(() => document.fullscreenElement === null), 'salir vuelve al modo normal');
+await page.keyboard.press('f');
+await page.waitForTimeout(800);
+ok(
+  await page.evaluate(() => document.fullscreenElement !== null),
+  'el atajo F entra a pantalla completa',
+);
+await page.keyboard.press('f');
+await page.waitForTimeout(800);
+ok(
+  await page.evaluate(() => document.fullscreenElement === null),
+  'el atajo F sale de pantalla completa',
 );
 await page.screenshot({ path: salida });
 ok(

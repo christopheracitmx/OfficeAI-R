@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { corridaInput } from '../../shared/schemas';
 import { leerCorrida, progresoDe } from '../runner/datos';
+import { estadoPlan, estimarCorrida } from '../runner/plan';
 import * as admin from '../services/admin';
 import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
 
@@ -19,6 +20,21 @@ export function corridasRouter(d: Deps): Router {
     }),
   );
 
+  /** Límites del plan: lo que informa el CLI (porcentaje, reinicio) o, si no hay, el estimado con tokens. */
+  r.get(
+    '/plan',
+    ah((_q, res) => void res.json(estadoPlan(db))),
+  );
+
+  /** Consumo estimado de una corrida ANTES de iniciarla (empresas x tokens medios recientes). */
+  r.get(
+    '/corridas/estimado',
+    ah((q, res) => {
+      const n = Math.min(Math.max(Math.trunc(Number(q.query['max_empresas']) || 10), 1), 50);
+      res.json(estimarCorrida(db, qstr(q.query['office_id']) ?? 'prospeccion', n));
+    }),
+  );
+
   r.get(
     '/corridas',
     ah((q, res) => {
@@ -34,6 +50,13 @@ export function corridasRouter(d: Deps): Router {
       const input = parse(corridaInput, q.body);
       if (d.runner && !d.runner.oficina(input.office_id))
         throw new HttpError(400, `Oficina desconocida: ${input.office_id}`);
+      const est = estimarCorrida(db, input.office_id, input.max_empresas);
+      if (est.requiere_confirmacion && !input.confirmado)
+        return void res.status(409).json({
+          error: `Consumo estimado ≈ ${est.tokens.toLocaleString('es-MX')} tokens, sobre el umbral de ${est.umbral.toLocaleString('es-MX')}. Confirma para iniciar.`,
+          codigo: 'requiere_confirmacion',
+          estimado: est,
+        });
       const out = admin.crearCorrida(
         db,
         input,
@@ -73,7 +96,8 @@ export function corridasRouter(d: Deps): Router {
       const out = admin.reanudarCorrida(db, id);
       if (!out.ok) throw new HttpError(409, out.error);
       try {
-        d.runner.iniciar(id);
+        // Reanudar tras una pausa por reserva es una decisión explícita del dueño: no se vuelve a pausar.
+        d.runner.iniciar(id, { ignorarReserva: true });
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'No se pudo reanudar';
         admin.cerrarCorrida(db, id, 'error', msg);

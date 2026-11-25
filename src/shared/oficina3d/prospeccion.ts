@@ -169,7 +169,7 @@ const SALAS: SalaDef[] = [
   }),
 ];
 
-const N = (id: string, s: string, x: number): PuestoDef => ({ id, sala: s, x, z: 2.6, rot: 0 });
+const N = (id: string, s: string, x: number): PuestoDef => ({ id, sala: s, x, z: 2.6, rot: 180 });
 const S = (id: string, s: string, x: number): PuestoDef => ({ id, sala: s, x, z: 5.4, rot: 180 });
 const PUESTOS: PuestoDef[] = [
   N('dir-1', 'direccion', 3.5),

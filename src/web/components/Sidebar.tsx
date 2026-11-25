@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useApi } from '../lib/api';
 import type { Dashboard, EstadoApp } from '../lib/types';
+import { PlanMedidor } from './PlanMedidor';
 import { cx } from './ui';
 
 const ITEMS = [
@@ -35,6 +36,15 @@ export function Sidebar() {
         </div>
         <p className="mt-3 text-center text-xs tracking-wide text-ice/70">Oficina de Prospección</p>
       </div>
+      {estado.data?.base_datos.modo === 'demo' && (
+        <div
+          role="alert"
+          className="mx-3 mb-3 rounded-lg bg-warn px-3 py-2 text-xs font-semibold text-deep"
+        >
+          BASE DE DEMOSTRACIÓN: no son tus datos reales. Cierra este servidor y abre
+          iniciar-crm.bat.
+        </div>
+      )}
       <nav className="flex-1 space-y-1 px-3" aria-label="Principal">
         {ITEMS.map((it) => (
           <NavLink
@@ -68,7 +78,10 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
-      <div className="space-y-1 border-t border-white/10 p-4 text-xs text-ice/70">
+      <div className="border-t border-white/10 px-4 pt-3">
+        <PlanMedidor compacto />
+      </div>
+      <div className="space-y-1 p-4 text-xs text-ice/70">
         <div>
           Motor IA: <span className="font-medium text-ice">{estado.data?.motor_ia ?? '—'}</span>
         </div>

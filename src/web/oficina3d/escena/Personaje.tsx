@@ -34,23 +34,23 @@ function Etiquetas({ a, t, quieto }: { a: AgenteDef3d; t: Tienda; quieto: boolea
       <div className="flex flex-col items-center gap-1" aria-hidden>
         {visible && (
           <div
-            className={`max-w-[170px] rounded-lg px-2 py-1 text-center text-[11px] leading-tight shadow-md ${
+            className={`w-max max-w-[190px] rounded-lg px-2 py-1 text-center text-[11px] leading-tight shadow-md ${
               reg.estado === 'alerta' ? 'bg-bad text-white' : 'bg-white text-deep'
             } ${quieto ? '' : 'anim-pop'}`}
           >
             {reg.burbuja}
           </div>
         )}
-        {(detalle || sel || pausa) && (
+        {
           <div
             className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold shadow ${
               sel ? 'bg-brand-strong text-white' : 'bg-deep/90 text-ice'
             }`}
           >
             {a.persona}
-            {detalle || sel ? <span className="font-normal"> · {a.rol}</span> : null}
+            {detalle || sel || pausa ? <span className="font-normal"> · {a.rol}</span> : null}
           </div>
-        )}
+        }
       </div>
     </Html>
   );

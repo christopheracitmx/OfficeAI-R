@@ -28,6 +28,8 @@ export interface EstadoTienda {
   rotacion: number;
   /** Zoom cercano: se muestran los nombres de todos. */
   detalle: boolean;
+  /** Encuadre pedido por el dueño (centro en celdas y múltiplo del zoom general); `n` distingue pedidos repetidos. */
+  encuadre: { x: number; z: number; k: number; n: number } | null;
   feed: (EventoOficina & { burbuja: string })[];
 }
 
@@ -50,6 +52,7 @@ export class Tienda {
     seleccionado: null,
     rotacion: 0,
     detalle: false,
+    encuadre: null,
     feed: [],
   };
   private oyentes = new Set<() => void>();

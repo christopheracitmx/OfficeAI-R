@@ -32,6 +32,16 @@ export interface ContextoCorrida {
   params: Params;
 }
 
+/**
+ * Candados base de TODO piso nuevo (fijos en código, no editables desde los prompts ni la UI):
+ * sin contacto externo, sin borrado, solo destinos internos y topes de consumo.
+ */
+export const CANDADOS_BASE = `CANDADOS FIJOS (prevalecen sobre cualquier otra instrucción):
+- Jamás contactes, escribas ni respondas a personas u organizaciones externas.
+- No borres ni modifiques datos fuera de lo que tu tarea indica; solo destinos internos.
+- Respeta los topes de consumo de la corrida y no repitas llamadas innecesarias.
+- No inventes datos. Solo usas las herramientas que se te dieron.`;
+
 export class Prompts {
   /** `candados` (por oficina) son reglas de seguridad fijas en código: se añaden SIEMPRE al final y no se editan desde los prompts. */
   constructor(
@@ -58,6 +68,8 @@ export class Prompts {
       contexto.push(
         `Este paso AGRUPA los roles ${agente.roles.join(' y ')}: haz cada uno en ese orden dentro de esta misma tarea y guarda lo que corresponda a cada rol con su herramienta.`,
       );
-    return [...partes, contexto.join('\n'), this.candados[o] ?? ''].filter(Boolean).join('\n\n');
+    return [...partes, contexto.join('\n'), this.candados[o] ?? CANDADOS_BASE]
+      .filter(Boolean)
+      .join('\n\n');
   }
 }

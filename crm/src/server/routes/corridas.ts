@@ -1,24 +1,15 @@
 import { Router } from 'express';
-import { corridaInput } from '../../shared/schemas';
+import { corridaGenericaInput, corridaInput } from '../../shared/schemas';
 import { leerCorrida, progresoDe } from '../runner/datos';
 import { estadoPlan, estimarCorrida } from '../runner/plan';
 import * as admin from '../services/admin';
-import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
+import { obtenerOficina } from '../services/oficinas';
+import { ah, HttpError, idParam, oficinaDe, parse, qstr, type Deps } from './util';
 
 /** Corridas, control del runner (iniciar/detener/reanudar/progreso) y salidas por agente. Rutas del dueño. */
 export function corridasRouter(d: Deps): Router {
   const r = Router();
   const { db } = d;
-
-  r.get(
-    '/oficinas',
-    ah((_q, res) => {
-      const ids = d.runner?.oficinasIds() ?? [];
-      res.json(
-        ids.map((id) => ({ office_id: id, titulo: d.runner?.oficina(id)?.workflow.titulo })),
-      );
-    }),
-  );
 
   /** Límites del plan: lo que informa el CLI (porcentaje, reinicio) o, si no hay, el estimado con tokens. */
   r.get(
@@ -31,15 +22,14 @@ export function corridasRouter(d: Deps): Router {
     '/corridas/estimado',
     ah((q, res) => {
       const n = Math.min(Math.max(Math.trunc(Number(q.query['max_empresas']) || 10), 1), 50);
-      res.json(estimarCorrida(db, qstr(q.query['office_id']) ?? 'prospeccion', n));
+      res.json(estimarCorrida(db, oficinaDe(q), n));
     }),
   );
 
   r.get(
     '/corridas',
     ah((q, res) => {
-      const of = qstr(q.query['office_id']);
-      res.json(admin.listarCorridas(db, of));
+      res.json(admin.listarCorridas(db, oficinaDe(q)));
     }),
   );
 
@@ -47,22 +37,28 @@ export function corridasRouter(d: Deps): Router {
   r.post(
     '/corridas',
     ah((q, res) => {
-      const input = parse(corridaInput, q.body);
-      if (d.runner && !d.runner.oficina(input.office_id))
+      const officeId = String((q.body as { office_id?: unknown })?.office_id ?? 'prospeccion');
+      const generica = officeId !== 'prospeccion';
+      const input = generica ? parse(corridaGenericaInput, q.body) : parse(corridaInput, q.body);
+      const piso = obtenerOficina(db, input.office_id);
+      if (!piso || (d.runner && !d.runner.oficina(input.office_id)))
         throw new HttpError(400, `Oficina desconocida: ${input.office_id}`);
-      const est = estimarCorrida(db, input.office_id, input.max_empresas);
+      if (piso.estado !== 'activa')
+        throw new HttpError(409, `La oficina «${piso.nombre}» está archivada`);
+      const items =
+        'max_empresas' in input ? input.max_empresas : Number(input.params['max_items']) || 1;
+      const est = estimarCorrida(db, input.office_id, items);
       if (est.requiere_confirmacion && !input.confirmado)
         return void res.status(409).json({
           error: `Consumo estimado ≈ ${est.tokens.toLocaleString('es-MX')} tokens, sobre el umbral de ${est.umbral.toLocaleString('es-MX')}. Confirma para iniciar.`,
           codigo: 'requiere_confirmacion',
           estimado: est,
         });
-      const out = admin.crearCorrida(
-        db,
-        input,
-        d.runner?.motor ?? admin.getConfig(db).motor_ia,
-        input.office_id,
-      );
+      const motor = d.runner?.motor ?? admin.getConfig(db).motor_ia;
+      const out =
+        'params' in input
+          ? admin.crearCorridaGenerica(db, input.office_id, input.params, motor)
+          : admin.crearCorrida(db, input, motor, input.office_id);
       if (!out.ok) throw new HttpError(409, out.error);
       if (d.runner) {
         try {
@@ -73,7 +69,7 @@ export function corridasRouter(d: Deps): Router {
           throw new HttpError(409, msg);
         }
       }
-      res.status(201).json({ ...out, runner: d.runner?.estado() ?? null });
+      res.status(201).json({ ...out, runner: d.runner?.estado(input.office_id) ?? null });
     }),
   );
 
@@ -113,7 +109,7 @@ export function corridasRouter(d: Deps): Router {
       const c = leerCorrida(db, idParam(q));
       if (!c) throw new HttpError(404, 'Corrida no encontrada');
       const wf = d.runner?.oficina(c.office_id)?.workflow;
-      const vivo = d.runner?.estado();
+      const vivo = d.runner?.estado(c.office_id);
       res.json({
         corrida: c,
         runner: vivo?.corrida_id === c.id ? vivo : null,
@@ -126,10 +122,9 @@ export function corridasRouter(d: Deps): Router {
   r.get(
     '/salidas',
     ah((q, res) => {
-      const where: string[] = [];
-      const params: unknown[] = [];
+      const where: string[] = ['s.office_id = ?'];
+      const params: unknown[] = [oficinaDe(q)];
       for (const [col, key] of [
-        ['s.office_id', 'office_id'],
         ['s.agente', 'agente'],
         ['s.corrida_id', 'corrida_id'],
         ['s.item_id', 'item_id'],
@@ -168,7 +163,7 @@ export function corridasRouter(d: Deps): Router {
   r.get(
     '/salidas-resumen',
     ah((q, res) => {
-      const o = qstr(q.query['office_id']) ?? 'prospeccion';
+      const o = oficinaDe(q);
       const c = qstr(q.query['corrida_id']);
       res.json(
         db

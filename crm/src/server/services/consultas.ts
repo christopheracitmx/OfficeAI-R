@@ -14,11 +14,13 @@ export interface FiltrosProspectos {
   metodo?: string;
   sinVer?: boolean;
   q?: string;
+  /** Oficina dueña de los prospectos (por defecto la de prospección: es la única que los produce). */
+  office_id?: string;
 }
 
 export function listarProspectos(db: Db, f: FiltrosProspectos): unknown[] {
-  const where: string[] = [];
-  const params: unknown[] = [];
+  const where: string[] = ['p.office_id = ?'];
+  const params: unknown[] = [f.office_id ?? 'prospeccion'];
   if (f.estado) {
     where.push('p.estado = ?');
     params.push(f.estado);
@@ -147,10 +149,10 @@ export function patchProspecto(
 
 export function listarDirectorio(
   db: Db,
-  f: { etapa?: string; metodo?: string; zona?: string; q?: string },
+  f: { etapa?: string; metodo?: string; zona?: string; q?: string; office_id?: string },
 ): unknown[] {
-  const where: string[] = ['e.fusionada_con IS NULL'];
-  const params: unknown[] = [];
+  const where: string[] = ['e.fusionada_con IS NULL', 'e.office_id = ?'];
+  const params: unknown[] = [f.office_id ?? 'prospeccion'];
   if (f.etapa) {
     where.push('e.etapa = ?');
     params.push(f.etapa);

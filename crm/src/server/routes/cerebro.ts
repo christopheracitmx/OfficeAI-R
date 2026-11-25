@@ -41,11 +41,9 @@ import {
   restaurarPrompt,
   versionesPrompt,
 } from '../services/prompts-db';
-import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
+import { ah, HttpError, idParam, oficinaDe, parse, qstr, type Deps } from './util';
 
-const OFICINA = 'prospeccion';
-const office = (q: { query: Record<string, unknown> }): string =>
-  qstr(q.query['office_id']) ?? OFICINA;
+const office = oficinaDe;
 
 /** Traduce los errores del dominio a HTTP. */
 const kb = async <T>(fn: () => T): Promise<T> => {

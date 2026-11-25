@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { AGENTES } from '../../shared/domain';
 import {
   configPatch,
   destinatarioInput,
@@ -21,8 +20,9 @@ import { assertDestinoPermitido, procesarEnvios } from '../services/mailer';
 import { aprendizajeRouter } from './aprendizaje';
 import { cerebroRouter } from './cerebro';
 import { corridasRouter } from './corridas';
+import { oficinasRouter } from './oficinas';
 import { datosRouter } from './datos';
-import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
+import { ah, HttpError, idParam, oficinaDe, parse, qstr, type Deps } from './util';
 
 export function ownerRouter(d: Deps): Router {
   const r = Router();
@@ -30,13 +30,17 @@ export function ownerRouter(d: Deps): Router {
 
   r.get(
     '/dashboard',
-    ah((_q, res) => void res.json(dashboard(db))),
+    ah((q, res) => {
+      // Los indicadores son de la oficina de prospección; las demás oficinas no producen prospectos.
+      res.json(oficinaDe(q) === 'prospeccion' ? dashboard(db) : { sin_ver: 0, no_aplica: true });
+    }),
   );
 
   r.get(
     '/estado',
-    ah((_q, res) => {
+    ah((q, res) => {
       const cfg = admin.getConfig(db);
+      const oficina = oficinaDe(q);
       const mes = new Date().toISOString().slice(0, 7);
       const usado =
         (
@@ -44,10 +48,12 @@ export function ownerRouter(d: Deps): Router {
             { contador: number } | undefined
         )?.contador ?? 0;
       const corrida =
-        db.prepare("SELECT * FROM corridas WHERE estado='en_curso' LIMIT 1").get() ?? null;
+        db
+          .prepare("SELECT * FROM corridas WHERE estado='en_curso' AND office_id = ? LIMIT 1")
+          .get(oficina) ?? null;
       res.json({
         motor_ia: d.runner?.motor ?? cfg.motor_ia,
-        runner: d.runner?.estado() ?? null,
+        runner: d.runner?.estado(oficina) ?? null,
         places: { usado, tope: cfg.places_tope_pro, mes },
         base_datos: { ruta: db.name, modo: d.dbModo ?? 'demo' },
         resend_configurado: Boolean(d.env?.['RESEND_API_KEY']),
@@ -74,6 +80,7 @@ export function ownerRouter(d: Deps): Router {
           ...(qstr(q.query['metodo']) ? { metodo: qstr(q.query['metodo'])! } : {}),
           ...(qstr(q.query['q']) ? { q: qstr(q.query['q'])! } : {}),
           sinVer: q.query['sinVer'] === '1',
+          office_id: oficinaDe(q),
         }),
       );
     }),
@@ -121,6 +128,7 @@ export function ownerRouter(d: Deps): Router {
           ...(qstr(q.query['metodo']) ? { metodo: qstr(q.query['metodo'])! } : {}),
           ...(qstr(q.query['zona']) ? { zona: qstr(q.query['zona'])! } : {}),
           ...(qstr(q.query['q']) ? { q: qstr(q.query['q'])! } : {}),
+          office_id: oficinaDe(q),
         }),
       );
     }),
@@ -156,13 +164,10 @@ export function ownerRouter(d: Deps): Router {
         where.push('corrida_id = ?');
         params.push(corrida);
       }
-      const of = qstr(q.query['office_id']);
-      if (of) {
-        where.push('office_id = ?');
-        params.push(of);
-      }
+      where.push('office_id = ?');
+      params.push(oficinaDe(q));
       const ag = qstr(q.query['agente']);
-      if (ag && (AGENTES as readonly string[]).includes(ag)) {
+      if (ag && /^[\w\- ]{1,40}$/.test(ag)) {
         where.push('agente = ?');
         params.push(ag);
       }
@@ -180,6 +185,7 @@ export function ownerRouter(d: Deps): Router {
   // ---- Corridas, runner y salidas: ver corridas.ts
   r.use(corridasRouter(d));
   r.use(cerebroRouter(d));
+  r.use(oficinasRouter(d));
 
   // ---- Configuración
   r.get(

@@ -189,6 +189,13 @@ export function crmTools(api: CrmApi): ToolDef[] {
       run: post('/finalizar'),
     },
     {
+      name: 'notificar_interno',
+      description:
+        'Deja un aviso INTERNO en la actividad de la oficina (no escribe a nadie externo ni envía correos).',
+      schema: { asunto: z.string().trim().min(2).max(80), texto: z.string().trim().max(500) },
+      run: post('/notificar'),
+    },
+    {
       name: 'crm_actividad',
       description:
         'Latido/estado en lenguaje humano para la pantalla "Ver oficina" (ej. "Leyendo ejemplo.mx · contacto").',

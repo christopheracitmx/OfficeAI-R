@@ -44,6 +44,11 @@ export function harness() {
         .patch(u)
         .set('Origin', UI)
         .send(b ?? {}),
+    put: (u: string, b?: object) =>
+      api
+        .put(u)
+        .set('Origin', UI)
+        .send(b ?? {}),
     del: (u: string) => api.delete(u).set('Origin', UI),
   };
   const agent = (name = 'Coordinador') => ({

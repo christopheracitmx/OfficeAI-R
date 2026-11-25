@@ -143,6 +143,16 @@ export const corridaInput = z.object({
   confirmado: z.boolean().optional(),
 });
 
+/** Corrida de una oficina distinta de prospección: parámetros libres (texto/número), validados en el servidor. */
+export const corridaGenericaInput = z.object({
+  office_id: z.string().regex(/^[a-z0-9_-]+$/),
+  params: z
+    .record(z.string().max(40), z.union([z.string().max(500), z.number()]))
+    .refine((p) => Object.keys(p).length <= 20, 'Máximo 20 parámetros')
+    .default({}),
+  confirmado: z.boolean().optional(),
+});
+
 export const prospectoPatch = z.object({
   estado: z.enum(ESTADOS_PROSPECTO).optional(),
   canalizado_a: z.string().trim().max(160).nullable().optional(),

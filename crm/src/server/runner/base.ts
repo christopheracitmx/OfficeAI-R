@@ -94,11 +94,15 @@ export class RunnerBase {
 
   private definicion(pasoId: string): AgenteDef {
     const p = this.wf.pasos[pasoId]!;
+    const permitidas = this.ej?.oficina.herramientas ?? null;
     return {
       id: p.agente,
       roles: p.roles,
       prompts: p.prompts,
-      herramientas: p.herramientas,
+      // Mínimo privilegio por oficina: lo que el workflow pida fuera de la lista permitida no se entrega.
+      herramientas: permitidas
+        ? p.herramientas.filter((h) => permitidas.includes(h))
+        : p.herramientas,
       webSearch: p.web,
       maxTurnos: p.max_turnos,
       maxLecturas: p.max_lecturas,

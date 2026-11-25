@@ -33,9 +33,17 @@ import { z } from 'zod';
 import { agentExtra } from './agent-extra';
 import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
 
-function agenteDe(req: Request): string {
+/** Oficina que declara el proceso MCP del agente (x-office-id). */
+export const oficinaAgente = (req: Request): string => req.header('x-office-id') || 'prospeccion';
+
+/** Rutas de agente que sirven a cualquier oficina; todo lo demás (crm_*) es solo de prospección. */
+const RUTAS_COMUNES = /^\/(kb\/|actividad$|notificar$)/;
+
+export function agenteDe(req: Request): string {
   const n = req.header('x-agent-name') ?? '';
-  return (AGENTES as readonly string[]).includes(n) ? n : 'Coordinador';
+  if ((AGENTES as readonly string[]).includes(n)) return n;
+  // Otras oficinas traen sus propios nombres de agente.
+  return oficinaAgente(req) !== 'prospeccion' && /^[\w\- ]{1,40}$/.test(n) ? n : 'Coordinador';
 }
 
 export function agentRouter(d: Deps): Router {
@@ -49,6 +57,13 @@ export function agentRouter(d: Deps): Router {
     next();
   });
 
+  // Mínimo privilegio por oficina: las herramientas crm_* (prospectos, empresas...) solo existen en prospección.
+  r.use((req, _res, next) => {
+    if (oficinaAgente(req) !== 'prospeccion' && !RUTAS_COMUNES.test(req.path))
+      return next(new HttpError(403, 'Herramienta no disponible en esta oficina'));
+    next();
+  });
+
   const log = (req: Request, accion: string, entidad?: string, id?: number, detalle?: string) =>
     registrarActividad(db, bus, {
       agente: agenteDe(req),
@@ -56,16 +71,18 @@ export function agentRouter(d: Deps): Router {
       entidad,
       entidad_id: id,
       detalle,
-      corrida_id: (
-        db.prepare("SELECT id FROM corridas WHERE estado='en_curso' LIMIT 1").get() as
-          { id: number } | undefined
-      )?.id,
+      corrida_id: corridaActivaId(db, oficinaAgente(req)),
+      office_id: oficinaAgente(req),
     });
 
   r.get(
     '/corrida',
-    ah((_q, res) => {
-      res.json(db.prepare("SELECT * FROM corridas WHERE estado='en_curso' LIMIT 1").get() ?? null);
+    ah((q, res) => {
+      res.json(
+        db
+          .prepare("SELECT * FROM corridas WHERE estado='en_curso' AND office_id = ? LIMIT 1")
+          .get(oficinaAgente(q)) ?? null,
+      );
     }),
   );
 

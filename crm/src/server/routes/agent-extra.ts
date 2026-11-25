@@ -1,8 +1,9 @@
 import type { Request, Router } from 'express';
 import { z } from 'zod';
-import { AGENTES, puedeCambiarEstado } from '../../shared/domain';
+import { puedeCambiarEstado } from '../../shared/domain';
 import { actividadInput, finalizarInput } from '../../shared/schemas';
-import { consumirPlaces, QuotaExceededError } from '../services/admin';
+import { agenteDe, oficinaAgente } from './agent';
+import { consumirPlaces, corridaActivaId, QuotaExceededError } from '../services/admin';
 import { buscarKb, leerKb } from '../services/kb-buscar';
 import { registrarActividad } from '../services/events';
 import { procesarEnvios } from '../services/mailer';
@@ -20,13 +21,9 @@ type Log = (
 /** Rutas de agente: cierre del prospecto, cuota de Places, caché de páginas y actividad. */
 export function agentExtra(r: Router, d: Deps, log: Log): void {
   const { db, bus } = d;
-  const agenteDe = (q: Request): string => {
-    const n = q.header('x-agent-name') ?? '';
-    return (AGENTES as readonly string[]).includes(n) ? n : 'Coordinador';
-  };
 
   // Biblioteca de la oficina: fragmentos cortos con tope de caracteres (cuida el plan).
-  const oficinaDe = (q: Request): string => q.header('x-office-id') || 'prospeccion';
+  const oficinaDe = oficinaAgente;
   r.get(
     '/kb/buscar',
     ah((q, res) => {
@@ -127,8 +124,37 @@ export function agentExtra(r: Router, d: Deps, log: Log): void {
   r.post(
     '/actividad',
     ah((q, res) => {
-      const a = parse(actividadInput, { ...(q.body as object), agente: agenteDe(q) });
-      res.status(201).json(registrarActividad(db, bus, a));
+      const office = oficinaDe(q);
+      const a = parse(actividadInput.omit({ agente: true }), q.body);
+      res.status(201).json(
+        registrarActividad(db, bus, {
+          ...a,
+          agente: agenteDe(q),
+          office_id: office,
+          corrida_id: a.corrida_id ?? corridaActivaId(db, office),
+        }),
+      );
+    }),
+  );
+
+  /** Aviso interno (se ve en la Actividad y en el piso 3D de la oficina). No sale por correo ni a terceros. */
+  r.post(
+    '/notificar',
+    ah((q, res) => {
+      const office = oficinaDe(q);
+      const n = parse(
+        z.object({ asunto: z.string().trim().min(2).max(80), texto: z.string().trim().max(500) }),
+        q.body,
+      );
+      res.status(201).json(
+        registrarActividad(db, bus, {
+          agente: agenteDe(q),
+          accion: `aviso interno: ${n.asunto}`,
+          detalle: n.texto,
+          office_id: office,
+          corrida_id: corridaActivaId(db, office),
+        }),
+      );
     }),
   );
 }

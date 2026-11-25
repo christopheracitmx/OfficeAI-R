@@ -8,7 +8,7 @@ import {
   registrarRestauracion,
   restaurarRespaldo,
 } from '../services/respaldos';
-import { ah, HttpError, parse, qstr, type Deps } from './util';
+import { ah, HttpError, oficinaDe, parse, qstr, type Deps } from './util';
 
 async function dom<T>(fn: () => T): Promise<T> {
   try {
@@ -35,6 +35,7 @@ export function datosRouter(d: Deps): Router {
         ...(qstr(q.query['metodo']) ? { metodo: qstr(q.query['metodo'])! } : {}),
         ...(qstr(q.query['q']) ? { q: qstr(q.query['q'])! } : {}),
         sinVer: q.query['sinVer'] === '1',
+        office_id: oficinaDe(q),
       };
       const fecha = new Date().toISOString().slice(0, 10);
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');

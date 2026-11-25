@@ -18,6 +18,8 @@ export type Gancho = (a: GanchoArgs) => Promise<void>;
 export interface OficinaDef {
   workflow: Workflow;
   ganchos: Record<string, Gancho>;
+  /** Herramientas MCP que la oficina puede usar (null = sin restricción). Se aplica en código. */
+  herramientas?: readonly string[] | null;
 }
 
 export interface RunnerDeps {

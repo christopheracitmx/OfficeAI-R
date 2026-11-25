@@ -37,10 +37,9 @@ import {
   restaurarVersion,
 } from '../services/lecciones';
 import { ejecutarReflexion, estimarReflexion } from '../services/reflexion';
-import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
+import { ah, HttpError, idParam, oficinaDe, parse, qstr, type Deps } from './util';
 
-const office = (q: { query: Record<string, unknown> }): string =>
-  qstr(q.query['office_id']) ?? 'prospeccion';
+const office = oficinaDe;
 
 /** Traduce los errores del dominio a HTTP. */
 async function dom<T>(fn: () => T | Promise<T>): Promise<T> {

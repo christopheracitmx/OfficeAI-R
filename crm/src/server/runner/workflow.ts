@@ -142,7 +142,12 @@ export type Variante = z.infer<typeof variantePaso>;
 
 export function cargarWorkflow(dirOficinas: string, officeId: string): Workflow {
   const raw = readFileSync(join(dirOficinas, officeId, 'workflow.json'), 'utf8');
-  const wf = workflowSchema.parse(JSON.parse(raw));
+  return validarWorkflow(JSON.parse(raw), officeId);
+}
+
+/** Valida un workflow (de archivo o de la BD): esquema zod + referencias internas + resultado obligatorio. */
+export function validarWorkflow(json: unknown, officeId: string): Workflow {
+  const wf = workflowSchema.parse(json);
   if (wf.office_id !== officeId) throw new Error(`workflow.json declara office_id ${wf.office_id}`);
   const ids = new Set(Object.keys(wf.pasos));
   const usa = (p: string): void => {

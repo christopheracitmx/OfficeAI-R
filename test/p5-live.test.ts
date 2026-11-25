@@ -86,21 +86,26 @@ describe.skipIf(process.env['LIVE'] !== '1')('LIVE: una corrida real con Claude 
     };
     const salidas = db
       .prepare(
-        'SELECT agente, resultado, tokens_estimados, duracion_ms FROM salidas_agente ORDER BY id',
+        "SELECT agente, resultado, tokens_estimados, tokens_brutos, turnos, prompt_tokens, herramientas, duracion_ms FROM salidas_agente WHERE tipo = 'paso' ORDER BY id",
       )
       .all() as {
       agente: string;
       resultado: string;
       tokens_estimados: number | null;
+      tokens_brutos: number | null;
+      turnos: number | null;
+      prompt_tokens: number | null;
+      herramientas: string | null;
       duracion_ms: number;
     }[];
     const tokens = salidas.reduce((a, s) => a + (s.tokens_estimados ?? 0), 0);
+    const brutos = salidas.reduce((a, s) => a + (s.tokens_brutos ?? 0), 0);
     const prospecto = db.prepare('SELECT estado, score, nivel FROM prospectos').all() as object[];
-    const cab = `LIVE: ${corrida.estado} | ${corrida.motivo_fin} | ${salidas.length} pasos | ${tokens} tokens | ${Math.round((Date.now() - t0) / 1000)} s`;
+    const cab = `LIVE: ${corrida.estado} | ${corrida.motivo_fin} | ${salidas.length} pasos | ${tokens} tokens ponderados / ${brutos} brutos | ${Math.round((Date.now() - t0) / 1000)} s`;
     const pros = `prospectos: ${JSON.stringify(prospecto)} | correos falsos: ${mailer.enviados.length}`;
     const det = salidas.map(
       (x) =>
-        `  ${x.agente} ${x.resultado} ${x.tokens_estimados ?? '?'}t ${Math.round(x.duracion_ms / 1000)}s`,
+        `  ${x.agente} ${x.resultado} pond=${x.tokens_estimados ?? '?'} bruto=${x.tokens_brutos ?? '?'} turnos=${x.turnos ?? '?'} prompt=${x.prompt_tokens ?? '?'} ${Math.round(x.duracion_ms / 1000)}s ${x.herramientas ?? ''}`,
     );
     writeFileSync(resolve('data/live-last.txt'), [cab, pros, ...det, ...eventos, ''].join('\n'));
     server.close();

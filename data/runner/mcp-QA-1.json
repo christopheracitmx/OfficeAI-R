@@ -7,11 +7,11 @@
         "C:\\Users\\Google\\Desktop\\AI Office\\Prospecting\\crm\\src\\mcp\\index.ts"
       ],
       "env": {
-        "CRM_URL": "http://127.0.0.1:50478",
-        "CRM_AGENT_TOKEN_FILE": "C:\\Users\\Google\\AppData\\Local\\Temp\\live-QSR4br\\agent.token",
+        "CRM_URL": "http://127.0.0.1:54209",
+        "CRM_AGENT_TOKEN_FILE": "C:\\Users\\Google\\AppData\\Local\\Temp\\live-w7DhTT\\agent.token",
         "CRM_AGENT": "QA-1",
         "CRM_OFFICE": "prospeccion",
-        "CRM_TOOLS": "crm_expediente,crm_qa,obscura_extract,crm_actividad",
+        "CRM_TOOLS": "crm_expediente,crm_qa,obscura_extract,kb_buscar,kb_leer",
         "GOOGLE_PLACES_API_KEY": ""
       }
     }

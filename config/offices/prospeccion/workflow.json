@@ -63,8 +63,7 @@
         "places_search",
         "crm_directorio_buscar",
         "crm_registrar_busqueda",
-        "crm_upsert_empresa",
-        "crm_actividad"
+        "crm_upsert_empresa"
       ],
       "web": false,
       "max_turnos": 14
@@ -77,8 +76,7 @@
         "obscura_extract",
         "crm_directorio_buscar",
         "crm_registrar_busqueda",
-        "crm_upsert_empresa",
-        "crm_actividad"
+        "crm_upsert_empresa"
       ],
       "web": true,
       "max_turnos": 40,
@@ -88,12 +86,7 @@
       "agente": "Guardian",
       "roles": ["Guardian"],
       "prompts": ["guardian"],
-      "herramientas": [
-        "crm_directorio_buscar",
-        "crm_etapa_empresa",
-        "crm_expediente",
-        "crm_actividad"
-      ],
+      "herramientas": ["crm_directorio_buscar", "crm_etapa_empresa", "crm_expediente"],
       "web": false,
       "max_turnos": 30,
       "max_lecturas": 3
@@ -108,8 +101,7 @@
         "crm_registrar_hallazgo",
         "crm_etapa_empresa",
         "crm_expediente",
-        "crm_directorio_buscar",
-        "crm_actividad"
+        "crm_directorio_buscar"
       ],
       "web": true,
       "max_turnos": 30,
@@ -125,7 +117,6 @@
         "crm_registrar_hallazgo",
         "crm_etapa_empresa",
         "crm_expediente",
-        "crm_actividad",
         "kb_buscar",
         "kb_leer"
       ],
@@ -137,7 +128,7 @@
       "agente": "Estratega",
       "roles": ["Estratega"],
       "prompts": ["estratega"],
-      "herramientas": ["crm_expediente", "crm_actividad", "kb_buscar", "kb_leer"],
+      "herramientas": ["crm_expediente", "kb_buscar", "kb_leer"],
       "web": false,
       "max_turnos": 6
     },
@@ -145,13 +136,7 @@
       "agente": "Armador",
       "roles": ["Armador"],
       "prompts": ["armador"],
-      "herramientas": [
-        "crm_expediente",
-        "crm_guardar_propuestas",
-        "crm_actividad",
-        "kb_buscar",
-        "kb_leer"
-      ],
+      "herramientas": ["crm_expediente", "crm_guardar_propuestas", "kb_buscar", "kb_leer"],
       "web": false,
       "max_turnos": 8
     },
@@ -159,13 +144,7 @@
       "agente": "Armador",
       "roles": ["Estratega", "Armador"],
       "prompts": ["estratega", "armador"],
-      "herramientas": [
-        "crm_expediente",
-        "crm_guardar_propuestas",
-        "crm_actividad",
-        "kb_buscar",
-        "kb_leer"
-      ],
+      "herramientas": ["crm_expediente", "crm_guardar_propuestas", "kb_buscar", "kb_leer"],
       "web": false,
       "max_turnos": 10
     },
@@ -173,14 +152,7 @@
       "agente": "QA-1",
       "roles": ["QA-1"],
       "prompts": ["qa1"],
-      "herramientas": [
-        "crm_expediente",
-        "crm_qa",
-        "obscura_extract",
-        "crm_actividad",
-        "kb_buscar",
-        "kb_leer"
-      ],
+      "herramientas": ["crm_expediente", "crm_qa", "obscura_extract", "kb_buscar", "kb_leer"],
       "web": false,
       "max_turnos": 14
     },
@@ -188,13 +160,7 @@
       "agente": "Calificador",
       "roles": ["Calificador"],
       "prompts": ["calificador"],
-      "herramientas": [
-        "crm_expediente",
-        "crm_guardar_score",
-        "crm_actividad",
-        "kb_buscar",
-        "kb_leer"
-      ],
+      "herramientas": ["crm_expediente", "crm_guardar_score", "kb_buscar", "kb_leer"],
       "web": false,
       "max_turnos": 6
     },
@@ -202,13 +168,7 @@
       "agente": "Redactor",
       "roles": ["Redactor"],
       "prompts": ["redactor"],
-      "herramientas": [
-        "crm_expediente",
-        "crm_guardar_reporte",
-        "crm_actividad",
-        "kb_buscar",
-        "kb_leer"
-      ],
+      "herramientas": ["crm_expediente", "crm_guardar_reporte", "kb_buscar", "kb_leer"],
       "web": false,
       "max_turnos": 6
     },
@@ -220,7 +180,6 @@
         "crm_expediente",
         "crm_guardar_score",
         "crm_guardar_reporte",
-        "crm_actividad",
         "kb_buscar",
         "kb_leer"
       ],
@@ -235,7 +194,6 @@
         "crm_expediente",
         "crm_qa",
         "crm_finalizar_prospecto",
-        "crm_actividad",
         "kb_buscar",
         "kb_leer"
       ],

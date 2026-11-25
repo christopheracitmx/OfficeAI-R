@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { AGENTES, puedeCambiarEstado } from '../../shared/domain';
 import { actividadInput, finalizarInput } from '../../shared/schemas';
 import { consumirPlaces, QuotaExceededError } from '../services/admin';
+import { buscarKb, leerKb } from '../services/kb-buscar';
 import { registrarActividad } from '../services/events';
 import { procesarEnvios } from '../services/mailer';
 import { finalizarProspecto } from '../services/prospectos';
@@ -23,6 +24,27 @@ export function agentExtra(r: Router, d: Deps, log: Log): void {
     const n = q.header('x-agent-name') ?? '';
     return (AGENTES as readonly string[]).includes(n) ? n : 'Coordinador';
   };
+
+  // Biblioteca de la oficina: fragmentos cortos con tope de caracteres (cuida el plan).
+  const oficinaDe = (q: Request): string => q.header('x-office-id') || 'prospeccion';
+  r.get(
+    '/kb/buscar',
+    ah((q, res) => {
+      const texto = qstr(q.query['texto']);
+      if (!texto) throw new HttpError(400, 'Falta texto');
+      res.json(buscarKb(db, oficinaDe(q), texto, qstr(q.query['tipo'])));
+    }),
+  );
+  r.get(
+    '/kb/leer',
+    ah((q, res) => {
+      const ref = qstr(q.query['ref']);
+      if (!ref) throw new HttpError(400, 'Falta ref');
+      const out = leerKb(db, oficinaDe(q), ref, Math.max(0, Number(q.query['desde']) || 0));
+      if (!out) throw new HttpError(404, 'No existe o está archivado');
+      res.json(out);
+    }),
+  );
 
   r.post(
     '/finalizar',

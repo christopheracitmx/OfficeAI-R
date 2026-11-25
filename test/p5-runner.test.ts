@@ -90,9 +90,11 @@ describe('Runner: flujo feliz y datos del paso', () => {
       resultado: string;
       tokens_estimados: number | null;
     }[];
-    expect(s.length).toBe(m.llamadas().length);
+    // una fila por rol: los pasos agrupados (Estratega+Armador, Calificador+Redactor) dejan dos filas
+    expect(s.length).toBe(m.llamadas().length + 2);
+    expect(s.map((x) => x.agente)).toContain('Estratega');
     expect(s.every((x) => x.office_id === 'prospeccion' && x.resultado === 'ok')).toBe(true);
-    expect(s.every((x) => x.tokens_estimados === 130)).toBe(true);
+    expect(s.reduce((a, x) => a + (x.tokens_estimados ?? 0), 0)).toBe(130 * m.llamadas().length);
     const ev = m.db
       .prepare("SELECT agente, accion, office_id FROM actividad_agentes WHERE agente='Coordinador'")
       .all() as { accion: string; office_id: string }[];

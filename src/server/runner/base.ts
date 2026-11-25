@@ -118,15 +118,20 @@ export class RunnerBase {
     e.pasos++;
     e.paso = pasoId;
     const t0 = Date.now();
+    const prompt = this.d.prompts.armar(def, e.corrida);
+    const usadas: Record<string, number> = {};
     const r = await this.d.ejecutar({
       officeId: e.corrida.office_id,
       agente: def,
-      prompt: this.d.prompts.armar(def, e.corrida),
+      prompt,
       mensaje,
       mcpEnv,
       timeout: this.d.cfg.timeout_paso_min * 60_000,
       signal: e.abort.signal,
-      onProgreso: (p) => this.alHerramienta(def.id, p.nombre, itemId),
+      onProgreso: (p) => {
+        usadas[p.nombre] = (usadas[p.nombre] ?? 0) + 1;
+        this.alHerramienta(def.id, p.nombre, itemId);
+      },
     });
     e.paso = null;
     const resultado = r.abortado
@@ -138,7 +143,10 @@ export class RunnerBase {
           : r.ok
             ? 'ok'
             : 'fallo';
-    this.guardarSalida(def, pasoId, itemId, r, resultado, Date.now() - t0);
+    this.guardarSalida(def, pasoId, itemId, r, resultado, Date.now() - t0, {
+      promptTokens: Math.ceil(prompt.length / 3.6),
+      usadas,
+    });
     if (r.abortado || e.abort.signal.aborted)
       throw new FinCorrida('detenida', 'Detenida por el dueño');
     if (r.limite_plan) {
@@ -152,7 +160,7 @@ export class RunnerBase {
     return r;
   }
 
-  /** Alimenta salidas_agente (panel de cada agente, P6.4). */
+  /** Alimenta salidas_agente (panel de cada agente): una fila por rol del paso, con el consumo repartido. */
   private guardarSalida(
     def: AgenteDef,
     paso: string,
@@ -160,25 +168,51 @@ export class RunnerBase {
     r: ResultadoAgente,
     resultado: string,
     ms: number,
+    extra: { promptTokens: number; usadas: Record<string, number> },
   ): void {
     const e = this.ej!;
-    this.d.db
-      .prepare(
-        `INSERT INTO salidas_agente (office_id, corrida_id, agente, paso, item_id, tipo, resumen, contenido, tokens_estimados, duracion_ms, resultado)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-      )
-      .run(
+    const n = def.roles.length;
+    const ins = this.d.db.prepare(
+      `INSERT INTO salidas_agente (office_id, corrida_id, agente, rol, paso, item_id, tipo, resumen, contenido, tokens_estimados, duracion_ms, resultado, prompt_tokens, turnos, herramientas)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    );
+    for (const rol of def.roles)
+      ins.run(
         e.corrida.office_id,
         e.corrida.id,
-        def.id,
+        rol,
+        rol,
         paso,
         itemId ?? null,
         'paso',
         (r.ok ? r.salida : (r.error ?? r.salida)).slice(0, 300),
         (r.salida || r.error || '').slice(0, 8000),
-        r.tokens ?? null,
-        ms,
+        r.tokens === undefined ? null : Math.ceil(r.tokens / n),
+        Math.round(ms / n),
         resultado,
+        extra.promptTokens,
+        r.turnos ?? null,
+        JSON.stringify(extra.usadas),
+      );
+  }
+
+  /** Paso hecho por código (no por un agente): también queda en las salidas. */
+  guardarSalidaCodigo(nombre: string, itemId: number, ok: boolean, resumen: string): void {
+    const e = this.ej!;
+    this.d.db
+      .prepare(
+        `INSERT INTO salidas_agente (office_id, corrida_id, agente, rol, paso, item_id, tipo, resumen, resultado)
+         VALUES (?,?,?,?,?,?,'codigo',?,?)`,
+      )
+      .run(
+        e.corrida.office_id,
+        e.corrida.id,
+        this.wf.coordinador,
+        this.wf.coordinador,
+        nombre,
+        itemId,
+        resumen.slice(0, 300),
+        ok ? 'ok' : 'fallo',
       );
   }
 

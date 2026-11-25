@@ -14,6 +14,7 @@ export class CrmApi {
     private readonly base: string,
     private readonly token: string,
     private readonly agente: string,
+    private readonly office: string = 'prospeccion',
     private readonly fetchFn: typeof fetch = fetch,
   ) {}
 
@@ -24,6 +25,7 @@ export class CrmApi {
         'Content-Type': 'application/json',
         'x-agent-token': this.token,
         'x-agent-name': this.agente,
+        'x-office-id': this.office,
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });

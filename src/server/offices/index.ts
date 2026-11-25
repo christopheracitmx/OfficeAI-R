@@ -9,6 +9,7 @@ import type { EjecutarAgenteFn } from '../runner/types';
 import { cargarWorkflow } from '../runner/workflow';
 import type { EventBus } from '../services/events';
 import type { Mailer } from '../services/mailer';
+import { sembrarOficina, PromptsBd } from './cerebro-bd';
 import { CANDADOS_PROSPECCION, OFFICE_ID, oficinaProspeccion } from './prospeccion';
 
 export interface OpcionesRunner {
@@ -41,6 +42,7 @@ export function crearRunner(o: OpcionesRunner): Runner {
     : [];
   for (const id of ids) {
     const wf = cargarWorkflow(dirOficinas, id);
+    sembrarOficina(o.db, dirOficinas, wf);
     if (id === OFFICE_ID) {
       oficinas[id] = oficinaProspeccion(wf, { mailer: o.mailer, from: o.from, baseUrl: o.baseUrl });
       candados[id] = CANDADOS_PROSPECCION;
@@ -60,7 +62,7 @@ export function crearRunner(o: OpcionesRunner): Runner {
     db: o.db,
     bus: o.bus,
     ejecutar,
-    prompts: new Prompts(new ArchivosPrompts(dirOficinas), candados),
+    prompts: new Prompts(new PromptsBd(o.db, new ArchivosPrompts(dirOficinas)), candados),
     cfg,
     oficinas,
     mcpEnvBase: { CRM_URL: `http://127.0.0.1:${o.puerto}`, CRM_AGENT_TOKEN_FILE: o.tokenFile },

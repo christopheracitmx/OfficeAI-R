@@ -122,7 +122,9 @@
         "crm_registrar_hallazgo",
         "crm_etapa_empresa",
         "crm_expediente",
-        "crm_actividad"
+        "crm_actividad",
+        "kb_buscar",
+        "kb_leer"
       ],
       "web": true,
       "max_turnos": 20
@@ -131,7 +133,7 @@
       "agente": "Estratega",
       "roles": ["Estratega"],
       "prompts": ["estratega"],
-      "herramientas": ["crm_expediente", "crm_actividad"],
+      "herramientas": ["crm_expediente", "crm_actividad", "kb_buscar", "kb_leer"],
       "web": false,
       "max_turnos": 6
     },
@@ -139,7 +141,13 @@
       "agente": "Armador",
       "roles": ["Armador"],
       "prompts": ["armador"],
-      "herramientas": ["crm_expediente", "crm_guardar_propuestas", "crm_actividad"],
+      "herramientas": [
+        "crm_expediente",
+        "crm_guardar_propuestas",
+        "crm_actividad",
+        "kb_buscar",
+        "kb_leer"
+      ],
       "web": false,
       "max_turnos": 8
     },
@@ -147,7 +155,13 @@
       "agente": "Armador",
       "roles": ["Estratega", "Armador"],
       "prompts": ["estratega", "armador"],
-      "herramientas": ["crm_expediente", "crm_guardar_propuestas", "crm_actividad"],
+      "herramientas": [
+        "crm_expediente",
+        "crm_guardar_propuestas",
+        "crm_actividad",
+        "kb_buscar",
+        "kb_leer"
+      ],
       "web": false,
       "max_turnos": 10
     },
@@ -155,7 +169,14 @@
       "agente": "QA-1",
       "roles": ["QA-1"],
       "prompts": ["qa1"],
-      "herramientas": ["crm_expediente", "crm_qa", "obscura_extract", "crm_actividad"],
+      "herramientas": [
+        "crm_expediente",
+        "crm_qa",
+        "obscura_extract",
+        "crm_actividad",
+        "kb_buscar",
+        "kb_leer"
+      ],
       "web": false,
       "max_turnos": 14
     },
@@ -163,7 +184,13 @@
       "agente": "Calificador",
       "roles": ["Calificador"],
       "prompts": ["calificador"],
-      "herramientas": ["crm_expediente", "crm_guardar_score", "crm_actividad"],
+      "herramientas": [
+        "crm_expediente",
+        "crm_guardar_score",
+        "crm_actividad",
+        "kb_buscar",
+        "kb_leer"
+      ],
       "web": false,
       "max_turnos": 6
     },
@@ -171,7 +198,13 @@
       "agente": "Redactor",
       "roles": ["Redactor"],
       "prompts": ["redactor"],
-      "herramientas": ["crm_expediente", "crm_guardar_reporte", "crm_actividad"],
+      "herramientas": [
+        "crm_expediente",
+        "crm_guardar_reporte",
+        "crm_actividad",
+        "kb_buscar",
+        "kb_leer"
+      ],
       "web": false,
       "max_turnos": 6
     },
@@ -183,7 +216,9 @@
         "crm_expediente",
         "crm_guardar_score",
         "crm_guardar_reporte",
-        "crm_actividad"
+        "crm_actividad",
+        "kb_buscar",
+        "kb_leer"
       ],
       "web": false,
       "max_turnos": 10
@@ -192,7 +227,14 @@
       "agente": "QA-2",
       "roles": ["QA-2"],
       "prompts": ["qa2"],
-      "herramientas": ["crm_expediente", "crm_qa", "crm_finalizar_prospecto", "crm_actividad"],
+      "herramientas": [
+        "crm_expediente",
+        "crm_qa",
+        "crm_finalizar_prospecto",
+        "crm_actividad",
+        "kb_buscar",
+        "kb_leer"
+      ],
       "web": false,
       "max_turnos": 10
     }

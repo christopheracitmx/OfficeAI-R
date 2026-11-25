@@ -18,6 +18,7 @@ import {
 } from '../services/consultas';
 import { cambiarEtapa, upsertEmpresa } from '../services/empresas';
 import { assertDestinoPermitido, procesarEnvios } from '../services/mailer';
+import { cerebroRouter } from './cerebro';
 import { corridasRouter } from './corridas';
 import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
 
@@ -171,6 +172,7 @@ export function ownerRouter(d: Deps): Router {
 
   // ---- Corridas, runner y salidas: ver corridas.ts
   r.use(corridasRouter(d));
+  r.use(cerebroRouter(d));
 
   // ---- Configuración
   r.get(

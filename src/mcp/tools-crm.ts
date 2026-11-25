@@ -39,6 +39,34 @@ export function crmTools(api: CrmApi): ToolDef[] {
       run: () => api.get('/corrida'),
     },
     {
+      name: 'kb_buscar',
+      description:
+        'Busca en la Biblioteca de la oficina (productos, giros, voz y tono, reglas...). Devuelve pocos fragmentos cortos con su ref. Úsala en vez de adivinar; luego kb_leer si hace falta más.',
+      schema: {
+        texto: z.string().min(2).max(120),
+        tipo: z
+          .enum([
+            'producto',
+            'giro',
+            'oficinas',
+            'voz',
+            'objeciones',
+            'reglas',
+            'glosario',
+            'lista',
+          ])
+          .optional(),
+      },
+      run: (a) => api.get(`/kb/buscar?${qs(a)}`),
+    },
+    {
+      name: 'kb_leer',
+      description:
+        'Lee por tramos un documento o producto de la Biblioteca por su ref (doc:N o prod:N). Si devuelve "siguiente", pásalo como desde para continuar.',
+      schema: { ref: z.string().min(3).max(20), desde: z.number().int().min(0).optional() },
+      run: (a) => api.get(`/kb/leer?${qs(a)}`),
+    },
+    {
       name: 'crm_expediente',
       description:
         'Lee (solo lectura) el expediente completo de una empresa por empresa_id: datos, contactos con fuente, necesidades, prospecto, productos, paquetes, score, reporte y revisiones de QA. Es la forma de ver el trabajo de los agentes anteriores.',

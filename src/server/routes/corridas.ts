@@ -98,17 +98,18 @@ export function corridasRouter(d: Deps): Router {
     }),
   );
 
-  /** Lo que ha producido cada agente (alimenta el panel del agente en P6/P7). */
+  /** Lo que ha producido cada agente (panel del agente). `prospecto_id` enlaza la salida con el prospecto de la empresa. */
   r.get(
     '/salidas',
     ah((q, res) => {
       const where: string[] = [];
       const params: unknown[] = [];
       for (const [col, key] of [
-        ['office_id', 'office_id'],
-        ['agente', 'agente'],
-        ['corrida_id', 'corrida_id'],
-        ['item_id', 'item_id'],
+        ['s.office_id', 'office_id'],
+        ['s.agente', 'agente'],
+        ['s.corrida_id', 'corrida_id'],
+        ['s.item_id', 'item_id'],
+        ['s.resultado', 'resultado'],
       ] as const) {
         const v = qstr(q.query[key]);
         if (v) {
@@ -120,10 +121,41 @@ export function corridasRouter(d: Deps): Router {
       res.json(
         db
           .prepare(
-            `SELECT id, office_id, corrida_id, agente, paso, item_id, tipo, resumen, contenido, tokens_estimados, duracion_ms, resultado, creado_en
-             FROM salidas_agente ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY id DESC LIMIT ?`,
+            `SELECT s.id, s.office_id, s.corrida_id, s.agente, s.rol, s.paso, s.item_id, s.tipo, s.resumen,
+                    s.tokens_estimados, s.duracion_ms, s.resultado, s.prompt_tokens, s.turnos, s.herramientas, s.creado_en,
+                    (SELECT p.id FROM prospectos p WHERE s.office_id = 'prospeccion' AND p.empresa_id = s.item_id) AS prospecto_id
+             FROM salidas_agente s ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY s.id DESC LIMIT ?`,
           )
           .all(...params, lim),
+      );
+    }),
+  );
+
+  r.get(
+    '/salidas/:id',
+    ah((q, res) => {
+      const fila = db.prepare('SELECT * FROM salidas_agente WHERE id = ?').get(idParam(q));
+      if (!fila) throw new HttpError(404, 'Salida no encontrada');
+      res.json(fila);
+    }),
+  );
+
+  /** Consumo por agente (llamadas, tokens y tiempo medios) para medir y recortar gasto del plan. */
+  r.get(
+    '/salidas-resumen',
+    ah((q, res) => {
+      const o = qstr(q.query['office_id']) ?? 'prospeccion';
+      const c = qstr(q.query['corrida_id']);
+      res.json(
+        db
+          .prepare(
+            `SELECT agente, COUNT(*) AS llamadas, SUM(tokens_estimados) AS tokens, CAST(AVG(tokens_estimados) AS INTEGER) AS tokens_medio,
+                    CAST(AVG(prompt_tokens) AS INTEGER) AS prompt_medio, CAST(AVG(duracion_ms) AS INTEGER) AS ms_medio,
+                    SUM(resultado != 'ok') AS no_ok
+             FROM salidas_agente WHERE office_id = ? AND tipo = 'paso' ${c ? 'AND corrida_id = ?' : ''}
+             GROUP BY agente ORDER BY tokens DESC`,
+          )
+          .all(...(c ? [o, c] : [o])),
       );
     }),
   );

@@ -22,7 +22,7 @@ const tokenFile = resolve(raiz, process.env['CRM_AGENT_TOKEN_FILE'] ?? 'data/age
 const agente = process.env['CRM_AGENT'] ?? 'Coordinador';
 const token = existsSync(tokenFile) ? readFileSync(tokenFile, 'utf8').trim() : '';
 
-const api = new CrmApi(base, token, agente);
+const api = new CrmApi(base, token, agente, process.env['CRM_OFFICE'] ?? 'prospeccion');
 const web: WebDeps = {
   api,
   obscura: { bin: resolve(raiz, process.env['OBSCURA_BIN'] ?? '../tools/obscura/obscura.exe') },

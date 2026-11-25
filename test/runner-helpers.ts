@@ -91,6 +91,16 @@ export async function montar(o: Opciones = {}) {
         .post(u)
         .set('Origin', UI)
         .send(b ?? {}),
+    patch: (u: string, b?: object) =>
+      api
+        .patch(u)
+        .set('Origin', UI)
+        .send(b ?? {}),
+    put: (u: string, b?: object) =>
+      api
+        .put(u)
+        .set('Origin', UI)
+        .send(b ?? {}),
     get: (u: string) => api.get(u).set('Origin', UI),
     cambiarEscenario: (e: Record<string, unknown>) => writeFileSync(esc, JSON.stringify(e)),
     llamadas: (): Llamada[] =>

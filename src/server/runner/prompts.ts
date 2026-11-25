@@ -4,11 +4,12 @@ import type { AgenteDef } from './types';
 import type { Params } from './workflow';
 
 /**
- * Origen de los prompts. Hoy son archivos versionados (config/offices/<oficina>/agents/*.md);
- * en P6 se reemplaza por una tabla editable desde la UI sin tocar el motor.
+ * Origen de los prompts: archivos versionados (semilla) o tablas editables desde la UI (src/server/offices/prompts-bd.ts).
  */
 export interface PromptSource {
   leer(officeId: string, nombre: string): string;
+  /** Bloques extra que se insertan tras los prompts del rol (lecciones aprobadas, habilidades activas). */
+  extras?(officeId: string, agente: AgenteDef): string[];
 }
 
 export class ArchivosPrompts implements PromptSource {
@@ -38,12 +39,13 @@ export class Prompts {
     private readonly candados: Record<string, string>,
   ) {}
 
-  /** System prompt = bloque común + rol(es) + contexto de la corrida + candados fijos. */
+  /** System prompt = global + rol(es) + lecciones + habilidades + contexto de la corrida + candados fijos (siempre al final). */
   armar(agente: AgenteDef, c: ContextoCorrida): string {
     const o = c.office_id;
     const partes = [
       this.fuente.leer(o, '_comun'),
       ...agente.prompts.map((p) => this.fuente.leer(o, p)),
+      ...(this.fuente.extras?.(o, agente) ?? []),
     ];
     const params = Object.entries(c.params)
       .map(([k, v]) => `${k} ${String(v)}`)

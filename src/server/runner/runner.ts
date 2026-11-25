@@ -47,6 +47,34 @@ export class Runner extends RunnerBase implements FlujoCtx {
     return this.d.oficinas[id];
   }
 
+  /** Pasos de una oficina con sus prompts (para la vista «prompt final» de la UI). */
+  pasosDe(office: string): { paso: string; agente: string; roles: string[]; prompts: string[] }[] {
+    const wf = this.d.oficinas[office]?.workflow;
+    return Object.entries(wf?.pasos ?? {}).map(([paso, p]) => ({
+      paso,
+      agente: p.agente,
+      roles: p.roles,
+      prompts: p.prompts,
+    }));
+  }
+
+  /** Prompt exacto que recibiría un paso (con contexto de ejemplo). No lanza nada. */
+  promptFinal(office: string, paso: string): string | null {
+    const p = this.d.oficinas[office]?.workflow.pasos[paso];
+    if (!p) return null;
+    return this.d.prompts.armar(
+      {
+        id: p.agente,
+        roles: p.roles,
+        prompts: p.prompts,
+        herramientas: p.herramientas,
+        webSearch: p.web,
+        maxTurnos: p.max_turnos,
+      },
+      { id: 0, office_id: office, params: { ejemplo: 'vista previa' } },
+    );
+  }
+
   /** Arranca el pipeline de una corrida YA registrada y en curso. Nada corre sin esto. */
   iniciar(corridaId: number): void {
     if (this.ej) throw new Error('Ya hay un pipeline activo; solo se permite uno a la vez');
@@ -108,12 +136,23 @@ export class Runner extends RunnerBase implements FlujoCtx {
     const e = this.ej!;
     const g = e.oficina.ganchos[nombre];
     if (!g) throw new Error(`Gancho desconocido en la oficina ${e.corrida.office_id}: ${nombre}`);
-    await g({
-      db: this.d.db,
-      itemId,
-      corridaId: e.corrida.id,
-      evento: (agente, accion, detalle) => this.evento(agente, accion, detalle, itemId),
-    });
+    try {
+      await g({
+        db: this.d.db,
+        itemId,
+        corridaId: e.corrida.id,
+        evento: (agente, accion, detalle) => this.evento(agente, accion, detalle, itemId),
+      });
+      this.guardarSalidaCodigo(nombre, itemId, true, 'Ejecutado por el sistema');
+    } catch (err) {
+      this.guardarSalidaCodigo(
+        nombre,
+        itemId,
+        false,
+        err instanceof Error ? err.message : String(err),
+      );
+      throw err;
+    }
   }
 
   /** Mensaje de trabajo: plantilla de la oficina con solo ids, tarea y variables SQL. */

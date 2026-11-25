@@ -10,6 +10,10 @@ const ITEMS = [
   { to: '/directorio', etiqueta: 'Directorio', icono: '▤' },
   { to: '/oficina', etiqueta: 'Ver oficina', icono: '✦', badge: 'activa' },
   { to: '/corrida', etiqueta: 'Corrida', icono: '▶' },
+  { to: '/biblioteca', etiqueta: 'Biblioteca', icono: '▣' },
+  { to: '/prompts', etiqueta: 'Prompts', icono: '✎' },
+  { to: '/habilidades', etiqueta: 'Habilidades', icono: '★' },
+  { to: '/salidas', etiqueta: 'Salidas', icono: '☰' },
   { to: '/actividad', etiqueta: 'Actividad', icono: '≋' },
   { to: '/configuracion', etiqueta: 'Configuración', icono: '⚙' },
 ] as const;

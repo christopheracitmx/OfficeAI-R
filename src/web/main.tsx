@@ -5,14 +5,18 @@ import './styles.css';
 import { Sidebar } from './components/Sidebar';
 import { ToastProvider } from './components/ui';
 import { Actividad } from './pages/Actividad';
+import { Biblioteca } from './pages/Biblioteca';
 import { Configuracion } from './pages/Configuracion';
 import { Corrida } from './pages/Corrida';
 import { DetalleProspecto } from './pages/DetalleProspecto';
 import { Directorio } from './pages/Directorio';
 import { Embudo } from './pages/Embudo';
+import { Habilidades } from './pages/Habilidades';
 import { Inicio } from './pages/Inicio';
 import { Oficina } from './pages/Oficina';
+import { Prompts } from './pages/Prompts';
 import { Prospectos } from './pages/Prospectos';
+import { Salidas } from './pages/Salidas';
 
 function Layout() {
   return (
@@ -28,6 +32,10 @@ function Layout() {
             <Route path="/directorio" element={<Directorio />} />
             <Route path="/oficina" element={<Oficina />} />
             <Route path="/corrida" element={<Corrida />} />
+            <Route path="/biblioteca" element={<Biblioteca />} />
+            <Route path="/prompts" element={<Prompts />} />
+            <Route path="/habilidades" element={<Habilidades />} />
+            <Route path="/salidas" element={<Salidas />} />
             <Route path="/actividad" element={<Actividad />} />
             <Route path="/configuracion" element={<Configuracion />} />
             <Route path="*" element={<p className="text-muted">Esta página no existe.</p>} />

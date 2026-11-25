@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useApi } from '../lib/api';
-import type { Dashboard, EstadoApp } from '../lib/types';
+import type { ConteoLeccionesUi, Dashboard, EstadoApp } from '../lib/types';
 import { PlanMedidor } from './PlanMedidor';
 import { cx } from './ui';
 
@@ -14,6 +14,7 @@ const ITEMS = [
   { to: '/biblioteca', etiqueta: 'Biblioteca', icono: '▣' },
   { to: '/prompts', etiqueta: 'Prompts', icono: '✎' },
   { to: '/habilidades', etiqueta: 'Habilidades', icono: '★' },
+  { to: '/aprendizaje', etiqueta: 'Aprendizaje', icono: '✧', badge: 'lecciones' },
   { to: '/salidas', etiqueta: 'Salidas', icono: '☰' },
   { to: '/actividad', etiqueta: 'Actividad', icono: '≋' },
   { to: '/configuracion', etiqueta: 'Configuración', icono: '⚙' },
@@ -22,7 +23,9 @@ const ITEMS = [
 export function Sidebar() {
   const dash = useApi<Dashboard>('/dashboard', { refreshMs: 15000 });
   const estado = useApi<EstadoApp>('/estado', { refreshMs: 15000 });
+  const lecciones = useApi<ConteoLeccionesUi>('/lecciones-conteo', { refreshMs: 20000 });
   const sinVer = dash.data?.sin_ver ?? 0;
+  const porRevisar = lecciones.data?.propuestas ?? 0;
   const activa = Boolean(estado.data?.corrida_activa);
   return (
     <aside className="flex h-full w-[220px] shrink-0 flex-col bg-deep text-ice">
@@ -67,6 +70,14 @@ export function Sidebar() {
             {'badge' in it && it.badge === 'sinVer' && sinVer > 0 && (
               <span className="rounded-full bg-brand px-2 text-xs font-semibold text-deep">
                 {sinVer}
+              </span>
+            )}
+            {'badge' in it && it.badge === 'lecciones' && porRevisar > 0 && (
+              <span
+                className="rounded-full bg-brand px-2 text-xs font-semibold text-deep"
+                title={`${porRevisar} lección(es) por revisar`}
+              >
+                {porRevisar}
               </span>
             )}
             {'badge' in it && it.badge === 'activa' && activa && (

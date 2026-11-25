@@ -5,6 +5,7 @@ import './styles.css';
 import { Sidebar } from './components/Sidebar';
 import { ToastProvider } from './components/ui';
 import { Actividad } from './pages/Actividad';
+import { Aprendizaje } from './pages/Aprendizaje';
 import { Biblioteca } from './pages/Biblioteca';
 import { Configuracion } from './pages/Configuracion';
 import { Corrida } from './pages/Corrida';
@@ -35,6 +36,7 @@ function Layout() {
             <Route path="/biblioteca" element={<Biblioteca />} />
             <Route path="/prompts" element={<Prompts />} />
             <Route path="/habilidades" element={<Habilidades />} />
+            <Route path="/aprendizaje" element={<Aprendizaje />} />
             <Route path="/salidas" element={<Salidas />} />
             <Route path="/actividad" element={<Actividad />} />
             <Route path="/configuracion" element={<Configuracion />} />

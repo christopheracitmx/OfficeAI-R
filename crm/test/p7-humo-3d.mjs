@@ -23,9 +23,8 @@ const browser = await chromium.launch({
   headless: true,
   args: ['--enable-gpu', '--ignore-gpu-blocklist'],
 });
-const page = await (
-  await browser.newContext({ viewport: { width: 1600, height: 1000 } })
-).newPage();
+const contexto = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
+let page = await contexto.newPage();
 const errores = [];
 page.on('pageerror', (e) => errores.push(e.message));
 await page.goto(url, { waitUntil: 'networkidle' });
@@ -50,6 +49,20 @@ ok(
   await page.getByRole('tab', { name: 'Aprendizaje' }).isVisible(),
   'pestañas del panel presentes',
 );
+// P6.5: pestaña Aprendizaje del panel del agente (datos reales de la demo) y clic en la sala de aprendizaje
+await page.getByRole('button', { name: 'Rodrigo', exact: true }).click();
+await page.waitForTimeout(1200);
+await page.getByRole('tab', { name: 'Aprendizaje' }).click();
+await page.waitForTimeout(1200);
+ok(
+  await page.getByText('Lecciones activas (').isVisible(),
+  'la pestaña Aprendizaje muestra las lecciones activas del agente',
+);
+ok(
+  await page.getByRole('link', { name: 'Abrir la pantalla Aprendizaje' }).isVisible(),
+  'la pestaña Aprendizaje enlaza a la pantalla Aprendizaje',
+);
+await page.screenshot({ path: salida.replace('.png', '-aprendizaje.png') });
 // P7b: pantalla completa real (Fullscreen API): botón, atajo F, controles mínimos y salida
 await page.getByRole('button', { name: 'Cerrar panel' }).click();
 await page.getByRole('button', { name: 'Pantalla completa' }).click();
@@ -91,9 +104,33 @@ ok(
   'el atajo F sale de pantalla completa',
 );
 await page.screenshot({ path: salida });
+// Los errores se evalúan ANTES de salir de /oficina: al desmontar el canvas drei lanza un removeChild
+// conocido (también ocurre al navegar con la barra lateral; no es de la pantalla de aprendizaje).
 ok(
   errores.length === 0,
   `sin errores de página${errores.length ? `: ${errores.join(' | ')}` : ''}`,
+);
+// recarga: seleccionar un agente acerca la cámara; la sala se mide con la vista general
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForFunction(() => window.__oficina3d?.listo === true, null, { timeout: 30000 });
+await page.waitForTimeout(2500);
+const posSala = await page.evaluate(() => window.__oficina3d.salaPantalla('aprendizaje'));
+console.info(
+  'sala en pantalla:',
+  JSON.stringify(posSala),
+  await page.evaluate(
+    ([x, y]) => {
+      const e = document.elementFromPoint(x, y);
+      return e ? e.tagName + ' ' + (e.className || '') : 'nada';
+    },
+    [posSala.x, posSala.y],
+  ),
+);
+await page.mouse.click(posSala.x, posSala.y);
+await page.waitForTimeout(1500);
+ok(
+  page.url().endsWith('/aprendizaje'),
+  `clic en la sala de aprendizaje abre «Aprendizaje» (${page.url()})`,
 );
 await browser.close();
 console.info(`captura: ${salida}`);

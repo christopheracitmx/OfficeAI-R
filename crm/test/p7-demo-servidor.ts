@@ -17,6 +17,7 @@ if (!ruta) throw new Error('Falta la ruta de la BD temporal');
 const puerto = Number(resto.find((a) => a.startsWith('--puerto='))?.split('=')[1] ?? 4099);
 if (puerto === 4010) throw new Error('4010 es el puerto del CRM real: usa otro para la demo');
 const sinEventos = resto.includes('--sin-eventos');
+const conAprendizaje = resto.includes('--aprendizaje');
 
 const mailer: Mailer = {
   send: () => Promise.reject(new Error('Correo deshabilitado en la demo')),
@@ -35,6 +36,8 @@ const runner = crearRunner({
   tokenFile: resolve(ruta + '.token'),
   env: {},
 });
+if (conAprendizaje && !db.prepare('SELECT 1 FROM feedback LIMIT 1').get())
+  (await import('./p65-demo-datos')).sembrarDemo(db);
 const app = createApp({
   db,
   bus,

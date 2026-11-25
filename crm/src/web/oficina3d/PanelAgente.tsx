@@ -7,6 +7,7 @@ import { Button, EmptyState, ErrorBanner, Skeleton, cx } from '../components/ui'
 import { useApi, type EventoActividad } from '../lib/api';
 import { fechaCorta, type Habilidad, type Salida } from '../lib/types';
 import { PromptEditor } from '../pages/PromptEditor';
+import { PanelAprendizaje } from './PanelAprendizaje';
 import { useTienda, type Tienda } from './tienda';
 
 const TABS = ['Estado', 'Salidas', 'Prompt', 'Habilidades', 'Historial', 'Aprendizaje'] as const;
@@ -173,9 +174,7 @@ export function PanelAgente({
           ))}
         {tab === 'Habilidades' && <Habilidades id={a.id} />}
         {tab === 'Historial' && <Historial id={a.id} />}
-        {tab === 'Aprendizaje' && (
-          <EmptyState mensaje="Próximamente: lecciones aprobadas y propuestas, y métricas de desempeño (P6.5)." />
-        )}
+        {tab === 'Aprendizaje' && <PanelAprendizaje id={a.id} />}
       </div>
     </aside>
   );

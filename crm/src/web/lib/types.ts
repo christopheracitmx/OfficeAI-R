@@ -178,6 +178,7 @@ export const METODO_ETIQUETA: Record<string, string> = {
 export const fechaCorta = (iso: string | null | undefined): string =>
   iso ? new Date(iso).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
 
+export * from './types-aprendizaje';
 export * from './types-cerebro';
 export * from './types-plan';
 

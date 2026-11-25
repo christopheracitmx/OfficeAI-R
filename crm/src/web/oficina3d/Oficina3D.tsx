@@ -5,7 +5,7 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { SalaDef } from '../../shared/oficina3d/definicion';
-import { Button, ErrorBanner, PageHeader, Skeleton, cx, useToast } from '../components/ui';
+import { Button, ErrorBanner, PageHeader, Skeleton, cx } from '../components/ui';
 import { Controles } from './Controles';
 import { ListaAgentes } from './ListaAgentes';
 import { PanelAgente } from './PanelAgente';
@@ -25,7 +25,6 @@ export function Oficina() {
   const enPausa = useTienda(tienda, (e) => e.enPausa);
   const selId = useTienda(tienda, (e) => e.seleccionado);
   const navegar = useNavigate();
-  const toast = useToast();
   const seleccionado = def?.agentes.find((a) => a.id === selId) ?? null;
 
   useEffect(() => {
@@ -40,7 +39,7 @@ export function Oficina() {
     if (presentacion) return;
     if (fs.activa) fs.alternar();
     if (s.accion === 'biblioteca') navegar('/biblioteca');
-    else toast('Sala de aprendizaje: próximamente (P6.5).');
+    else navegar('/aprendizaje');
   };
 
   const escena = !webgl ? (

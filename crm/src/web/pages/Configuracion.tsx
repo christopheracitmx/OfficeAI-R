@@ -5,7 +5,9 @@ import { api, useApi } from '../lib/api';
 import type { Config, Destinatario, EstadoApp } from '../lib/types';
 
 import { NoContactar, Giros, inp } from './ConfListas';
+import { ConfCambios } from './ConfCambios';
 import { ConfPlan } from './ConfPlan';
+import { ConfRespaldos } from './ConfRespaldos';
 
 const TABS = [
   'Correos de reportes',
@@ -14,6 +16,8 @@ const TABS = [
   'Plan y reserva',
   'No contactar',
   'Giros',
+  'Respaldos',
+  'Registro de cambios',
 ] as const;
 
 function Correos() {
@@ -266,6 +270,8 @@ export function Configuracion() {
       {tab === 'Plan y reserva' && <ConfPlan />}
       {tab === 'No contactar' && <NoContactar />}
       {tab === 'Giros' && <Giros />}
+      {tab === 'Respaldos' && <ConfRespaldos />}
+      {tab === 'Registro de cambios' && <ConfCambios />}
     </>
   );
 }

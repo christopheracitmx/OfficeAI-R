@@ -5,6 +5,7 @@
  */
 import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
+import { Vector3 } from 'three';
 import type { Calidad } from '../../../shared/oficina3d/apariencia';
 import type { DefinicionOficina } from '../../../shared/oficina3d/definicion';
 
@@ -34,6 +35,20 @@ export function Diagnostico({ d, calidad }: { d: DefinicionOficina; calidad: Cal
         }
       return colores.size;
     };
+    /** Posición en pantalla (px CSS, relativa al canvas) del centro de una sala: permite clics reales en las pruebas de humo. */
+    const salaPantalla = (id: string): { x: number; y: number } | null => {
+      const s = d.salas.find((x) => x.id === id);
+      if (!s) return null;
+      const { camera, gl } = get();
+      const r = gl.domElement.getBoundingClientRect();
+      gl.render(get().scene, camera); // refresca matrices tras un redimensionado
+      const v = new Vector3(
+        s.x + s.apariencia.ancho / 2,
+        0.6,
+        s.z + s.apariencia.fondo / 2,
+      ).project(camera);
+      return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
+    };
     const id = setInterval(() => {
       const { gl } = get();
       w.__oficina3d = {
@@ -45,6 +60,7 @@ export function Diagnostico({ d, calidad }: { d: DefinicionOficina; calidad: Cal
         triangulos: gl.info.render.triangles,
         geometrias: gl.info.memory.geometries,
         muestra,
+        salaPantalla,
       };
     }, 500);
     return () => clearInterval(id);

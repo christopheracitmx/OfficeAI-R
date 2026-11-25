@@ -49,7 +49,19 @@ export function Prospectos() {
 
   return (
     <>
-      <PageHeader titulo="Prospectos" subtitulo="Lo nuevo y mejor calificado aparece primero." />
+      <PageHeader
+        titulo="Prospectos"
+        subtitulo="Lo nuevo y mejor calificado aparece primero."
+        acciones={
+          <a
+            href={`/api/prospectos/export.csv?${query.toString()}`}
+            download
+            className="inline-flex items-center rounded-lg border border-line bg-white px-3.5 py-2 text-sm font-medium text-deep hover:bg-brand-soft"
+          >
+            Exportar CSV{hayFiltros ? ' (con filtros)' : ''}
+          </a>
+        }
+      />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <form
           onSubmit={(e) => {

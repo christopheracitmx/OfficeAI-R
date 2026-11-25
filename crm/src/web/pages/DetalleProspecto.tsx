@@ -12,6 +12,7 @@ import {
   Skeleton,
   useToast,
 } from '../components/ui';
+import { FeedbackProspecto } from '../components/FeedbackProspecto';
 import { api, useApi } from '../lib/api';
 import { fechaCorta, type ProspectoDetalle, jsonLista } from '../lib/types';
 
@@ -188,6 +189,8 @@ export function DetalleProspecto() {
           </div>
         </Seccion>
       )}
+
+      <FeedbackProspecto key={`fb${d.id}`} prospectoId={d.id} />
 
       <Canalizacion key={d.id} d={d} onPatch={patch} />
 

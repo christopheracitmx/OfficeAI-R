@@ -11,6 +11,65 @@ const val = (flag) => {
 const escenario = process.env.FAKE_SCENARIO
   ? JSON.parse(readFileSync(process.env.FAKE_SCENARIO, 'utf8'))
   : {};
+
+// Llamadas SIN herramientas (reflexión/evaluación): no hay --mcp-config. Escenario: `reflexion`, `evaluacion`, `libre_segun_prompt`.
+if (!val('--mcp-config')) {
+  const msg = readFileSync(0, 'utf8');
+  const sistema = val('--system-prompt') ?? '';
+  if (process.env.FAKE_LOG)
+    appendFileSync(
+      process.env.FAKE_LOG,
+      JSON.stringify({
+        libre: true,
+        mensaje: msg,
+        prompt: sistema,
+        modelo: val('--model'),
+        esfuerzo: val('--effort'),
+        herramientas: val('--allowedTools') ?? null,
+      }) + '\n',
+    );
+  const out = (o) => process.stdout.write(JSON.stringify(o) + '\n');
+  out({ type: 'system', subtype: 'init', mcp_servers: [] });
+  if (escenario.plan_libre !== undefined) {
+    const r = Math.floor(Date.now() / 1000) + 3 * 3600;
+    out({
+      type: 'rate_limit_event',
+      rate_limit_info: {
+        status: 'allowed',
+        resetsAt: r,
+        rateLimitType: 'five_hour',
+        unifiedWindows: {
+          five_hour: { utilization: escenario.plan_libre, resetsAt: r, status: 'allowed' },
+        },
+      },
+    });
+  }
+  const segun = (escenario.libre_segun_prompt ?? []).find(
+    (x) => sistema.includes(x.contiene) || msg.includes(x.contiene),
+  );
+  const esReflexion = sistema.includes('REFLEXION_DE_OFICINA');
+  const salida = segun
+    ? segun.salida
+    : esReflexion
+      ? (escenario.reflexion ?? '{"propuestas":[],"fusiones":[]}')
+      : (escenario.evaluacion ?? '{}');
+  const texto = typeof salida === 'string' ? salida : JSON.stringify(salida);
+  out({ type: 'assistant', message: { content: [{ type: 'text', text: texto }] } });
+  out({
+    type: 'result',
+    subtype: 'success',
+    is_error: false,
+    result: texto,
+    num_turns: 1,
+    usage: {
+      input_tokens: 50,
+      cache_creation_input_tokens: 400,
+      cache_read_input_tokens: 0,
+      output_tokens: 120,
+    },
+  });
+  process.exit(0);
+}
 const mcp = JSON.parse(readFileSync(val('--mcp-config'), 'utf8')).mcpServers['acitmx-crm'];
 const env = mcp.env;
 const agente = env.CRM_AGENT;

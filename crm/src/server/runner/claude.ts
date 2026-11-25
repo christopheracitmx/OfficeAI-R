@@ -36,16 +36,17 @@ export function nombresHerramientas(i: EjecutarAgenteInput): string[] {
 export function argsClaude(
   ctx: ContextoMotor,
   i: EjecutarAgenteInput,
-  mcpConfig: string,
+  mcpConfig: string | null,
 ): string[] {
+  const sinHerramientas = i.agente.herramientas.length === 0 && !i.agente.webSearch;
   return [
     ...(ctx.binArgs ?? []),
     '-p',
     '--output-format',
     'stream-json',
     '--verbose',
-    '--mcp-config',
-    mcpConfig,
+    // Sin herramientas (reflexión, evaluación): ningún servidor MCP; así no se cargan sus descripciones.
+    ...(mcpConfig ? ['--mcp-config', mcpConfig] : []),
     '--strict-mcp-config',
     ctx.promptModo === 'agregar' ? '--append-system-prompt' : '--system-prompt',
     i.prompt,
@@ -58,12 +59,13 @@ export function argsClaude(
     '--setting-sources',
     '',
     ...(i.agente.modelo || ctx.modelo ? ['--model', (i.agente.modelo ?? ctx.modelo)!] : []),
-    ...(ctx.esfuerzo ? ['--effort', ctx.esfuerzo] : []),
+    ...(i.agente.esfuerzo || ctx.esfuerzo
+      ? ['--effort', (i.agente.esfuerzo ?? ctx.esfuerzo)!]
+      : []),
     // Variádicos al final: se detienen en el siguiente flag o al agotarse los argumentos.
     '--tools',
     i.agente.webSearch ? 'WebSearch' : '',
-    '--allowedTools',
-    ...nombresHerramientas(i),
+    ...(sinHerramientas ? [] : ['--allowedTools', ...nombresHerramientas(i)]),
   ];
 }
 
@@ -229,8 +231,9 @@ export function resultadoClaude(
 
 export function crearAdaptadorClaude(ctx: ContextoMotor): EjecutarAgenteFn {
   return async (i) => {
+    mkdirSync(ctx.workDir, { recursive: true });
     const st = lecturaVacia();
-    const mcpConfig = escribirMcpConfig(ctx, i);
+    const mcpConfig = i.agente.herramientas.length > 0 ? escribirMcpConfig(ctx, i) : null;
     const out = await ejecutarProceso({
       bin: ctx.bin ?? 'claude',
       args: argsClaude(ctx, i, mcpConfig),

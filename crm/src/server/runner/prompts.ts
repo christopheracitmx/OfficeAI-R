@@ -40,12 +40,13 @@ export class Prompts {
   ) {}
 
   /** System prompt = global + rol(es) + lecciones + habilidades + contexto de la corrida + candados fijos (siempre al final). */
-  armar(agente: AgenteDef, c: ContextoCorrida): string {
+  armar(agente: AgenteDef, c: ContextoCorrida, extras: string[] = []): string {
     const o = c.office_id;
     const partes = [
       this.fuente.leer(o, '_comun'),
       ...agente.prompts.map((p) => this.fuente.leer(o, p)),
       ...(this.fuente.extras?.(o, agente) ?? []),
+      ...extras,
     ];
     const params = Object.entries(c.params)
       .map(([k, v]) => `${k} ${String(v)}`)

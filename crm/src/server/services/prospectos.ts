@@ -8,6 +8,7 @@ import type {
   reporteInput,
   scoreInput,
 } from '../../shared/schemas';
+import { feedbackDeQa } from './feedback';
 
 type Propuestas = z.infer<typeof propuestasInput>;
 
@@ -124,6 +125,12 @@ export function registrarQa(db: Db, q: z.infer<typeof revisionQaInput>): Resulta
       };
     }
   })();
+  // P6.5: cada revisión de QA queda como retroalimentación automática (no debe romper el flujo si falla).
+  try {
+    feedbackDeQa(db, q.prospecto_id, q.etapa, q.aprobado, q.devolver_a, q.motivos);
+  } catch (e) {
+    console.error('[feedback] no se pudo registrar la revisión de QA', e);
+  }
   return out;
 }
 

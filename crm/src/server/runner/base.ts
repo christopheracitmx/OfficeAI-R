@@ -106,6 +106,44 @@ export class RunnerBase {
     };
   }
 
+  /**
+   * Llamada suelta al motor, SIN herramientas ni corrida (reflexión, evaluación de casos dorados).
+   * El llamador decide si hay reserva de plan (motivoReserva) antes de invocar; aquí solo se guardan los límites que informe el CLI.
+   */
+  async llamarLibre(i: {
+    officeId: string;
+    agente: string;
+    prompt: string;
+    mensaje: string;
+    modelo?: string | undefined;
+    esfuerzo?: string | undefined;
+    maxTurnos?: number;
+    timeoutMs?: number;
+    signal?: AbortSignal | undefined;
+  }): Promise<ResultadoAgente> {
+    const modelo = i.modelo ?? this.d.cfg.modelo;
+    const r = await this.d.ejecutar({
+      officeId: i.officeId,
+      agente: {
+        id: i.agente,
+        roles: [i.agente],
+        prompts: [],
+        herramientas: [],
+        webSearch: false,
+        maxTurnos: i.maxTurnos ?? 3,
+        modelo,
+        esfuerzo: i.esfuerzo ?? this.d.cfg.esfuerzo ?? 'low',
+      },
+      prompt: i.prompt,
+      mensaje: i.mensaje,
+      mcpEnv: {},
+      timeout: i.timeoutMs ?? this.d.cfg.timeout_paso_min * 60_000,
+      signal: i.signal,
+    });
+    if (r.plan) guardarLimites(this.d.db, r.plan, modelo);
+    return r;
+  }
+
   /** Una llamada al motor. Traduce límites/abortos a FinCorrida, registra la salida y emite eventos. */
   async lanzar(pasoId: string, mensaje: string, itemId?: number): Promise<ResultadoAgente> {
     const e = this.ej!;

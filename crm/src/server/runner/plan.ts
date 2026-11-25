@@ -51,7 +51,7 @@ export function tokens5h(db: Db, ahoraMs = Date.now()): number {
   return (
     db
       .prepare(
-        "SELECT COALESCE(SUM(tokens_estimados),0) AS t FROM salidas_agente WHERE tipo='paso' AND creado_en >= ?",
+        "SELECT COALESCE(SUM(tokens_estimados),0) AS t FROM salidas_agente WHERE tipo IN ('paso','reflexion','evaluacion') AND creado_en >= ?",
       )
       .get(desde) as { t: number }
   ).t;

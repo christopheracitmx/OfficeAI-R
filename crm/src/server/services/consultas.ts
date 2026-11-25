@@ -4,6 +4,7 @@ import { nowIso } from '../db';
 import type { Actor, EstadoProspecto } from '../../shared/domain';
 import { ESTADOS_PROSPECTO, puedeCambiarEstado } from '../../shared/domain';
 import type { prospectoPatch } from '../../shared/schemas';
+import { feedbackDeResultado } from './feedback';
 
 export interface FiltrosProspectos {
   estado?: string;
@@ -140,6 +141,7 @@ export function patchProspecto(
       ).run(patch.motivo ?? 'sin_motivo', nowIso(), actual.empresa_id);
     }
   })();
+  if (patch.estado && actor === 'owner') feedbackDeResultado(db, id, patch.estado, patch.motivo);
   return { ok: true };
 }
 

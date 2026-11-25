@@ -28,6 +28,8 @@ export interface Opciones {
   escenario?: Record<string, unknown>;
   cfg?: Partial<ConfigRunner>;
   env?: NodeJS.ProcessEnv;
+  /** Base de archivo (por defecto en memoria): para pruebas de persistencia, respaldo y restauración. */
+  dbPath?: string;
 }
 
 /** Servidor real (puerto efímero) + runner conectado a un CLI simulado. Sin plan, sin Places, sin Resend. */
@@ -38,7 +40,7 @@ export async function montar(o: Opciones = {}) {
   const log = join(dir, 'log.jsonl');
   const esc = join(dir, 'escenario.json');
   writeFileSync(esc, JSON.stringify(o.escenario ?? {}));
-  const db = openDb(':memory:');
+  const db = openDb(o.dbPath ?? ':memory:');
   const bus = new EventBus();
   const mailer = new FakeMailer();
   const server: Server = createServer();
@@ -112,6 +114,11 @@ export async function montar(o: Opciones = {}) {
         : [],
     cerrar: () => {
       server.close();
+      try {
+        db.close();
+      } catch {
+        /* ya cerrada */
+      }
       rmSync(dir, { recursive: true, force: true });
     },
   };

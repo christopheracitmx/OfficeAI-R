@@ -20,6 +20,8 @@ export interface AgenteDef {
   maxLecturas?: number | undefined;
   /** Modelo de este paso (ahorro de plan). Sin valor usa el `modelo` de engine.yaml. */
   modelo?: string | undefined;
+  /** Esfuerzo de este paso (low | medium | high). Sin valor usa el del motor. */
+  esfuerzo?: string | undefined;
 }
 
 export interface ProgresoAgente {

@@ -6,9 +6,12 @@ import type { PromptSource } from '../runner/prompts';
 import type { AgenteDef } from '../runner/types';
 import type { Workflow } from '../runner/workflow';
 import { crearHabilidad, asignarHabilidad, habilidadesParaPrompt } from '../services/habilidades';
+import { casoInput } from '../../shared/aprendizaje';
+import { crearCaso } from '../services/casos-dorados';
 import { crearDoc } from '../services/kb';
 import { guardarProducto } from '../services/kb-productos';
 import { GLOBAL, guardarPrompt, leccionesAprobadas, promptActivo } from '../services/prompts-db';
+import { CASOS_DORADOS_PROSPECCION } from './casos-dorados-semilla';
 import { HABILIDADES_BASE } from './habilidades-base';
 import { DOCS_SEMILLA, PRODUCTOS_SEMILLA } from './semilla-prospeccion';
 
@@ -124,4 +127,7 @@ function sembrarProspeccion(db: Db): void {
       );
       asignarHabilidad(db, x.id, h.agentes);
     }
+  if (!hay('casos_dorados'))
+    for (const c of CASOS_DORADOS_PROSPECCION)
+      crearCaso(db, casoInput.parse({ ...c, office_id: o }));
 }

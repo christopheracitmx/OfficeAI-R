@@ -18,8 +18,10 @@ import {
 } from '../services/consultas';
 import { cambiarEtapa, upsertEmpresa } from '../services/empresas';
 import { assertDestinoPermitido, procesarEnvios } from '../services/mailer';
+import { aprendizajeRouter } from './aprendizaje';
 import { cerebroRouter } from './cerebro';
 import { corridasRouter } from './corridas';
+import { datosRouter } from './datos';
 import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
 
 export function ownerRouter(d: Deps): Router {
@@ -54,6 +56,10 @@ export function ownerRouter(d: Deps): Router {
       });
     }),
   );
+
+  // CSV/respaldos (antes de /prospectos/:id) y aprendizaje
+  r.use(datosRouter(d));
+  r.use(aprendizajeRouter(d));
 
   // ---- Prospectos
   r.get(

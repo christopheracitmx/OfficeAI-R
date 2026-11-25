@@ -62,7 +62,7 @@ export class Runner extends RunnerBase implements FlujoCtx {
   }
 
   /** Prompt exacto que recibiría un paso (con contexto de ejemplo). No lanza nada. */
-  promptFinal(office: string, paso: string): string | null {
+  promptFinal(office: string, paso: string, extras: string[] = []): string | null {
     const p = this.d.oficinas[office]?.workflow.pasos[paso];
     if (!p) return null;
     return this.d.prompts.armar(
@@ -76,6 +76,7 @@ export class Runner extends RunnerBase implements FlujoCtx {
         modelo: p.modelo,
       },
       { id: 0, office_id: office, params: { ejemplo: 'vista previa' } },
+      extras,
     );
   }
 

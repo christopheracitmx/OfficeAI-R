@@ -1,3 +1,17 @@
-# Motor de IA activo. Cambia SOLO esta línea cuando llegues al límite del plan.
-# Valores: claude-code | opencode | gemini
+# Motor de IA activo y topes del runner. Cambia SOLO estas líneas (reinicia el CRM para aplicar).
+# Valores de engine: claude-code | opencode | gemini  (solo claude-code está verificado en vivo)
 engine: claude-code
+# Modelo base del plan Pro (bajo consumo). Solo aplica a claude-code salvo que lo fijes tú.
+modelo: claude-sonnet-5-5
+# Esfuerzo de razonamiento: low | medium | high. Bajo = menos tokens del plan.
+esfuerzo: low
+# Agrupa pasos baratos en una sola llamada (Guardián en lote, Estratega+Armador, Calificador+Redactor).
+agrupar_pasos: true
+# Capacidades externas apagadas, separadas por coma (p. ej. places: el Explorador completa el lote).
+capacidades_off:
+# Circuit breaker
+timeout_paso_min: 10
+max_minutos_corrida: 240
+max_fallos_seguidos: 3
+# Ejecutable del CLI si no está en el PATH (opcional)
+bin:

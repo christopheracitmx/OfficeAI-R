@@ -61,10 +61,11 @@ export function useApi<T>(path: string, opts?: { refreshMs?: number }): UseApi<T
         });
     };
     cargar();
-    const t = refreshMs ? setInterval(cargar, refreshMs) : undefined;
+    let t: ReturnType<typeof setInterval> | undefined;
+    if (refreshMs) t = setInterval(cargar, refreshMs);
     return () => {
       vivo = false;
-      if (t) clearInterval(t);
+      clearInterval(t);
     };
   }, [path, refreshMs, tick]);
 

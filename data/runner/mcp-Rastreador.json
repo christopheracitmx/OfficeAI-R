@@ -1,1 +1,19 @@
-{"mcpServers":{"acitmx-crm":{"command":"C:\\Users\\Google\\Desktop\\AI Office\\Prospecting\\tools\\node22\\node.exe","args":["C:\\Users\\Google\\Desktop\\AI Office\\Prospecting\\crm\\node_modules\\tsx\\dist\\cli.mjs","C:\\Users\\Google\\Desktop\\AI Office\\Prospecting\\crm\\src\\mcp\\index.ts"],"env":{"CRM_URL":"http://127.0.0.1:62146","CRM_AGENT_TOKEN_FILE":"C:\\Users\\Google\\AppData\\Local\\Temp\\live-HJK7td\\agent.token","CRM_AGENT":"Rastreador","CRM_OFFICE":"prospeccion","CRM_TOOLS":"obscura_extract,crm_add_contacto,crm_registrar_hallazgo,crm_etapa_empresa,crm_expediente,crm_directorio_buscar,crm_actividad","GOOGLE_PLACES_API_KEY":""}}}}
+{
+  "mcpServers": {
+    "acitmx-crm": {
+      "command": "C:\\Users\\Google\\Desktop\\AI Office\\Prospecting\\tools\\node22\\node.exe",
+      "args": [
+        "C:\\Users\\Google\\Desktop\\AI Office\\Prospecting\\crm\\node_modules\\tsx\\dist\\cli.mjs",
+        "C:\\Users\\Google\\Desktop\\AI Office\\Prospecting\\crm\\src\\mcp\\index.ts"
+      ],
+      "env": {
+        "CRM_URL": "http://127.0.0.1:50478",
+        "CRM_AGENT_TOKEN_FILE": "C:\\Users\\Google\\AppData\\Local\\Temp\\live-QSR4br\\agent.token",
+        "CRM_AGENT": "Rastreador",
+        "CRM_OFFICE": "prospeccion",
+        "CRM_TOOLS": "obscura_extract,crm_add_contacto,crm_registrar_hallazgo,crm_etapa_empresa,crm_expediente,crm_directorio_buscar,crm_actividad",
+        "GOOGLE_PLACES_API_KEY": ""
+      }
+    }
+  }
+}

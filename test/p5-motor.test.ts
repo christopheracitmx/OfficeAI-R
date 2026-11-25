@@ -10,7 +10,7 @@ import {
   leerLineaClaude,
   resultadoClaude,
 } from '../src/server/runner/claude';
-import { parsearEngineYaml } from '../src/server/runner/motor';
+import { leerEngineYaml, parsearEngineYaml } from '../src/server/runner/motor';
 import { ArchivosPrompts, Prompts } from '../src/server/runner/prompts';
 import type { ContextoMotor, EjecutarAgenteInput } from '../src/server/runner/types';
 import {
@@ -44,6 +44,16 @@ const entrada: EjecutarAgenteInput = {
 };
 
 describe('engine.yaml', () => {
+  it('el archivo real del proyecto es válido y trae los valores esperados', () => {
+    expect(leerEngineYaml(resolve('config/engine.yaml'))).toMatchObject({
+      engine: 'claude-code',
+      modelo: 'claude-sonnet-5-5',
+      esfuerzo: 'low',
+      agrupar_pasos: true,
+      capacidades_off: [],
+      timeout_paso_min: 10,
+    });
+  });
   it('trae Sonnet 5.5, esfuerzo bajo y agrupación por defecto', () => {
     const c = parsearEngineYaml('engine: claude-code\n');
     expect(c).toMatchObject({

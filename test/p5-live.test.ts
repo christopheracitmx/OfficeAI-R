@@ -95,16 +95,14 @@ describe.skipIf(process.env['LIVE'] !== '1')('LIVE: una corrida real con Claude 
       duracion_ms: number;
     }[];
     const tokens = salidas.reduce((a, s) => a + (s.tokens_estimados ?? 0), 0);
-    console.info(
-      `LIVE: ${corrida.estado} · ${corrida.motivo_fin} · ${salidas.length} pasos · ${tokens} tokens · ${Math.round((Date.now() - t0) / 1000)} s\n` +
-        salidas
-          .map(
-            (s) =>
-              `  ${s.agente} ${s.resultado} ${s.tokens_estimados ?? '?'}t ${Math.round(s.duracion_ms / 1000)}s`,
-          )
-          .join('\n') +
-        `\n${eventos.slice(-25).join('\n')}`,
+    const prospecto = db.prepare('SELECT estado, score, nivel FROM prospectos').all() as object[];
+    const cab = `LIVE: ${corrida.estado} | ${corrida.motivo_fin} | ${salidas.length} pasos | ${tokens} tokens | ${Math.round((Date.now() - t0) / 1000)} s`;
+    const pros = `prospectos: ${JSON.stringify(prospecto)} | correos falsos: ${mailer.enviados.length}`;
+    const det = salidas.map(
+      (x) =>
+        `  ${x.agente} ${x.resultado} ${x.tokens_estimados ?? '?'}t ${Math.round(x.duracion_ms / 1000)}s`,
     );
+    writeFileSync(resolve('data/live-last.txt'), [cab, pros, ...det, ...eventos, ''].join('\n'));
     server.close();
     rmSync(dir, { recursive: true, force: true });
 

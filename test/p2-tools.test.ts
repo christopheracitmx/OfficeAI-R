@@ -3,7 +3,12 @@ import type { AddressInfo } from 'node:net';
 import { resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { CrmApi } from '../src/mcp/api';
-import { construirExtraccion, extraerCorreos, extraerTelefonos, htmlATexto } from '../src/mcp/extract';
+import {
+  construirExtraccion,
+  extraerCorreos,
+  extraerTelefonos,
+  htmlATexto,
+} from '../src/mcp/extract';
 import { placesSearch, FIELD_MASK } from '../src/mcp/places';
 import { obscuraExtract, placesDescubrir } from '../src/mcp/tools-web';
 import { createApp } from '../src/server/app';
@@ -87,7 +92,11 @@ describe('Herramientas contra el CRM real (servidor en puerto efímero)', () => 
   beforeAll(async () => {
     srv = app.listen(0, '127.0.0.1');
     await new Promise<void>((ok) => srv.once('listening', () => ok()));
-    api = new CrmApi(`http://127.0.0.1:${(srv.address() as AddressInfo).port}`, TOKEN, 'Cartografo');
+    api = new CrmApi(
+      `http://127.0.0.1:${(srv.address() as AddressInfo).port}`,
+      TOKEN,
+      'Cartografo',
+    );
   });
   afterAll(() => void srv.close());
 
@@ -95,9 +104,21 @@ describe('Herramientas contra el CRM real (servidor en puerto efímero)', () => 
     new Response(
       JSON.stringify({
         places: [
-          { id: 'P1', displayName: { text: 'Industrias Norte SA' }, formattedAddress: 'Av. Industrial 10, Tlalnepantla de Baz, Méx., 54030' },
-          { id: 'P2', displayName: { text: 'Aceros Querétaro' }, formattedAddress: 'Calle 1, Querétaro, Qro., 76000' },
-          { id: 'P3', displayName: { text: 'Ayuntamiento de Naucalpan' }, formattedAddress: 'Naucalpan, Méx., 53000' },
+          {
+            id: 'P1',
+            displayName: { text: 'Industrias Norte SA' },
+            formattedAddress: 'Av. Industrial 10, Tlalnepantla de Baz, Méx., 54030',
+          },
+          {
+            id: 'P2',
+            displayName: { text: 'Aceros Querétaro' },
+            formattedAddress: 'Calle 1, Querétaro, Qro., 76000',
+          },
+          {
+            id: 'P3',
+            displayName: { text: 'Ayuntamiento de Naucalpan' },
+            formattedAddress: 'Naucalpan, Méx., 53000',
+          },
         ],
       }),
     )) as unknown as typeof fetch;
@@ -112,12 +133,21 @@ describe('Herramientas contra el CRM real (servidor en puerto efímero)', () => 
     expect(r.nuevas).toBe(1);
     expect(r.registradas[0]!.zona).toBe('Edomex - Tlalnepantla de Baz');
     expect(r.rechazadas.map((x) => x.motivo).sort()).toEqual(['fuera_de_zona_piloto', 'gobierno']);
-    const uso = db.prepare("SELECT contador FROM places_uso WHERE sku='pro'").get() as { contador: number };
+    const uso = db.prepare("SELECT contador FROM places_uso WHERE sku='pro'").get() as {
+      contador: number;
+    };
     expect(uso.contador).toBe(1);
-    const rep = await placesDescubrir('fábricas en Tlalnepantla', 10, { api, obscura: { bin: 'x' }, placesKey: 'k', fetchFn: placesFake });
+    const rep = await placesDescubrir('fábricas en Tlalnepantla', 10, {
+      api,
+      obscura: { bin: 'x' },
+      placesKey: 'k',
+      fetchFn: placesFake,
+    });
     expect(rep.nuevas).toBe(0);
     expect(rep.existentes).toBe(1);
-    const dir = (await api.get('/directorio/buscar?metodo=places&consulta=f%C3%A1bricas%20en%20Tlalnepantla')) as { consulta_repetida: boolean };
+    const dir = (await api.get(
+      '/directorio/buscar?metodo=places&consulta=f%C3%A1bricas%20en%20Tlalnepantla',
+    )) as { consulta_repetida: boolean };
     expect(dir.consulta_repetida).toBe(true);
   });
 
@@ -167,7 +197,14 @@ describe.skipIf(!process.env['LIVE'])('LIVE: Obscura real contra acitmx.net', ()
       bin: resolve(process.cwd(), '../tools/obscura/obscura.exe'),
     });
     const e = construirExtraccion('https://acitmx.net/contacto/', html);
-    console.info(JSON.stringify({ titulo: e.titulo, correos: e.correos, telefonos: e.telefonos, chars: e.texto_compacto.length }));
+    console.info(
+      JSON.stringify({
+        titulo: e.titulo,
+        correos: e.correos,
+        telefonos: e.telefonos,
+        chars: e.texto_compacto.length,
+      }),
+    );
     expect(e.texto_compacto.length).toBeGreaterThan(100);
   });
 });

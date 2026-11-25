@@ -41,7 +41,8 @@ export function createApp(d: Deps): express.Express {
       Connection: 'keep-alive',
     });
     res.write('retry: 3000\n\n');
-    const onEvent = (e: ActividadEvento) => res.write(`event: actividad\ndata: ${JSON.stringify(e)}\n\n`);
+    const onEvent = (e: ActividadEvento) =>
+      res.write(`event: actividad\ndata: ${JSON.stringify(e)}\n\n`);
     d.bus.on('actividad', onEvent);
     const ping = setInterval(() => res.write(': ping\n\n'), 20000);
     req.on('close', () => {
@@ -60,6 +61,8 @@ export function createApp(d: Deps): express.Express {
   }
 
   app.use((_req, res) => void res.status(404).json({ error: 'No encontrado' }));
+  // Express exige 4 argumentos para reconocer un manejador de errores.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onError: ErrorRequestHandler = (err, _req, res, _next) => {
     if (err instanceof HttpError) return void res.status(err.status).json({ error: err.message });
     console.error('[error]', err);

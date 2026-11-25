@@ -64,14 +64,12 @@ const EDOMEX: string[][] = [
   ['Capulhuac'],
 ];
 
-export const norm = (s: string): string =>
-  s
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
+export const norm = (s: string): string => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 function buscaToken(texto: string, token: string): boolean {
-  const re = new RegExp(`(^|[^a-z0-9])${norm(token).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`);
+  const re = new RegExp(
+    `(^|[^a-z0-9])${norm(token).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`,
+  );
   return re.test(texto);
 }
 

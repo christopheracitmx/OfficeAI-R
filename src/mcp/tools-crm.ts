@@ -22,14 +22,19 @@ export interface ToolDef {
 }
 
 const qs = (o: Record<string, unknown>): string =>
-  new URLSearchParams(Object.entries(o).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString();
+  new URLSearchParams(
+    Object.entries(o)
+      .filter(([, v]) => v !== undefined)
+      .map(([k, v]) => [k, String(v)]),
+  ).toString();
 
 export function crmTools(api: CrmApi): ToolDef[] {
   const post = (path: string) => (a: Record<string, unknown>) => api.post(path, a);
   return [
     {
       name: 'crm_corrida_actual',
-      description: 'Devuelve la corrida en curso (zona, giro, max_empresas) o null. Respeta max_empresas.',
+      description:
+        'Devuelve la corrida en curso (zona, giro, max_empresas) o null. Respeta max_empresas.',
       schema: {},
       run: () => api.get('/corrida'),
     },
@@ -47,8 +52,14 @@ export function crmTools(api: CrmApi): ToolDef[] {
     },
     {
       name: 'crm_registrar_busqueda',
-      description: 'Registra una búsqueda realizada (para no repetirla) con cuántas empresas dio y cuántas eran nuevas.',
-      schema: { metodo: z.string(), consulta: z.string(), resultados: z.number().int(), nuevas: z.number().int() },
+      description:
+        'Registra una búsqueda realizada (para no repetirla) con cuántas empresas dio y cuántas eran nuevas.',
+      schema: {
+        metodo: z.string(),
+        consulta: z.string(),
+        resultados: z.number().int(),
+        nuevas: z.number().int(),
+      },
       run: post('/busquedas'),
     },
     {
@@ -67,37 +78,43 @@ export function crmTools(api: CrmApi): ToolDef[] {
     },
     {
       name: 'crm_add_contacto',
-      description: 'Guarda un teléfono, correo o persona de contacto de NEGOCIO. fuente_url es obligatoria; sin fuente no se guarda.',
+      description:
+        'Guarda un teléfono, correo o persona de contacto de NEGOCIO. fuente_url es obligatoria; sin fuente no se guarda.',
       schema: contactoInput.shape,
       run: post('/contactos'),
     },
     {
       name: 'crm_guardar_ficha',
-      description: 'Guarda tipo/tamaño/sucursales/resumen/giro y necesidades (evidencia vs inferencia). Sin precios.',
+      description:
+        'Guarda tipo/tamaño/sucursales/resumen/giro y necesidades (evidencia vs inferencia). Sin precios.',
       schema: fichaInput.shape,
       run: post('/ficha'),
     },
     {
       name: 'crm_etapa_empresa',
-      description: 'Cambia la etapa de una empresa del directorio (filtrada, enriquecida, analizada, descartada con motivo).',
+      description:
+        'Cambia la etapa de una empresa del directorio (filtrada, enriquecida, analizada, descartada con motivo).',
       schema: etapaInput.shape,
       run: post('/etapa'),
     },
     {
       name: 'crm_guardar_propuestas',
-      description: 'Guarda productos Lenovo/Aruba propuestos y 1-3 paquetes (sin precios). Crea el prospecto y devuelve prospecto_id.',
+      description:
+        'Guarda productos Lenovo/Aruba propuestos y 1-3 paquetes (sin precios). Crea el prospecto y devuelve prospecto_id.',
       schema: propuestasInput.shape,
       run: post('/propuestas'),
     },
     {
       name: 'crm_guardar_score',
-      description: 'Guarda el score 0-100 con desglose y justificación. El nivel A/B/C se calcula solo.',
+      description:
+        'Guarda el score 0-100 con desglose y justificación. El nivel A/B/C se calcula solo.',
       schema: scoreInput.shape,
       run: post('/score'),
     },
     {
       name: 'crm_guardar_reporte',
-      description: 'Guarda el reporte interno para el dueño y el borrador de correo para el vendedor (sin precios).',
+      description:
+        'Guarda el reporte interno para el dueño y el borrador de correo para el vendedor (sin precios).',
       schema: reporteInput.shape,
       run: post('/reporte'),
     },
@@ -117,7 +134,8 @@ export function crmTools(api: CrmApi): ToolDef[] {
     },
     {
       name: 'crm_actividad',
-      description: 'Latido/estado en lenguaje humano para la pantalla "Ver oficina" (ej. "Leyendo ejemplo.mx · contacto").',
+      description:
+        'Latido/estado en lenguaje humano para la pantalla "Ver oficina" (ej. "Leyendo ejemplo.mx · contacto").',
       schema: actividadInput.omit({ agente: true }).shape,
       run: (a) => api.post('/actividad', a),
     },

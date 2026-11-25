@@ -1,18 +1,34 @@
 import type { z } from 'zod';
 import type { Db } from '../db';
 import { nowIso } from '../db';
-import type { configPatch, corridaInput, destinatarioInput, noContactarInput } from '../../shared/schemas';
+import type {
+  configPatch,
+  corridaInput,
+  destinatarioInput,
+  noContactarInput,
+} from '../../shared/schemas';
 
 export class QuotaExceededError extends Error {
-  constructor(public readonly usado: number, public readonly tope: number) {
+  constructor(
+    public readonly usado: number,
+    public readonly tope: number,
+  ) {
     super(`Cuota de Places agotada: ${usado} de ${tope} este mes`);
   }
 }
 
 const mesActual = (): string => new Date().toISOString().slice(0, 7);
 
-export function getConfig(db: Db): { max_empresas_por_corrida: number; zonas_piloto: string[]; places_tope_pro: number; motor_ia: string } {
-  const rows = db.prepare('SELECT clave, valor FROM configuracion').all() as { clave: string; valor: string }[];
+export function getConfig(db: Db): {
+  max_empresas_por_corrida: number;
+  zonas_piloto: string[];
+  places_tope_pro: number;
+  motor_ia: string;
+} {
+  const rows = db.prepare('SELECT clave, valor FROM configuracion').all() as {
+    clave: string;
+    valor: string;
+  }[];
   const m = Object.fromEntries(rows.map((r) => [r.clave, r.valor]));
   return {
     max_empresas_por_corrida: Number(m['max_empresas_por_corrida'] ?? 10),
@@ -39,10 +55,19 @@ export function consumirPlaces(db: Db, n = 1): { usado: number; tope: number } {
   const mes = mesActual();
   let usado = 0;
   db.transaction(() => {
-    db.prepare("INSERT OR IGNORE INTO places_uso (mes, sku, contador) VALUES (?, 'pro', 0)").run(mes);
-    usado = (db.prepare("SELECT contador FROM places_uso WHERE mes=? AND sku='pro'").get(mes) as { contador: number }).contador;
+    db.prepare("INSERT OR IGNORE INTO places_uso (mes, sku, contador) VALUES (?, 'pro', 0)").run(
+      mes,
+    );
+    usado = (
+      db.prepare("SELECT contador FROM places_uso WHERE mes=? AND sku='pro'").get(mes) as {
+        contador: number;
+      }
+    ).contador;
     if (usado + n > tope) throw new QuotaExceededError(usado, tope);
-    db.prepare("UPDATE places_uso SET contador = contador + ? WHERE mes=? AND sku='pro'").run(n, mes);
+    db.prepare("UPDATE places_uso SET contador = contador + ? WHERE mes=? AND sku='pro'").run(
+      n,
+      mes,
+    );
     usado += n;
   })();
   return { usado, tope };
@@ -50,7 +75,9 @@ export function consumirPlaces(db: Db, n = 1): { usado: number; tope: number } {
 
 // ---- Destinatarios internos (allowlist editable desde Configuración)
 export const listarDestinatarios = (db: Db): unknown[] =>
-  db.prepare('SELECT id, email, nombre, activo, creado_en FROM destinatarios_internos ORDER BY id').all();
+  db
+    .prepare('SELECT id, email, nombre, activo, creado_en FROM destinatarios_internos ORDER BY id')
+    .all();
 
 export function crearDestinatario(db: Db, d: z.infer<typeof destinatarioInput>): number {
   const r = db
@@ -59,9 +86,15 @@ export function crearDestinatario(db: Db, d: z.infer<typeof destinatarioInput>):
   return Number(r.lastInsertRowid);
 }
 
-export function editarDestinatario(db: Db, id: number, d: Partial<z.infer<typeof destinatarioInput>>): boolean {
+export function editarDestinatario(
+  db: Db,
+  id: number,
+  d: Partial<z.infer<typeof destinatarioInput>>,
+): boolean {
   const r = db
-    .prepare('UPDATE destinatarios_internos SET email=COALESCE(?,email), nombre=COALESCE(?,nombre), activo=COALESCE(?,activo) WHERE id=?')
+    .prepare(
+      'UPDATE destinatarios_internos SET email=COALESCE(?,email), nombre=COALESCE(?,nombre), activo=COALESCE(?,activo) WHERE id=?',
+    )
     .run(d.email ?? null, d.nombre ?? null, d.activo === undefined ? null : d.activo ? 1 : 0, id);
   return r.changes > 0;
 }
@@ -70,7 +103,11 @@ export const eliminarDestinatario = (db: Db, id: number): boolean =>
   db.prepare('DELETE FROM destinatarios_internos WHERE id = ?').run(id).changes > 0;
 
 export const activosDestinatarios = (db: Db): number =>
-  (db.prepare('SELECT COUNT(*) AS n FROM destinatarios_internos WHERE activo=1').get() as { n: number }).n;
+  (
+    db.prepare('SELECT COUNT(*) AS n FROM destinatarios_internos WHERE activo=1').get() as {
+      n: number;
+    }
+  ).n;
 
 // ---- No contactar
 export const listarNoContactar = (db: Db): unknown[] =>
@@ -87,19 +124,31 @@ export const eliminarNoContactar = (db: Db, id: number): boolean =>
   db.prepare('DELETE FROM no_contactar WHERE id = ?').run(id).changes > 0;
 
 // ---- Giros
-export const listarGiros = (db: Db): unknown[] => db.prepare('SELECT id, nombre FROM taxonomia_giros ORDER BY nombre').all();
+export const listarGiros = (db: Db): unknown[] =>
+  db.prepare('SELECT id, nombre FROM taxonomia_giros ORDER BY nombre').all();
 export const crearGiro = (db: Db, nombre: string): number =>
-  Number(db.prepare('INSERT OR IGNORE INTO taxonomia_giros (nombre) VALUES (?)').run(nombre).lastInsertRowid);
+  Number(
+    db.prepare('INSERT OR IGNORE INTO taxonomia_giros (nombre) VALUES (?)').run(nombre)
+      .lastInsertRowid,
+  );
 
 // ---- Corridas
 export type ResultadoCorrida = { ok: true; id: number } | { ok: false; error: string };
 
-export function crearCorrida(db: Db, c: z.infer<typeof corridaInput>, motor: string): ResultadoCorrida {
+export function crearCorrida(
+  db: Db,
+  c: z.infer<typeof corridaInput>,
+  motor: string,
+): ResultadoCorrida {
   const cfg = getConfig(db);
   if (!cfg.zonas_piloto.includes(c.zona))
-    return { ok: false, error: `Zona fuera del piloto. Permitidas: ${cfg.zonas_piloto.join(', ')}` };
+    return {
+      ok: false,
+      error: `Zona fuera del piloto. Permitidas: ${cfg.zonas_piloto.join(', ')}`,
+    };
   const activa = db.prepare("SELECT id FROM corridas WHERE estado='en_curso'").get();
-  if (activa) return { ok: false, error: 'Ya hay una corrida en curso. Deténla antes de iniciar otra.' };
+  if (activa)
+    return { ok: false, error: 'Ya hay una corrida en curso. Deténla antes de iniciar otra.' };
   const r = db
     .prepare('INSERT INTO corridas (zona, giro, max_empresas, motor) VALUES (?,?,?,?)')
     .run(c.zona, c.giro, c.max_empresas, motor);
@@ -109,7 +158,9 @@ export function crearCorrida(db: Db, c: z.infer<typeof corridaInput>, motor: str
 export function cerrarCorrida(db: Db, id: number, estado: string, motivo?: string): boolean {
   return (
     db
-      .prepare("UPDATE corridas SET estado=?, motivo_fin=?, terminada_en=? WHERE id=? AND estado='en_curso'")
+      .prepare(
+        "UPDATE corridas SET estado=?, motivo_fin=?, terminada_en=? WHERE id=? AND estado='en_curso'",
+      )
       .run(estado, motivo ?? null, nowIso(), id).changes > 0
   );
 }

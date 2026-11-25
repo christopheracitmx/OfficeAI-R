@@ -11,11 +11,21 @@ describe('DB: migraciones y semillas', () => {
       .prepare("SELECT name FROM sqlite_master WHERE type='table'")
       .all()
       .map((r) => (r as { name: string }).name);
-    for (const t of ['empresas', 'prospectos', 'destinatarios_internos', 'envios_email', 'paginas_cache'])
+    for (const t of [
+      'empresas',
+      'prospectos',
+      'destinatarios_internos',
+      'envios_email',
+      'paginas_cache',
+    ])
       expect(tablas).toContain(t);
-    const dest = db.prepare('SELECT email FROM destinatarios_internos').all() as { email: string }[];
+    const dest = db.prepare('SELECT email FROM destinatarios_internos').all() as {
+      email: string;
+    }[];
     expect(dest.map((d) => d.email)).toEqual(['christopher.rodriguez@acitmx.com']);
-    const zonas = db.prepare("SELECT valor FROM configuracion WHERE clave='zonas_piloto'").get() as {
+    const zonas = db
+      .prepare("SELECT valor FROM configuracion WHERE clave='zonas_piloto'")
+      .get() as {
       valor: string;
     };
     expect(JSON.parse(zonas.valor)).toEqual(['CDMX', 'Estado de México']);
@@ -29,7 +39,9 @@ describe('DB: migraciones y semillas', () => {
     // reabrir lógica de semillas
     return import('../src/server/db/seed').then(({ seed }) => {
       seed(db);
-      const v = db.prepare("SELECT valor FROM configuracion WHERE clave='max_empresas_por_corrida'").get() as {
+      const v = db
+        .prepare("SELECT valor FROM configuracion WHERE clave='max_empresas_por_corrida'")
+        .get() as {
         valor: string;
       };
       expect(v.valor).toBe('7');
@@ -40,14 +52,20 @@ describe('DB: migraciones y semillas', () => {
   it('exige fuente_url en contactos y respeta claves foráneas', () => {
     const db = openDb(':memory:');
     expect(() =>
-      db.prepare("INSERT INTO contactos (empresa_id,tipo,valor,fuente_url) VALUES (999,'correo','a@b.mx','https://x.mx')").run(),
+      db
+        .prepare(
+          "INSERT INTO contactos (empresa_id,tipo,valor,fuente_url) VALUES (999,'correo','a@b.mx','https://x.mx')",
+        )
+        .run(),
     ).toThrow();
   });
 });
 
 describe('Zona: derivación desde la dirección', () => {
   it('CDMX: alcaldía y zona', () => {
-    const z = derivarZona('Av. Insurgentes Sur 1234, Col. Del Valle, Benito Juárez, 03100 Ciudad de México, CDMX');
+    const z = derivarZona(
+      'Av. Insurgentes Sur 1234, Col. Del Valle, Benito Juárez, 03100 Ciudad de México, CDMX',
+    );
     expect(z.estado_mx).toBe('CDMX');
     expect(z.municipio).toBe('Benito Juárez');
     expect(z.zona).toBe('CDMX Centro');
@@ -76,7 +94,14 @@ describe('Zona: derivación desde la dirección', () => {
 
 describe('Dominio: permisos, niveles y precios', () => {
   it('un agente no puede poner estados del dueño', () => {
-    for (const e of ['Canalizado', 'En contacto', 'Propuesta', 'Ganado', 'Perdido', 'Descartado'] as const)
+    for (const e of [
+      'Canalizado',
+      'En contacto',
+      'Propuesta',
+      'Ganado',
+      'Perdido',
+      'Descartado',
+    ] as const)
       expect(puedeCambiarEstado('agent', e)).toBe(false);
     expect(puedeCambiarEstado('agent', 'Reportado')).toBe(true);
     expect(puedeCambiarEstado('owner', 'Ganado')).toBe(true);
@@ -97,17 +122,25 @@ describe('Dominio: permisos, niveles y precios', () => {
 
 describe('Schemas', () => {
   it('contacto sin fuente_url se rechaza', () => {
-    expect(contactoInput.safeParse({ empresa_id: 1, tipo: 'correo', valor: 'a@b.mx' }).success).toBe(false);
     expect(
-      contactoInput.safeParse({ empresa_id: 1, tipo: 'correo', valor: 'a@b.mx', fuente_url: 'https://b.mx/contacto' })
-        .success,
+      contactoInput.safeParse({ empresa_id: 1, tipo: 'correo', valor: 'a@b.mx' }).success,
+    ).toBe(false);
+    expect(
+      contactoInput.safeParse({
+        empresa_id: 1,
+        tipo: 'correo',
+        valor: 'a@b.mx',
+        fuente_url: 'https://b.mx/contacto',
+      }).success,
     ).toBe(true);
   });
   it('propuestas con precio en un paquete se rechazan', () => {
     const base = {
       empresa_id: 1,
       productos: [],
-      paquetes: [{ nombre: 'Paquete A', componentes: ['ThinkPad'], argumento: 'Excelente precio de $5000' }],
+      paquetes: [
+        { nombre: 'Paquete A', componentes: ['ThinkPad'], argumento: 'Excelente precio de $5000' },
+      ],
     };
     expect(propuestasInput.safeParse(base).success).toBe(false);
     base.paquetes[0]!.argumento = 'Renovación de equipos de cómputo para planta';

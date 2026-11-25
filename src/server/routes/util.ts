@@ -17,7 +17,10 @@ export interface Deps {
 }
 
 export class HttpError extends Error {
-  constructor(public readonly status: number, message: string) {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
     super(message);
   }
 }
@@ -34,7 +37,9 @@ export const ah =
 export function parse<T>(schema: ZodType<T>, data: unknown): T {
   const r = schema.safeParse(data);
   if (!r.success) {
-    const msg = r.error.issues.map((i) => `${i.path.join('.') || 'cuerpo'}: ${i.message}`).join('; ');
+    const msg = r.error.issues
+      .map((i) => `${i.path.join('.') || 'cuerpo'}: ${i.message}`)
+      .join('; ');
     throw new HttpError(400, msg);
   }
   return r.data;

@@ -1,7 +1,10 @@
 // Cliente HTTP del MCP hacia el CRM local (así el servidor emite los eventos en vivo).
 
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string) {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
     super(message);
   }
 }

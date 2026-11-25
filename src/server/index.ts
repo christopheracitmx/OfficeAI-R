@@ -26,7 +26,12 @@ const mailer: Mailer = process.env['RESEND_API_KEY']
   ? new ResendMailer(process.env['RESEND_API_KEY'])
   : new DisabledMailer();
 
-const uiOrigins = [`http://127.0.0.1:${port}`, `http://localhost:${port}`, 'http://127.0.0.1:5174', 'http://localhost:5174'];
+const uiOrigins = [
+  `http://127.0.0.1:${port}`,
+  `http://localhost:${port}`,
+  'http://127.0.0.1:5174',
+  'http://localhost:5174',
+];
 
 const app = createApp({
   db: openDb(dbPath),
@@ -42,5 +47,6 @@ const app = createApp({
 // Solo local: jamás exponer a la red.
 app.listen(port, '127.0.0.1', () => {
   console.info(`CRM ACITMX escuchando en http://127.0.0.1:${port} (DB: ${dbPath})`);
-  if (!process.env['RESEND_API_KEY']) console.warn('Aviso: RESEND_API_KEY vacío; los correos fallarán de forma controlada.');
+  if (!process.env['RESEND_API_KEY'])
+    console.warn('Aviso: RESEND_API_KEY vacío; los correos fallarán de forma controlada.');
 });

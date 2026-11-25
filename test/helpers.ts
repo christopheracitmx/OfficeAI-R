@@ -34,14 +34,27 @@ export function harness() {
   const api = request(app);
   const owner = {
     get: (u: string) => api.get(u).set('Origin', UI),
-    post: (u: string, b?: object) => api.post(u).set('Origin', UI).send(b ?? {}),
-    patch: (u: string, b?: object) => api.patch(u).set('Origin', UI).send(b ?? {}),
+    post: (u: string, b?: object) =>
+      api
+        .post(u)
+        .set('Origin', UI)
+        .send(b ?? {}),
+    patch: (u: string, b?: object) =>
+      api
+        .patch(u)
+        .set('Origin', UI)
+        .send(b ?? {}),
     del: (u: string) => api.delete(u).set('Origin', UI),
   };
   const agent = (name = 'Coordinador') => ({
-    get: (u: string) => api.get(`/api/agent${u}`).set('x-agent-token', TOKEN).set('x-agent-name', name),
+    get: (u: string) =>
+      api.get(`/api/agent${u}`).set('x-agent-token', TOKEN).set('x-agent-name', name),
     post: (u: string, b?: object) =>
-      api.post(`/api/agent${u}`).set('x-agent-token', TOKEN).set('x-agent-name', name).send(b ?? {}),
+      api
+        .post(`/api/agent${u}`)
+        .set('x-agent-token', TOKEN)
+        .set('x-agent-name', name)
+        .send(b ?? {}),
   });
   return { db, mailer, bus, api, owner, agent };
 }
@@ -76,8 +89,21 @@ export async function expedienteListo(h: H, nombre = 'Manufacturas Ejemplo SA') 
   });
   const pr = await h.agent('Armador').post('/propuestas', {
     empresa_id,
-    productos: [{ marca: 'Lenovo', categoria: 'ThinkStation', razon: 'Diseño e ingeniería', prioridad: 'alta' }],
-    paquetes: [{ nombre: 'Ingeniería y red', componentes: ['ThinkStation', 'Wi-Fi Aruba'], argumento: 'Renueva estaciones de planta y cobertura inalámbrica.' }],
+    productos: [
+      {
+        marca: 'Lenovo',
+        categoria: 'ThinkStation',
+        razon: 'Diseño e ingeniería',
+        prioridad: 'alta',
+      },
+    ],
+    paquetes: [
+      {
+        nombre: 'Ingeniería y red',
+        componentes: ['ThinkStation', 'Wi-Fi Aruba'],
+        argumento: 'Renueva estaciones de planta y cobertura inalámbrica.',
+      },
+    ],
   });
   const prospecto_id = pr.body.prospecto_id as number;
   await h.agent('Calificador').post('/score', {
@@ -88,7 +114,8 @@ export async function expedienteListo(h: H, nombre = 'Manufacturas Ejemplo SA') 
   });
   await h.agent('Redactor').post('/reporte', {
     prospecto_id,
-    reporte_md: 'Oye jefe, encontré Manufacturas Ejemplo SA en Cuautitlán Izcalli. Podrían necesitar estaciones de trabajo.',
+    reporte_md:
+      'Oye jefe, encontré Manufacturas Ejemplo SA en Cuautitlán Izcalli. Podrían necesitar estaciones de trabajo.',
     borrador_correo: 'Hola, vimos que su planta crece. ¿Platicamos sobre sus equipos de cómputo?',
   });
   return { empresa_id, prospecto_id };

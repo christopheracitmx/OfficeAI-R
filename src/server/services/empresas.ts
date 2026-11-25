@@ -24,8 +24,7 @@ export function dominioDe(url: string | null | undefined): string | null {
 
 function zonasPiloto(db: Db): string[] {
   const r = db.prepare("SELECT valor FROM configuracion WHERE clave='zonas_piloto'").get() as
-    | { valor: string }
-    | undefined;
+    { valor: string } | undefined;
   return r ? (JSON.parse(r.valor) as string[]) : ['CDMX', 'Estado de México'];
 }
 
@@ -44,7 +43,8 @@ export function enNoContactar(db: Db, nombre: string, dominio: string | null): b
 export function upsertEmpresa(db: Db, input: EmpresaIn): ResultadoUpsert {
   const dominio = dominioDe(input.sitio_web);
   if (GOBIERNO_RE.test(input.nombre)) return { status: 'rechazada', motivo: 'gobierno' };
-  if (enNoContactar(db, input.nombre, dominio)) return { status: 'rechazada', motivo: 'no_contactar' };
+  if (enNoContactar(db, input.nombre, dominio))
+    return { status: 'rechazada', motivo: 'no_contactar' };
   const zona = derivarZona(input.direccion);
   if (input.direccion && !enZonaPiloto(zona.estado_mx, zonasPiloto(db)))
     return { status: 'rechazada', motivo: 'fuera_de_zona_piloto' };
@@ -52,13 +52,12 @@ export function upsertEmpresa(db: Db, input: EmpresaIn): ResultadoUpsert {
   const previa =
     (input.place_id
       ? (db.prepare('SELECT id FROM empresas WHERE place_id = ?').get(input.place_id) as
-          | { id: number }
-          | undefined)
+          { id: number } | undefined)
       : undefined) ??
     (dominio
-      ? (db.prepare('SELECT id FROM empresas WHERE dominio = ? AND fusionada_con IS NULL').get(dominio) as
-          | { id: number }
-          | undefined)
+      ? (db
+          .prepare('SELECT id FROM empresas WHERE dominio = ? AND fusionada_con IS NULL')
+          .get(dominio) as { id: number } | undefined)
       : undefined) ??
     (db
       .prepare('SELECT id FROM empresas WHERE lower(nombre) = lower(?) AND fusionada_con IS NULL')
@@ -66,9 +65,9 @@ export function upsertEmpresa(db: Db, input: EmpresaIn): ResultadoUpsert {
   if (previa) return { status: 'existente', id: previa.id };
 
   const giro = input.giro
-    ? (db.prepare('SELECT id FROM taxonomia_giros WHERE nombre = ? COLLATE NOCASE').get(input.giro) as
-        | { id: number }
-        | undefined)
+    ? (db
+        .prepare('SELECT id FROM taxonomia_giros WHERE nombre = ? COLLATE NOCASE')
+        .get(input.giro) as { id: number } | undefined)
     : undefined;
   const ahora = nowIso();
   const r = db
@@ -141,14 +140,17 @@ export function registrarBusqueda(
   ).run(b.corrida_id ?? null, b.metodo, b.consulta, b.resultados, b.nuevas);
 }
 
-export function agregarContacto(db: Db, c: z.infer<typeof contactoInput>): { id: number; nuevo: boolean } {
+export function agregarContacto(
+  db: Db,
+  c: z.infer<typeof contactoInput>,
+): { id: number; nuevo: boolean } {
   const emp = db.prepare('SELECT dominio, nombre FROM empresas WHERE id = ?').get(c.empresa_id) as
-    | { dominio: string | null; nombre: string }
-    | undefined;
+    { dominio: string | null; nombre: string } | undefined;
   if (!emp) throw new Error('Empresa no encontrada');
   if (c.tipo === 'correo') {
     const dom = c.valor.split('@')[1]?.toLowerCase();
-    if (dom && enNoContactar(db, emp.nombre, dom)) throw new Error('Dominio en lista de no contactar');
+    if (dom && enNoContactar(db, emp.nombre, dom))
+      throw new Error('Dominio en lista de no contactar');
     const bloqueado = db
       .prepare("SELECT 1 FROM no_contactar WHERE tipo='correo' AND valor = ? COLLATE NOCASE")
       .get(c.valor);
@@ -169,8 +171,7 @@ export function agregarContacto(db: Db, c: z.infer<typeof contactoInput>): { id:
 export function guardarFicha(db: Db, f: z.infer<typeof fichaInput>): void {
   const giro = f.giro
     ? (db.prepare('SELECT id FROM taxonomia_giros WHERE nombre = ? COLLATE NOCASE').get(f.giro) as
-        | { id: number }
-        | undefined)
+        { id: number } | undefined)
     : undefined;
   const dominio = dominioDe(f.sitio_web);
   const tx = db.transaction(() => {
@@ -205,6 +206,11 @@ export function guardarFicha(db: Db, f: z.infer<typeof fichaInput>): void {
 export function cambiarEtapa(db: Db, e: z.infer<typeof etapaInput>): void {
   const r = db
     .prepare('UPDATE empresas SET etapa=?, descartada_motivo=?, actualizado_en=? WHERE id=?')
-    .run(e.etapa, e.etapa === 'descartada' ? (e.motivo ?? 'sin_motivo') : null, nowIso(), e.empresa_id);
+    .run(
+      e.etapa,
+      e.etapa === 'descartada' ? (e.motivo ?? 'sin_motivo') : null,
+      nowIso(),
+      e.empresa_id,
+    );
   if (r.changes === 0) throw new Error('Empresa no encontrada');
 }

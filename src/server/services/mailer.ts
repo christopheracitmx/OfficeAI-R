@@ -44,7 +44,9 @@ export class DestinoNoPermitidoError extends Error {}
 /** GUARDIA DE SEGURIDAD: solo se envía a destinatarios internos activos de la tabla. */
 export function assertDestinoPermitido(db: Db, email: string): void {
   const fila = db
-    .prepare('SELECT 1 AS ok FROM destinatarios_internos WHERE email = ? COLLATE NOCASE AND activo = 1')
+    .prepare(
+      'SELECT 1 AS ok FROM destinatarios_internos WHERE email = ? COLLATE NOCASE AND activo = 1',
+    )
     .get(email);
   if (!fila) throw new DestinoNoPermitidoError(`Destinatario no permitido: ${email}`);
 }
@@ -89,7 +91,13 @@ export async function procesarEnvios(
        FROM prospectos p JOIN empresas e ON e.id = p.empresa_id WHERE p.id = ?`,
     )
     .get(prospectoId) as
-    | { id: number; nivel: string | null; score: number | null; reporte_md: string | null; empresa: string }
+    | {
+        id: number;
+        nivel: string | null;
+        score: number | null;
+        reporte_md: string | null;
+        empresa: string;
+      }
     | undefined;
   if (!p || !p.reporte_md) return { enviados: 0, fallidos: 0 };
   const mail = armarReporte({

@@ -2,14 +2,18 @@ import type { z } from 'zod';
 import type { Db } from '../db';
 import { nowIso } from '../db';
 import { nivelPorScore } from '../../shared/domain';
-import type { propuestasInput, revisionQaInput, reporteInput, scoreInput } from '../../shared/schemas';
+import type {
+  propuestasInput,
+  revisionQaInput,
+  reporteInput,
+  scoreInput,
+} from '../../shared/schemas';
 
 type Propuestas = z.infer<typeof propuestasInput>;
 
 export function prospectoDeEmpresa(db: Db, empresaId: number, corridaId?: number): number {
   const existente = db.prepare('SELECT id FROM prospectos WHERE empresa_id = ?').get(empresaId) as
-    | { id: number }
-    | undefined;
+    { id: number } | undefined;
   if (existente) return existente.id;
   const emp = db.prepare('SELECT id FROM empresas WHERE id = ?').get(empresaId);
   if (!emp) throw new Error('Empresa no encontrada');
@@ -33,12 +37,18 @@ export function guardarPropuestas(db: Db, p: Propuestas): number {
       'INSERT INTO paquetes (prospecto_id, nombre, componentes, argumento, dirigido_a, orden) VALUES (?,?,?,?,?,?)',
     );
     p.paquetes.forEach((k, i) =>
-      insK.run(id, k.nombre, JSON.stringify(k.componentes), k.argumento, k.dirigido_a ?? null, i + 1),
+      insK.run(
+        id,
+        k.nombre,
+        JSON.stringify(k.componentes),
+        k.argumento,
+        k.dirigido_a ?? null,
+        i + 1,
+      ),
     );
-    db.prepare("UPDATE empresas SET etapa='analizada', actualizado_en=? WHERE id=? AND etapa!='prospecto'").run(
-      nowIso(),
-      p.empresa_id,
-    );
+    db.prepare(
+      "UPDATE empresas SET etapa='analizada', actualizado_en=? WHERE id=? AND etapa!='prospecto'",
+    ).run(nowIso(), p.empresa_id);
   })();
   return id;
 }
@@ -50,7 +60,14 @@ export function guardarScore(db: Db, s: z.infer<typeof scoreInput>): { nivel: st
       `UPDATE prospectos SET score=?, nivel=?, score_desglose=?, justificacion=?,
          estado=CASE WHEN estado='Nuevo' THEN 'Calificado' ELSE estado END, actualizado_en=? WHERE id=?`,
     )
-    .run(s.score, nivel, JSON.stringify(s.score_desglose), s.justificacion, nowIso(), s.prospecto_id);
+    .run(
+      s.score,
+      nivel,
+      JSON.stringify(s.score_desglose),
+      s.justificacion,
+      nowIso(),
+      s.prospecto_id,
+    );
   if (r.changes === 0) throw new Error('Prospecto no encontrado');
   return { nivel };
 }
@@ -88,9 +105,11 @@ export function registrarQa(db: Db, q: z.infer<typeof revisionQaInput>): Resulta
       nowIso(),
       q.prospecto_id,
     );
-    const n = (db.prepare(`SELECT ${col} AS n FROM prospectos WHERE id = ?`).get(q.prospecto_id) as {
-      n: number;
-    }).n;
+    const n = (
+      db.prepare(`SELECT ${col} AS n FROM prospectos WHERE id = ?`).get(q.prospecto_id) as {
+        n: number;
+      }
+    ).n;
     if (n > 2) {
       db.prepare("UPDATE prospectos SET estado='Revision humana', actualizado_en=? WHERE id=?").run(
         nowIso(),
@@ -98,7 +117,11 @@ export function registrarQa(db: Db, q: z.infer<typeof revisionQaInput>): Resulta
       );
       out = { siguiente: 'revision_humana', devoluciones: n };
     } else {
-      out = { siguiente: 'devolver', devoluciones: n, ...(q.devolver_a ? { devolver_a: q.devolver_a } : {}) };
+      out = {
+        siguiente: 'devolver',
+        devoluciones: n,
+        ...(q.devolver_a ? { devolver_a: q.devolver_a } : {}),
+      };
     }
   })();
   return out;
@@ -106,7 +129,9 @@ export function registrarQa(db: Db, q: z.infer<typeof revisionQaInput>): Resulta
 
 function ultimaQaAprobada(db: Db, prospectoId: number, etapa: string): boolean {
   const r = db
-    .prepare('SELECT aprobado FROM revisiones_qa WHERE prospecto_id=? AND etapa=? ORDER BY id DESC LIMIT 1')
+    .prepare(
+      'SELECT aprobado FROM revisiones_qa WHERE prospecto_id=? AND etapa=? ORDER BY id DESC LIMIT 1',
+    )
     .get(prospectoId, etapa) as { aprobado: number } | undefined;
   return r?.aprobado === 1;
 }
@@ -120,7 +145,13 @@ export function finalizarProspecto(db: Db, prospectoId: number): ResultadoFinali
   const p = db
     .prepare('SELECT id, empresa_id, score, reporte_md, estado FROM prospectos WHERE id = ?')
     .get(prospectoId) as
-    | { id: number; empresa_id: number; score: number | null; reporte_md: string | null; estado: string }
+    | {
+        id: number;
+        empresa_id: number;
+        score: number | null;
+        reporte_md: string | null;
+        estado: string;
+      }
     | undefined;
   if (!p) return { ok: false, razones: ['Prospecto no encontrado'] };
   const razones: string[] = [];
@@ -130,7 +161,9 @@ export function finalizarProspecto(db: Db, prospectoId: number): ResultadoFinali
   if (p.score === null) razones.push('Falta el score');
   if (!p.reporte_md) razones.push('Falta el reporte');
   const contactos = db
-    .prepare("SELECT COUNT(*) AS n FROM contactos WHERE empresa_id=? AND tipo IN ('telefono','correo')")
+    .prepare(
+      "SELECT COUNT(*) AS n FROM contactos WHERE empresa_id=? AND tipo IN ('telefono','correo')",
+    )
     .get(p.empresa_id) as { n: number };
   if (contactos.n === 0) razones.push('No hay teléfono ni correo de contacto con fuente');
   if (razones.length > 0) return { ok: false, razones };
@@ -145,7 +178,10 @@ export function finalizarProspecto(db: Db, prospectoId: number): ResultadoFinali
       `UPDATE prospectos SET estado = CASE WHEN estado IN ('Nuevo','Calificado') THEN 'Reportado' ELSE estado END,
          reportado_en=COALESCE(reportado_en, ?), actualizado_en=? WHERE id=?`,
     ).run(ahora, ahora, prospectoId);
-    db.prepare("UPDATE empresas SET etapa='prospecto', actualizado_en=? WHERE id=?").run(ahora, p.empresa_id);
+    db.prepare("UPDATE empresas SET etapa='prospecto', actualizado_en=? WHERE id=?").run(
+      ahora,
+      p.empresa_id,
+    );
     const ins = db.prepare('INSERT INTO envios_email (prospecto_id, destinatario) VALUES (?, ?)');
     for (const d of destinatarios) {
       const ya = db

@@ -39,7 +39,9 @@ describe('Flujo completo del expediente', () => {
     expect(det.zona).toBe('Edomex - Cuautitlán Izcalli');
     expect(det.contactos[0].fuente_url).toContain('/contacto');
     expect(det.envios[0].estado).toBe('enviado');
-    const emp = h.db.prepare('SELECT etapa FROM empresas WHERE id=?').get(empresa_id) as { etapa: string };
+    const emp = h.db.prepare('SELECT etapa FROM empresas WHERE id=?').get(empresa_id) as {
+      etapa: string;
+    };
     expect(emp.etapa).toBe('prospecto');
   });
 
@@ -53,10 +55,15 @@ describe('Flujo completo del expediente', () => {
     expect(r.status).toBe(200);
     expect(r.body.fallidos).toBe(1);
 
-    const lista = (await h.owner.get('/api/prospectos')).body as { correo_estado: string; estado: string }[];
+    const lista = (await h.owner.get('/api/prospectos')).body as {
+      correo_estado: string;
+      estado: string;
+    }[];
     expect(lista[0]!.estado).toBe('Reportado');
     expect(lista[0]!.correo_estado).toBe('fallido');
-    expect(((await h.owner.get('/api/dashboard')).body as { correos_fallidos: number }).correos_fallidos).toBe(1);
+    expect(
+      ((await h.owner.get('/api/dashboard')).body as { correos_fallidos: number }).correos_fallidos,
+    ).toBe(1);
 
     h.mailer.fallar = false;
     const re = await h.owner.post(`/api/prospectos/${prospecto_id}/reenviar`);
@@ -70,11 +77,17 @@ describe('Flujo completo del expediente', () => {
     await h.agent('QA-1').post('/qa', { prospecto_id, etapa: 'qa1', aprobado: true });
     await h.agent('QA-2').post('/qa', { prospecto_id, etapa: 'qa2', aprobado: true });
     // Alguien intenta colar un destinatario externo directo en la cola:
-    h.db.prepare("INSERT INTO envios_email (prospecto_id, destinatario) VALUES (?, 'cliente@externo.mx')").run(prospecto_id);
+    h.db
+      .prepare(
+        "INSERT INTO envios_email (prospecto_id, destinatario) VALUES (?, 'cliente@externo.mx')",
+      )
+      .run(prospecto_id);
     await h.agent('QA-2').post('/finalizar', { prospecto_id });
     const destinos = h.mailer.enviados.map((m) => m.to);
     expect(destinos).not.toContain('cliente@externo.mx');
-    const fila = h.db.prepare("SELECT estado, error FROM envios_email WHERE destinatario='cliente@externo.mx'").get() as { estado: string; error: string };
+    const fila = h.db
+      .prepare("SELECT estado, error FROM envios_email WHERE destinatario='cliente@externo.mx'")
+      .get() as { estado: string; error: string };
     expect(fila.estado).toBe('fallido');
     expect(fila.error).toContain('no permitido');
   });
@@ -83,10 +96,20 @@ describe('Flujo completo del expediente', () => {
     const h = harness();
     const { prospecto_id } = await expedienteListo(h);
     for (let i = 0; i < 2; i++) {
-      const r = await h.agent('QA-1').post('/qa', { prospecto_id, etapa: 'qa1', aprobado: false, devolver_a: 'Rastreador', motivos: ['Sitio no coincide'] });
+      const r = await h
+        .agent('QA-1')
+        .post('/qa', {
+          prospecto_id,
+          etapa: 'qa1',
+          aprobado: false,
+          devolver_a: 'Rastreador',
+          motivos: ['Sitio no coincide'],
+        });
       expect(r.body.siguiente).toBe('devolver');
     }
-    const ultima = await h.agent('QA-1').post('/qa', { prospecto_id, etapa: 'qa1', aprobado: false, devolver_a: 'Rastreador' });
+    const ultima = await h
+      .agent('QA-1')
+      .post('/qa', { prospecto_id, etapa: 'qa1', aprobado: false, devolver_a: 'Rastreador' });
     expect(ultima.body.siguiente).toBe('revision_humana');
     const det = (await h.owner.get(`/api/prospectos/${prospecto_id}`)).body;
     expect(det.estado).toBe('Revision humana');
@@ -110,22 +133,55 @@ describe('Reglas de negocio', () => {
   it('contacto sin fuente se rechaza', async () => {
     const h = harness();
     const { empresa_id } = await expedienteListo(h);
-    const r = await h.agent('Rastreador').post('/contactos', { empresa_id, tipo: 'telefono', valor: '5555551234' });
+    const r = await h
+      .agent('Rastreador')
+      .post('/contactos', { empresa_id, tipo: 'telefono', valor: '5555551234' });
     expect(r.status).toBe(400);
   });
 
   it('rechaza gobierno, fuera de piloto y no_contactar; deduplica', async () => {
     const h = harness();
     const base = { metodo_descubrimiento: 'places', origen_url: 'https://maps.example/x' };
-    const gob = await h.agent('Cartografo').post('/empresas', { ...base, nombre: 'Gobierno del Municipio de Toluca' });
+    const gob = await h
+      .agent('Cartografo')
+      .post('/empresas', { ...base, nombre: 'Gobierno del Municipio de Toluca' });
     expect(gob.body).toEqual({ status: 'rechazada', motivo: 'gobierno' });
-    const fuera = await h.agent('Cartografo').post('/empresas', { ...base, nombre: 'Industrias Bajío SA', direccion: 'Av. Universidad 100, Querétaro, Qro., 76000' });
+    const fuera = await h
+      .agent('Cartografo')
+      .post('/empresas', {
+        ...base,
+        nombre: 'Industrias Bajío SA',
+        direccion: 'Av. Universidad 100, Querétaro, Qro., 76000',
+      });
     expect(fuera.body.motivo).toBe('fuera_de_zona_piloto');
-    await h.owner.post('/api/config/no-contactar', { tipo: 'dominio', valor: 'bloqueada.mx', motivo: 'pidió no ser contactada' });
-    const nc = await h.agent('Cartografo').post('/empresas', { ...base, nombre: 'Empresa Bloqueada', sitio_web: 'https://www.bloqueada.mx' });
+    await h.owner.post('/api/config/no-contactar', {
+      tipo: 'dominio',
+      valor: 'bloqueada.mx',
+      motivo: 'pidió no ser contactada',
+    });
+    const nc = await h
+      .agent('Cartografo')
+      .post('/empresas', {
+        ...base,
+        nombre: 'Empresa Bloqueada',
+        sitio_web: 'https://www.bloqueada.mx',
+      });
     expect(nc.body.motivo).toBe('no_contactar');
-    const a = await h.agent('Cartografo').post('/empresas', { ...base, nombre: 'Logística Norte SA', sitio_web: 'https://logistica-norte.mx', place_id: 'p1' });
-    const b = await h.agent('Explorador').post('/empresas', { ...base, nombre: 'Logistica Norte', sitio_web: 'https://www.logistica-norte.mx' });
+    const a = await h
+      .agent('Cartografo')
+      .post('/empresas', {
+        ...base,
+        nombre: 'Logística Norte SA',
+        sitio_web: 'https://logistica-norte.mx',
+        place_id: 'p1',
+      });
+    const b = await h
+      .agent('Explorador')
+      .post('/empresas', {
+        ...base,
+        nombre: 'Logistica Norte',
+        sitio_web: 'https://www.logistica-norte.mx',
+      });
     expect(a.body.status).toBe('creada');
     expect(b.body.status).toBe('existente');
     expect(b.body.id).toBe(a.body.id);
@@ -139,7 +195,9 @@ describe('Reglas de negocio', () => {
       origen_nota: 'Aparece como proveedor de la empresa investigada',
     });
     expect(r.status).toBe(201);
-    const fila = h.db.prepare('SELECT metodo_descubrimiento m, origen_nota n FROM empresas WHERE id=?').get(r.body.id) as { m: string; n: string };
+    const fila = h.db
+      .prepare('SELECT metodo_descubrimiento m, origen_nota n FROM empresas WHERE id=?')
+      .get(r.body.id) as { m: string; n: string };
     expect(fila.m).toBe('hallazgo_oportunista');
     expect(fila.n).toContain('proveedor');
   });
@@ -148,24 +206,43 @@ describe('Reglas de negocio', () => {
     const h = harness();
     const { prospecto_id } = await expedienteListo(h);
     const { patchProspecto } = await import('../src/server/services/consultas');
-    expect(patchProspecto(h.db, prospecto_id, 'agent', { estado: 'Ganado' })).toMatchObject({ ok: false, status: 403 });
-    const own = await h.owner.patch(`/api/prospectos/${prospecto_id}`, { estado: 'Canalizado', canalizado_a: 'Ana (Querétaro)' });
+    expect(patchProspecto(h.db, prospecto_id, 'agent', { estado: 'Ganado' })).toMatchObject({
+      ok: false,
+      status: 403,
+    });
+    const own = await h.owner.patch(`/api/prospectos/${prospecto_id}`, {
+      estado: 'Canalizado',
+      canalizado_a: 'Ana (Querétaro)',
+    });
     expect(own.status).toBe(200);
-    expect((await h.owner.patch(`/api/prospectos/${prospecto_id}`, { estado: 'Perdido' })).status).toBe(400);
+    expect(
+      (await h.owner.patch(`/api/prospectos/${prospecto_id}`, { estado: 'Perdido' })).status,
+    ).toBe(400);
   });
 });
 
 describe('Configuración, cuota y corridas', () => {
   it('CRUD de destinatarios y correo de prueba solo a destinatarios válidos', async () => {
     const h = harness();
-    const nuevo = await h.owner.post('/api/config/destinatarios', { email: 'Jefe@ACITMX.com', nombre: 'Jefe' });
+    const nuevo = await h.owner.post('/api/config/destinatarios', {
+      email: 'Jefe@ACITMX.com',
+      nombre: 'Jefe',
+    });
     expect(nuevo.status).toBe(201);
-    expect((await h.owner.post('/api/config/destinatarios', { email: 'jefe@acitmx.com' })).status).toBe(409);
-    expect((await h.owner.post(`/api/config/destinatarios/${nuevo.body.id}/prueba`)).status).toBe(200);
+    expect(
+      (await h.owner.post('/api/config/destinatarios', { email: 'jefe@acitmx.com' })).status,
+    ).toBe(409);
+    expect((await h.owner.post(`/api/config/destinatarios/${nuevo.body.id}/prueba`)).status).toBe(
+      200,
+    );
     expect(h.mailer.enviados[0]!.to).toBe('jefe@acitmx.com');
-    const off = await h.owner.patch(`/api/config/destinatarios/${nuevo.body.id}`, { activo: false });
+    const off = await h.owner.patch(`/api/config/destinatarios/${nuevo.body.id}`, {
+      activo: false,
+    });
     expect(off.body.sin_activos).toBe(false);
-    expect((await h.owner.post(`/api/config/destinatarios/${nuevo.body.id}/prueba`)).status).toBe(502);
+    expect((await h.owner.post(`/api/config/destinatarios/${nuevo.body.id}/prueba`)).status).toBe(
+      502,
+    );
     const del = await h.owner.del(`/api/config/destinatarios/1`);
     expect(del.body.sin_activos).toBe(true);
   });
@@ -177,17 +254,29 @@ describe('Configuración, cuota y corridas', () => {
     expect((await h.agent('Cartografo').post('/places/consumir', { n: 1 })).status).toBe(200);
     const r = await h.agent('Cartografo').post('/places/consumir', { n: 1 });
     expect(r.status).toBe(429);
-    expect(((await h.owner.get('/api/estado')).body as { places: { usado: number } }).places.usado).toBe(2);
+    expect(
+      ((await h.owner.get('/api/estado')).body as { places: { usado: number } }).places.usado,
+    ).toBe(2);
   });
 
   it('corridas: solo zonas piloto y una a la vez', async () => {
     const h = harness();
-    expect((await h.owner.post('/api/corridas', { zona: 'Querétaro', giro: 'Manufactura' })).status).toBe(409);
-    const ok = await h.owner.post('/api/corridas', { zona: 'CDMX', giro: 'Manufactura', max_empresas: 10 });
+    expect(
+      (await h.owner.post('/api/corridas', { zona: 'Querétaro', giro: 'Manufactura' })).status,
+    ).toBe(409);
+    const ok = await h.owner.post('/api/corridas', {
+      zona: 'CDMX',
+      giro: 'Manufactura',
+      max_empresas: 10,
+    });
     expect(ok.status).toBe(201);
-    expect((await h.owner.post('/api/corridas', { zona: 'CDMX', giro: 'Logística' })).status).toBe(409);
+    expect((await h.owner.post('/api/corridas', { zona: 'CDMX', giro: 'Logística' })).status).toBe(
+      409,
+    );
     expect((await h.owner.post(`/api/corridas/${ok.body.id}/detener`)).status).toBe(200);
-    expect((await h.owner.post('/api/corridas', { zona: 'Estado de México', giro: 'Logística' })).status).toBe(201);
+    expect(
+      (await h.owner.post('/api/corridas', { zona: 'Estado de México', giro: 'Logística' })).status,
+    ).toBe(201);
   });
 
   it('las acciones de agentes se registran en la bitácora y se emiten en vivo', async () => {

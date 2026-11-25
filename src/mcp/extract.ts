@@ -40,14 +40,20 @@ export function htmlATexto(html: string): string {
 }
 
 const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}/gi;
-const EMAIL_BASURA = /(\.(png|jpe?g|gif|svg|webp|css|js)$|sentry|wixpress|example\.(com|mx)|@2x|your-?email|correo@|usuario@|name@|nombre@|@empresa\.com|@dominio\.|@tudominio)/i;
+const EMAIL_BASURA =
+  /(\.(png|jpe?g|gif|svg|webp|css|js)$|sentry|wixpress|example\.(com|mx)|@2x|your-?email|correo@|usuario@|name@|nombre@|@empresa\.com|@dominio\.|@tudominio)/i;
 
 export function extraerCorreos(htmlOTexto: string): string[] {
-  const hrefs = [...htmlOTexto.matchAll(/mailto:([^"'?\s>]+)/gi)].map((m) => decodeURIComponent(m[1] ?? ''));
+  const hrefs = [...htmlOTexto.matchAll(/mailto:([^"'?\s>]+)/gi)].map((m) =>
+    decodeURIComponent(m[1] ?? ''),
+  );
   const sueltos = htmlOTexto.match(EMAIL_RE) ?? [];
   const set = new Set<string>();
   for (const c of [...hrefs, ...sueltos]) {
-    const v = c.trim().toLowerCase().replace(/[.,;:]+$/, '');
+    const v = c
+      .trim()
+      .toLowerCase()
+      .replace(/[.,;:]+$/, '');
     if (v && !EMAIL_BASURA.test(v) && /^[^@]+@[^@]+\.[a-z]{2,}$/.test(v)) set.add(v);
   }
   return [...set].slice(0, 12);
@@ -56,7 +62,10 @@ export function extraerCorreos(htmlOTexto: string): string[] {
 const TEL_RE = /(?:\+?\s?52[\s.-]?)?(?:\(?\d{2,3}\)?[\s.-]?)\d{3,4}[\s.-]?\d{4}/g;
 
 function formatearTel(d: string): string {
-  return `${d.slice(0, 2)} ${d.slice(2, 6)} ${d.slice(6)}`.replace(/^(\d{2}) (\d{4}) (\d{4})$/, '$1 $2 $3');
+  return `${d.slice(0, 2)} ${d.slice(2, 6)} ${d.slice(6)}`.replace(
+    /^(\d{2}) (\d{4}) (\d{4})$/,
+    '$1 $2 $3',
+  );
 }
 
 /** Teléfonos del TEXTO visible y de enlaces tel: (nunca del HTML crudo: trae IDs de rastreo). */
@@ -80,10 +89,12 @@ export function enlacesDeContacto(html: string, base: string): string[] {
   for (const m of html.matchAll(/<a\s[^>]*href=["']([^"'#]+)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
     const href = m[1] ?? '';
     const texto = htmlATexto(m[2] ?? '');
-    if (!/contact|nosotros|acerca|about|aviso|privacidad|sucursal/i.test(`${href} ${texto}`)) continue;
+    if (!/contact|nosotros|acerca|about|aviso|privacidad|sucursal/i.test(`${href} ${texto}`))
+      continue;
     try {
       const u = new URL(href, base);
-      if (u.hostname === new URL(base).hostname && /^https?:$/.test(u.protocol)) out.add(u.toString());
+      if (u.hostname === new URL(base).hostname && /^https?:$/.test(u.protocol))
+        out.add(u.toString());
     } catch {
       /* enlace inválido: se ignora */
     }
@@ -113,10 +124,15 @@ export interface OpcionesFetch {
 
 function ejecutar(bin: string, args: string[], timeoutMs: number): Promise<string> {
   return new Promise((resolve, reject) => {
-    execFile(bin, args, { timeout: timeoutMs, maxBuffer: 8 * 1024 * 1024, windowsHide: true }, (err, stdout) => {
-      if (err) return reject(err);
-      resolve(stdout);
-    });
+    execFile(
+      bin,
+      args,
+      { timeout: timeoutMs, maxBuffer: 8 * 1024 * 1024, windowsHide: true },
+      (err, stdout) => {
+        if (err) return reject(err);
+        resolve(stdout);
+      },
+    );
   });
 }
 
@@ -125,5 +141,9 @@ export async function fetchHtml(url: string, o: OpcionesFetch): Promise<string> 
   if (!/^https?:\/\//i.test(url)) throw new Error('Solo URLs http(s)');
   const t = o.timeoutS ?? 20;
   const run = o.runner ?? ejecutar;
-  return run(o.bin, ['fetch', url, '--dump', 'html', '--timeout', String(t), '--obey-robots'], (t + 10) * 1000);
+  return run(
+    o.bin,
+    ['fetch', url, '--dump', 'html', '--timeout', String(t), '--obey-robots'],
+    (t + 10) * 1000,
+  );
 }

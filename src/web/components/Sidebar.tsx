@@ -1,0 +1,82 @@
+import { NavLink } from 'react-router-dom';
+import { useApi } from '../lib/api';
+import type { Dashboard, EstadoApp } from '../lib/types';
+import { cx } from './ui';
+
+const ITEMS = [
+  { to: '/', etiqueta: 'Inicio', icono: '◧' },
+  { to: '/prospectos', etiqueta: 'Prospectos', icono: '◉', badge: 'sinVer' },
+  { to: '/embudo', etiqueta: 'Embudo', icono: '▥' },
+  { to: '/directorio', etiqueta: 'Directorio', icono: '▤' },
+  { to: '/oficina', etiqueta: 'Ver oficina', icono: '✦', badge: 'activa' },
+  { to: '/corrida', etiqueta: 'Corrida', icono: '▶' },
+  { to: '/actividad', etiqueta: 'Actividad', icono: '≋' },
+  { to: '/configuracion', etiqueta: 'Configuración', icono: '⚙' },
+] as const;
+
+export function Sidebar() {
+  const dash = useApi<Dashboard>('/dashboard', { refreshMs: 15000 });
+  const estado = useApi<EstadoApp>('/estado', { refreshMs: 15000 });
+  const sinVer = dash.data?.sin_ver ?? 0;
+  const activa = Boolean(estado.data?.corrida_activa);
+  return (
+    <aside className="flex h-full w-[220px] shrink-0 flex-col bg-deep text-ice">
+      <div className="p-4">
+        <div className="rounded-lg bg-ice p-2">
+          <img
+            src="/logo-acit.png"
+            alt="ACITMX Integration Technology"
+            className="mx-auto h-12 w-auto"
+          />
+        </div>
+        <p className="mt-3 text-center text-xs tracking-wide text-ice/70">Oficina de Prospección</p>
+      </div>
+      <nav className="flex-1 space-y-1 px-3" aria-label="Principal">
+        {ITEMS.map((it) => (
+          <NavLink
+            key={it.to}
+            to={it.to}
+            end={it.to === '/'}
+            className={({ isActive }) =>
+              cx(
+                'group flex items-center gap-3 rounded-lg border-l-[3px] px-3 py-2 transition-colors duration-150',
+                isActive
+                  ? 'border-brand bg-deep-2 font-medium'
+                  : 'border-transparent text-ice/85 hover:bg-deep-2',
+              )
+            }
+          >
+            <span aria-hidden className="w-4 text-center text-brand">
+              {it.icono}
+            </span>
+            <span className="flex-1">{it.etiqueta}</span>
+            {'badge' in it && it.badge === 'sinVer' && sinVer > 0 && (
+              <span className="rounded-full bg-brand px-2 text-xs font-semibold text-deep">
+                {sinVer}
+              </span>
+            )}
+            {'badge' in it && it.badge === 'activa' && activa && (
+              <span
+                className="anim-pulse h-2 w-2 rounded-full bg-brand"
+                title="Hay agentes trabajando"
+              />
+            )}
+          </NavLink>
+        ))}
+      </nav>
+      <div className="space-y-1 border-t border-white/10 p-4 text-xs text-ice/70">
+        <div>
+          Motor IA: <span className="font-medium text-ice">{estado.data?.motor_ia ?? '—'}</span>
+        </div>
+        <div>
+          Places:{' '}
+          <span className="font-medium text-ice">
+            {estado.data
+              ? `${estado.data.places.usado.toLocaleString('es-MX')} / ${estado.data.places.tope.toLocaleString('es-MX')}`
+              : '—'}
+          </span>
+        </div>
+      </div>
+    </aside>
+  );
+}

@@ -5,7 +5,13 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CrmApi } from './api';
 import { crmTools } from './tools-crm';
-import { extractSchema, obscuraExtract, placesDescubrir, placesSchema, type WebDeps } from './tools-web';
+import {
+  extractSchema,
+  obscuraExtract,
+  placesDescubrir,
+  placesSchema,
+  type WebDeps,
+} from './tools-web';
 
 // El proceso MCP lo lanza Munder: las rutas se resuelven respecto a este archivo, no al cwd.
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -24,20 +30,26 @@ const web: WebDeps = {
 };
 
 const salida = (data: unknown, isError = false) => ({
-  content: [{ type: 'text' as const, text: typeof data === 'string' ? data : JSON.stringify(data) }],
+  content: [
+    { type: 'text' as const, text: typeof data === 'string' ? data : JSON.stringify(data) },
+  ],
   ...(isError ? { isError: true } : {}),
 });
 
 const server = new McpServer({ name: 'acitmx-crm', version: '0.1.0' });
 
 for (const t of crmTools(api)) {
-  server.registerTool(t.name, { description: t.description, inputSchema: t.schema }, async (args) => {
-    try {
-      return salida(await t.run(args as Record<string, unknown>));
-    } catch (e) {
-      return salida(e instanceof Error ? e.message : String(e), true);
-    }
-  });
+  server.registerTool(
+    t.name,
+    { description: t.description, inputSchema: t.schema },
+    async (args) => {
+      try {
+        return salida(await t.run(args as Record<string, unknown>));
+      } catch (e) {
+        return salida(e instanceof Error ? e.message : String(e), true);
+      }
+    },
+  );
 }
 
 server.registerTool(

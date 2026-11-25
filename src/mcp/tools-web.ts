@@ -13,8 +13,18 @@ export interface WebDeps {
 }
 
 export const placesSchema = {
-  consulta: z.string().min(3).max(200).describe('Ej: "fábricas en Tlalnepantla de Baz, Estado de México"'),
-  max: z.number().int().min(1).max(20).default(10).describe('Máximo de empresas (usa el lote de la corrida)'),
+  consulta: z
+    .string()
+    .min(3)
+    .max(200)
+    .describe('Ej: "fábricas en Tlalnepantla de Baz, Estado de México"'),
+  max: z
+    .number()
+    .int()
+    .min(1)
+    .max(20)
+    .default(10)
+    .describe('Máximo de empresas (usa el lote de la corrida)'),
 };
 
 export const extractSchema = { url: z.string().url().describe('Página pública a leer') };
@@ -22,7 +32,13 @@ export const extractSchema = { url: z.string().url().describe('Página pública 
 type RespuestaCache = { texto_compacto: string; emails: string; telefonos: string } | null;
 
 /** Cadena de lectura: caché → obscura fetch → (el agente usa web_search si devuelve ok:false). */
-export async function obscuraExtract(url: string, d: WebDeps): Promise<Extraccion & { origen: 'cache' | 'obscura' } | { ok: false; error: string; siguiente: 'web_search' }> {
+export async function obscuraExtract(
+  url: string,
+  d: WebDeps,
+): Promise<
+  | (Extraccion & { origen: 'cache' | 'obscura' })
+  | { ok: false; error: string; siguiente: 'web_search' }
+> {
   const cache = (await d.api.get(`/cache?url=${encodeURIComponent(url)}`)) as RespuestaCache;
   if (cache) {
     return {
@@ -52,7 +68,11 @@ export async function obscuraExtract(url: string, d: WebDeps): Promise<Extraccio
       ultimoError = e instanceof Error ? e.message : String(e);
     }
   }
-  return { ok: false, error: `Obscura no pudo leer la página: ${ultimoError}`, siguiente: 'web_search' };
+  return {
+    ok: false,
+    error: `Obscura no pudo leer la página: ${ultimoError}`,
+    siguiente: 'web_search',
+  };
 }
 
 /** Busca en Places y registra directo en el directorio: devuelve solo un resumen (ahorra tokens). */
@@ -63,7 +83,8 @@ export async function placesDescubrir(consulta: string, max: number, d: WebDeps)
       try {
         await d.api.post('/places/consumir', { n: 1 });
       } catch (e) {
-        if (e instanceof ApiError && e.status === 429) throw new Error(`quota_exceeded: ${e.message}`);
+        if (e instanceof ApiError && e.status === 429)
+          throw new Error(`quota_exceeded: ${e.message}`);
         throw e;
       }
     },
@@ -88,6 +109,11 @@ export async function placesDescubrir(consulta: string, max: number, d: WebDeps)
     } else if (r.status === 'existente') existentes++;
     else rechazadas.push({ nombre: l.nombre, motivo: r.motivo ?? 'rechazada' });
   }
-  await d.api.post('/busquedas', { metodo: 'places', consulta, resultados: lugares.length, nuevas });
+  await d.api.post('/busquedas', {
+    metodo: 'places',
+    consulta,
+    resultados: lugares.length,
+    nuevas,
+  });
   return { consulta, encontradas: lugares.length, nuevas, existentes, rechazadas, registradas };
 }

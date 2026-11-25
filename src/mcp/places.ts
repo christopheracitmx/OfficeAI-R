@@ -18,10 +18,19 @@ export interface OpcionesPlaces {
 export const FIELD_MASK = 'places.id,places.displayName,places.formattedAddress,places.types';
 
 interface RespuestaPlaces {
-  places?: { id: string; displayName?: { text?: string }; formattedAddress?: string; types?: string[] }[];
+  places?: {
+    id: string;
+    displayName?: { text?: string };
+    formattedAddress?: string;
+    types?: string[];
+  }[];
 }
 
-export async function placesSearch(consulta: string, max: number, o: OpcionesPlaces): Promise<LugarEncontrado[]> {
+export async function placesSearch(
+  consulta: string,
+  max: number,
+  o: OpcionesPlaces,
+): Promise<LugarEncontrado[]> {
   if (!o.apiKey) throw new Error('Falta GOOGLE_PLACES_API_KEY en .env');
   const pageSize = Math.max(1, Math.min(max, 20));
   await o.consumir(); // tope duro ANTES de gastar la solicitud
@@ -35,7 +44,8 @@ export async function placesSearch(consulta: string, max: number, o: OpcionesPla
     },
     body: JSON.stringify({ textQuery: consulta, languageCode: 'es', regionCode: 'MX', pageSize }),
   });
-  if (!res.ok) throw new Error(`Places respondió ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  if (!res.ok)
+    throw new Error(`Places respondió ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const data = (await res.json()) as RespuestaPlaces;
   return (data.places ?? []).map((p) => ({
     place_id: p.id,

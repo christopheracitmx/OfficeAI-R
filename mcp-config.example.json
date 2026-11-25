@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "acitmx-crm": {
+      "command": "C:\Users\Google\Desktop\AI Office\Prospecting\tools\node22\node.exe",
+      "args": [
+        "C:\Users\Google\Desktop\AI Office\Prospecting\crm\node_modules\tsx\dist\cli.mjs",
+        "C:\Users\Google\Desktop\AI Office\Prospecting\crm\src\mcp\index.ts"
+      ],
+      "env": { "CRM_AGENT": "NOMBRE_DEL_AGENTE" }
+    }
+  }
+}

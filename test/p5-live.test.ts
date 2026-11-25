@@ -1,0 +1,120 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import { createApp } from '../src/server/app';
+import { openDb } from '../src/server/db';
+import { crearRunner } from '../src/server/offices';
+import { leerEngineYaml } from '../src/server/runner/motor';
+import { crearCorrida } from '../src/server/services/admin';
+import { upsertEmpresa } from '../src/server/services/empresas';
+import { EventBus } from '../src/server/services/events';
+import { FakeMailer, TOKEN, UI } from './helpers';
+
+/**
+ * PRUEBA EN VIVO con el CLI real (gasta plan de la suscripción). Solo con LIVE=1:
+ *   LIVE=1 npx vitest run test/p5-live.test.ts
+ * Una empresa sembrada, SIN Places (sin llave: no gasta cuota) y con correo FALSO (nada se envía).
+ */
+describe.skipIf(process.env['LIVE'] !== '1')('LIVE: una corrida real con Claude Code', () => {
+  it('procesa 1 empresa de punta a punta', { timeout: 20 * 60_000 }, async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'live-'));
+    const tokenFile = join(dir, 'agent.token');
+    writeFileSync(tokenFile, TOKEN);
+    const db = openDb(':memory:');
+    const bus = new EventBus();
+    const mailer = new FakeMailer();
+    const server = createServer();
+    await new Promise<void>((r) => server.listen(0, '127.0.0.1', () => r()));
+    const puerto = (server.address() as { port: number }).port;
+    const cfg = leerEngineYaml(resolve('config/engine.yaml'));
+    const runner = crearRunner({
+      db,
+      bus,
+      mailer,
+      from: 'info@mail.acitmx.net',
+      baseUrl: 'http://127.0.0.1:5174',
+      raiz: resolve('.'),
+      puerto,
+      tokenFile,
+      env: {}, // sin llave de Places
+      cfg,
+    });
+    server.on(
+      'request',
+      createApp({
+        db,
+        bus,
+        mailer,
+        from: 'info@mail.acitmx.net',
+        baseUrl: 'http://127.0.0.1:5174',
+        agentToken: TOKEN,
+        uiOrigins: [UI],
+        env: { NODE_ENV: 'test' },
+        runner,
+      }),
+    );
+    const eventos: string[] = [];
+    bus.on('actividad', (e: { agente: string; accion: string }) =>
+      eventos.push(`${e.agente}: ${e.accion}`),
+    );
+
+    const c = crearCorrida(
+      db,
+      { zona: 'CDMX', giro: 'Cualquiera', max_empresas: 1, office_id: 'prospeccion' },
+      cfg.engine,
+    );
+    if (!c.ok) throw new Error(c.error);
+    upsertEmpresa(db, {
+      nombre: 'ACIT México (empresa de prueba)',
+      metodo_descubrimiento: 'manual',
+      origen_nota: 'Siembra de la prueba LIVE',
+      direccion: 'Ciudad de México, CDMX',
+      sitio_web: 'https://acitmx.net',
+      corrida_id: c.id,
+    });
+    const t0 = Date.now();
+    runner.iniciar(c.id);
+    await runner.esperarFin();
+
+    const corrida = db
+      .prepare('SELECT estado, motivo_fin FROM corridas WHERE id = ?')
+      .get(c.id) as {
+      estado: string;
+      motivo_fin: string;
+    };
+    const salidas = db
+      .prepare(
+        'SELECT agente, resultado, tokens_estimados, duracion_ms FROM salidas_agente ORDER BY id',
+      )
+      .all() as {
+      agente: string;
+      resultado: string;
+      tokens_estimados: number | null;
+      duracion_ms: number;
+    }[];
+    const tokens = salidas.reduce((a, s) => a + (s.tokens_estimados ?? 0), 0);
+    console.info(
+      `LIVE: ${corrida.estado} · ${corrida.motivo_fin} · ${salidas.length} pasos · ${tokens} tokens · ${Math.round((Date.now() - t0) / 1000)} s\n` +
+        salidas
+          .map(
+            (s) =>
+              `  ${s.agente} ${s.resultado} ${s.tokens_estimados ?? '?'}t ${Math.round(s.duracion_ms / 1000)}s`,
+          )
+          .join('\n') +
+        `\n${eventos.slice(-25).join('\n')}`,
+    );
+    server.close();
+    rmSync(dir, { recursive: true, force: true });
+
+    expect(['terminada', 'pausada_limite_plan']).toContain(corrida.estado);
+    expect(salidas.length).toBeGreaterThan(0);
+    expect(salidas.some((s) => s.resultado === 'ok')).toBe(true);
+    // Seguridad: ningún correo salió del transporte falso hacia fuera de la allowlist.
+    const permitidos = (
+      db.prepare('SELECT email FROM destinatarios_internos').all() as { email: string }[]
+    ).map((d) => d.email);
+    for (const m of mailer.enviados) expect(permitidos).toContain(m.to);
+  });
+});

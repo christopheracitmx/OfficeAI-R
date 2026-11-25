@@ -1,13 +1,6 @@
 import { useState } from 'react';
-import {
-  Button,
-  Card,
-  CopyButton,
-  EmptyState,
-  ErrorBanner,
-  PageHeader,
-  useToast,
-} from '../components/ui';
+import { Button, Card, EmptyState, ErrorBanner, PageHeader, useToast } from '../components/ui';
+import { ProgresoCorrida } from '../components/ProgresoCorrida';
 import { api, useApi } from '../lib/api';
 import { fechaCorta, type Config, type Corrida as CorridaT, type EstadoApp } from '../lib/types';
 
@@ -41,11 +34,21 @@ export function Corrida() {
         method: 'POST',
         body: { zona: zonaSel, giro, max_empresas: maxSel },
       });
-      toast('Corrida registrada. Pídele a Michael que la ejecute.');
+      toast('Corrida iniciada: los agentes ya están trabajando.');
       estado.reload();
       hist.reload();
     } catch (e) {
       toast(e instanceof Error ? e.message : 'No se pudo iniciar', 'error');
+    }
+  };
+  const reanudar = async (id: number) => {
+    try {
+      await api(`/corridas/${id}/reanudar`, { method: 'POST', body: {} });
+      toast('Corrida reanudada desde donde se quedó');
+      estado.reload();
+      hist.reload();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'No se pudo reanudar', 'error');
     }
   };
   const detener = async () => {
@@ -63,10 +66,6 @@ export function Corrida() {
   const usado = estado.data?.places.usado ?? 0;
   const tope = estado.data?.places.tope ?? 1;
   const sel = 'mt-1 w-full rounded-lg border border-line bg-white px-3 py-2';
-  const instruccion = activa
-    ? `Michael, ejecuta la corrida #${activa.id}: zona ${activa.zona}, giro ${activa.giro}, máximo ${activa.max_empresas} empresas. Usa el pipeline completo y respeta el máximo.`
-    : '';
-
   return (
     <>
       <PageHeader
@@ -85,15 +84,7 @@ export function Corrida() {
                 Zona <b>{activa.zona}</b> · Giro <b>{activa.giro}</b> · Máximo{' '}
                 <b>{activa.max_empresas}</b> empresas · desde {fechaCorta(activa.iniciada_en)}
               </p>
-              <div className="rounded-lg bg-brand-soft p-4">
-                <p className="mb-2 text-sm text-muted">
-                  Para ponerla en marcha, copia esta instrucción y pégala en Munder Difflin:
-                </p>
-                <p className="rounded bg-white p-3 text-sm">{instruccion}</p>
-                <div className="mt-2">
-                  <CopyButton texto={instruccion} etiqueta="Copiar instrucción para Michael" />
-                </div>
-              </div>
+              <ProgresoCorrida corridaId={activa.id} />
               <div className="mt-4 flex gap-2">
                 <Button variante="peligro" onClick={() => void detener()}>
                   Detener corrida
@@ -136,8 +127,9 @@ export function Corrida() {
                 </label>
               </div>
               <p className="text-sm text-muted">
-                Una corrida consume plan de IA ({estado.data?.motor_ia ?? '—'}). Lotes pequeños
-                cuidan tu plan.
+                Al pulsar «Iniciar corrida» los agentes empiezan a trabajar y consumen plan de IA (
+                {estado.data?.motor_ia ?? '—'}). Lotes pequeños cuidan tu plan; puedes detenerla
+                cuando quieras.
               </p>
               <Button
                 variante="primario"
@@ -204,6 +196,11 @@ export function Corrida() {
                   <td className="px-4 py-2.5">
                     {FIN[c.estado] ?? c.estado}
                     {c.motivo_fin ? <span className="text-muted"> · {c.motivo_fin}</span> : null}
+                    {!activa && /^(pausada|error)/.test(c.estado) && (
+                      <span className="ml-3">
+                        <Button onClick={() => void reanudar(c.id)}>Reanudar</Button>
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}

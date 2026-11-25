@@ -66,7 +66,7 @@ const AGENTES = [
   { id: 'QA-2', nombre: 'QA-2', rol: 'Revisión final', color: '#D64545', piel: '#D9A67A' },
   {
     id: 'Coordinador',
-    nombre: 'Michael',
+    nombre: 'Coordinador',
     rol: 'Coordina la oficina',
     color: '#0F3D47',
     piel: '#E8B88F',

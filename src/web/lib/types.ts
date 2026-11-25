@@ -89,8 +89,28 @@ export interface Dashboard {
   places: { mes: string; usado: number; tope: number };
 }
 
+export interface EstadoRunner {
+  activo: boolean;
+  office_id: string | null;
+  corrida_id: number | null;
+  fase: string | null;
+  item_actual: { id: number; nombre?: string } | null;
+  paso_actual: string | null;
+  pasos_ejecutados: number;
+  pasos_max: number;
+  fallos_seguidos: number;
+  resumen: Record<string, number>;
+}
+
+export interface ProgresoCorrida {
+  corrida: { id: number; office_id: string; estado: string };
+  runner: EstadoRunner | null;
+  progreso: { id: string; etiqueta: string; valor: number }[];
+}
+
 export interface EstadoApp {
   motor_ia: string;
+  runner?: EstadoRunner | null;
   places: { usado: number; tope: number; mes: string };
   resend_configurado: boolean;
   remitente: string;
@@ -105,6 +125,7 @@ export interface Corrida {
   motor: string;
   estado: string;
   motivo_fin: string | null;
+  office_id?: string;
   iniciada_en: string;
   terminada_en: string | null;
 }

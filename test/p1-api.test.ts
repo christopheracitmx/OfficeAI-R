@@ -96,15 +96,13 @@ describe('Flujo completo del expediente', () => {
     const h = harness();
     const { prospecto_id } = await expedienteListo(h);
     for (let i = 0; i < 2; i++) {
-      const r = await h
-        .agent('QA-1')
-        .post('/qa', {
-          prospecto_id,
-          etapa: 'qa1',
-          aprobado: false,
-          devolver_a: 'Rastreador',
-          motivos: ['Sitio no coincide'],
-        });
+      const r = await h.agent('QA-1').post('/qa', {
+        prospecto_id,
+        etapa: 'qa1',
+        aprobado: false,
+        devolver_a: 'Rastreador',
+        motivos: ['Sitio no coincide'],
+      });
       expect(r.body.siguiente).toBe('devolver');
     }
     const ultima = await h
@@ -146,42 +144,34 @@ describe('Reglas de negocio', () => {
       .agent('Cartografo')
       .post('/empresas', { ...base, nombre: 'Gobierno del Municipio de Toluca' });
     expect(gob.body).toEqual({ status: 'rechazada', motivo: 'gobierno' });
-    const fuera = await h
-      .agent('Cartografo')
-      .post('/empresas', {
-        ...base,
-        nombre: 'Industrias Bajío SA',
-        direccion: 'Av. Universidad 100, Querétaro, Qro., 76000',
-      });
+    const fuera = await h.agent('Cartografo').post('/empresas', {
+      ...base,
+      nombre: 'Industrias Bajío SA',
+      direccion: 'Av. Universidad 100, Querétaro, Qro., 76000',
+    });
     expect(fuera.body.motivo).toBe('fuera_de_zona_piloto');
     await h.owner.post('/api/config/no-contactar', {
       tipo: 'dominio',
       valor: 'bloqueada.mx',
       motivo: 'pidió no ser contactada',
     });
-    const nc = await h
-      .agent('Cartografo')
-      .post('/empresas', {
-        ...base,
-        nombre: 'Empresa Bloqueada',
-        sitio_web: 'https://www.bloqueada.mx',
-      });
+    const nc = await h.agent('Cartografo').post('/empresas', {
+      ...base,
+      nombre: 'Empresa Bloqueada',
+      sitio_web: 'https://www.bloqueada.mx',
+    });
     expect(nc.body.motivo).toBe('no_contactar');
-    const a = await h
-      .agent('Cartografo')
-      .post('/empresas', {
-        ...base,
-        nombre: 'Logística Norte SA',
-        sitio_web: 'https://logistica-norte.mx',
-        place_id: 'p1',
-      });
-    const b = await h
-      .agent('Explorador')
-      .post('/empresas', {
-        ...base,
-        nombre: 'Logistica Norte',
-        sitio_web: 'https://www.logistica-norte.mx',
-      });
+    const a = await h.agent('Cartografo').post('/empresas', {
+      ...base,
+      nombre: 'Logística Norte SA',
+      sitio_web: 'https://logistica-norte.mx',
+      place_id: 'p1',
+    });
+    const b = await h.agent('Explorador').post('/empresas', {
+      ...base,
+      nombre: 'Logistica Norte',
+      sitio_web: 'https://www.logistica-norte.mx',
+    });
     expect(a.body.status).toBe('creada');
     expect(b.body.status).toBe('existente');
     expect(b.body.id).toBe(a.body.id);

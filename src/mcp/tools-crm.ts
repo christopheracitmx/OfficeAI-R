@@ -39,6 +39,13 @@ export function crmTools(api: CrmApi): ToolDef[] {
       run: () => api.get('/corrida'),
     },
     {
+      name: 'crm_expediente',
+      description:
+        'Lee (solo lectura) el expediente completo de una empresa por empresa_id: datos, contactos con fuente, necesidades, prospecto, productos, paquetes, score, reporte y revisiones de QA. Es la forma de ver el trabajo de los agentes anteriores.',
+      schema: { empresa_id: z.number().int().positive() },
+      run: (a) => api.get(`/expediente/${String(a['empresa_id'])}`),
+    },
+    {
       name: 'crm_directorio_buscar',
       description:
         'Busca en el directorio propio ANTES de buscar en internet: por texto/dominio, y avisa si una consulta (metodo+consulta) ya se hizo.',

@@ -165,5 +165,11 @@ export function cerrarCorrida(db: Db, id: number, estado: string, motivo?: strin
   );
 }
 
+export const corridaActivaId = (db: Db): number | undefined =>
+  (
+    db.prepare("SELECT id FROM corridas WHERE estado='en_curso' LIMIT 1").get() as
+      { id: number } | undefined
+  )?.id;
+
 export const listarCorridas = (db: Db): unknown[] =>
   db.prepare('SELECT * FROM corridas ORDER BY id DESC LIMIT 50').all();

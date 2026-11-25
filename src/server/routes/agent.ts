@@ -14,7 +14,7 @@ import {
   revisionQaInput,
   scoreInput,
 } from '../../shared/schemas';
-import { consumirPlaces, QuotaExceededError } from '../services/admin';
+import { consumirPlaces, corridaActivaId, QuotaExceededError } from '../services/admin';
 import {
   agregarContacto,
   buscarEnDirectorio,
@@ -23,6 +23,7 @@ import {
   registrarBusqueda,
   upsertEmpresa,
 } from '../services/empresas';
+import { expedienteEmpresa } from '../services/expediente';
 import { registrarActividad } from '../services/events';
 import { procesarEnvios } from '../services/mailer';
 import {
@@ -32,7 +33,7 @@ import {
   guardarScore,
   registrarQa,
 } from '../services/prospectos';
-import { ah, HttpError, parse, qstr, type Deps } from './util';
+import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
 import { z } from 'zod';
 
 function agenteDe(req: Request): string {
@@ -102,10 +103,20 @@ export function agentRouter(d: Deps): Router {
     }),
   );
 
+  r.get(
+    '/expediente/:id',
+    ah((q, res) => {
+      const ex = expedienteEmpresa(db, idParam(q));
+      if (!ex) throw new HttpError(404, 'Empresa no encontrada');
+      res.json(ex);
+    }),
+  );
+
   r.post(
     '/empresas',
     ah((q, res) => {
-      const out = upsertEmpresa(db, parse(empresaInput, q.body));
+      const e = parse(empresaInput, q.body);
+      const out = upsertEmpresa(db, { ...e, corrida_id: e.corrida_id ?? corridaActivaId(db) });
       if (out.status === 'rechazada') {
         log(
           q,
@@ -132,7 +143,11 @@ export function agentRouter(d: Deps): Router {
     '/hallazgos',
     ah((q, res) => {
       const h = parse(hallazgoInput, q.body);
-      const out = upsertEmpresa(db, { ...h, metodo_descubrimiento: 'hallazgo_oportunista' });
+      const out = upsertEmpresa(db, {
+        ...h,
+        corrida_id: h.corrida_id ?? corridaActivaId(db),
+        metodo_descubrimiento: 'hallazgo_oportunista',
+      });
       if (out.status !== 'rechazada') log(q, 'hallazgo oportunista', 'empresa', out.id, h.nombre);
       res.status(out.status === 'creada' ? 201 : 200).json(out);
     }),
@@ -184,7 +199,10 @@ export function agentRouter(d: Deps): Router {
     '/propuestas',
     ah((q, res) => {
       const p = parse(propuestasInput, q.body);
-      const prospecto_id = guardarPropuestas(db, p);
+      const prospecto_id = guardarPropuestas(db, {
+        ...p,
+        corrida_id: p.corrida_id ?? corridaActivaId(db),
+      });
       log(q, 'armó propuestas y paquetes', 'empresa', p.empresa_id);
       res.status(201).json({ prospecto_id });
     }),

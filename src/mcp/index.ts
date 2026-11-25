@@ -13,7 +13,7 @@ import {
   type WebDeps,
 } from './tools-web';
 
-// El proceso MCP lo lanza Munder: las rutas se resuelven respecto a este archivo, no al cwd.
+// El proceso MCP lo lanza el runner del CRM (o cualquier cliente MCP): las rutas se resuelven respecto a este archivo, no al cwd.
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 if (existsSync(resolve(raiz, '.env'))) process.loadEnvFile(resolve(raiz, '.env'));
 
@@ -36,9 +36,15 @@ const salida = (data: unknown, isError = false) => ({
   ...(isError ? { isError: true } : {}),
 });
 
+// Mínimo privilegio: el runner fija CRM_TOOLS con las herramientas que ese agente puede usar.
+const permitidas = process.env['CRM_TOOLS']
+  ? new Set(process.env['CRM_TOOLS'].split(',').map((t) => t.trim()))
+  : null;
+const permitida = (nombre: string): boolean => permitidas === null || permitidas.has(nombre);
+
 const server = new McpServer({ name: 'acitmx-crm', version: '0.1.0' });
 
-for (const t of crmTools(api)) {
+for (const t of crmTools(api).filter((x) => permitida(x.name))) {
   server.registerTool(
     t.name,
     { description: t.description, inputSchema: t.schema },
@@ -52,31 +58,33 @@ for (const t of crmTools(api)) {
   );
 }
 
-server.registerTool(
-  'obscura_extract',
-  {
-    description:
-      'Lee una página pública con Obscura (local, rápido) y devuelve texto compacto + correos y teléfonos ya extraídos por código. Usa caché. Si devuelve ok:false usa web_search.',
-    inputSchema: extractSchema,
-  },
-  async ({ url }) => salida(await obscuraExtract(url, web)),
-);
+if (permitida('obscura_extract'))
+  server.registerTool(
+    'obscura_extract',
+    {
+      description:
+        'Lee una página pública con Obscura (local, rápido) y devuelve texto compacto + correos y teléfonos ya extraídos por código. Usa caché. Si devuelve ok:false usa web_search.',
+      inputSchema: extractSchema,
+    },
+    async ({ url }) => salida(await obscuraExtract(url, web)),
+  );
 
-server.registerTool(
-  'places_search',
-  {
-    description:
-      'Descubre empresas con Google Places (cuota limitada, tope duro) y las registra directo en el directorio. Devuelve solo un resumen. No pidas más empresas de las que permite la corrida.',
-    inputSchema: placesSchema,
-  },
-  async ({ consulta, max }) => {
-    try {
-      return salida(await placesDescubrir(consulta, max, web));
-    } catch (e) {
-      return salida(e instanceof Error ? e.message : String(e), true);
-    }
-  },
-);
+if (permitida('places_search'))
+  server.registerTool(
+    'places_search',
+    {
+      description:
+        'Descubre empresas con Google Places (cuota limitada, tope duro) y las registra directo en el directorio. Devuelve solo un resumen. No pidas más empresas de las que permite la corrida.',
+      inputSchema: placesSchema,
+    },
+    async ({ consulta, max }) => {
+      try {
+        return salida(await placesDescubrir(consulta, max, web));
+      } catch (e) {
+        return salida(e instanceof Error ? e.message : String(e), true);
+      }
+    },
+  );
 
 await server.connect(new StdioServerTransport());
 console.error(`[acitmx-crm MCP] agente=${agente} api=${base}`);

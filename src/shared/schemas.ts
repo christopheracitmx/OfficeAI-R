@@ -73,7 +73,7 @@ export const etapaInput = z.object({
   motivo: z.string().trim().max(300).optional(),
 });
 
-export const expedienteInput = z.object({
+export const propuestasInput = z.object({
   empresa_id: z.number().int().positive(),
   corrida_id: z.number().int().positive().optional(),
   productos: z
@@ -96,12 +96,22 @@ export const expedienteInput = z.object({
       }),
     )
     .max(3),
+});
+
+export const scoreInput = z.object({
+  prospecto_id: z.number().int().positive(),
   score: z.number().int().min(0).max(100),
   score_desglose: z.record(z.string(), z.number()),
   justificacion: textoSinPrecio(1200),
+});
+
+export const reporteInput = z.object({
+  prospecto_id: z.number().int().positive(),
   reporte_md: textoSinPrecio(8000),
   borrador_correo: textoSinPrecio(4000),
 });
+
+export const finalizarInput = z.object({ prospecto_id: z.number().int().positive() });
 
 export const revisionQaInput = z.object({
   prospecto_id: z.number().int().positive(),

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { openDb } from '../src/server/db';
 import { derivarZona, enZonaPiloto } from '../src/server/services/zona';
 import { mencionaPrecio, nivelPorScore, puedeCambiarEstado } from '../src/shared/domain';
-import { contactoInput, expedienteInput } from '../src/shared/schemas';
+import { contactoInput, propuestasInput } from '../src/shared/schemas';
 
 describe('DB: migraciones y semillas', () => {
   it('aplica la migración 001 y siembra config, giros y destinatario', () => {
@@ -103,19 +103,14 @@ describe('Schemas', () => {
         .success,
     ).toBe(true);
   });
-  it('expediente con precio en un paquete se rechaza', () => {
+  it('propuestas con precio en un paquete se rechazan', () => {
     const base = {
       empresa_id: 1,
       productos: [],
       paquetes: [{ nombre: 'Paquete A', componentes: ['ThinkPad'], argumento: 'Excelente precio de $5000' }],
-      score: 80,
-      score_desglose: { ajuste: 30 },
-      justificacion: 'Buen ajuste',
-      reporte_md: 'Oye jefe, encontré una empresa',
-      borrador_correo: 'Hola, ¿conversamos?',
     };
-    expect(expedienteInput.safeParse(base).success).toBe(false);
+    expect(propuestasInput.safeParse(base).success).toBe(false);
     base.paquetes[0]!.argumento = 'Renovación de equipos de cómputo para planta';
-    expect(expedienteInput.safeParse(base).success).toBe(true);
+    expect(propuestasInput.safeParse(base).success).toBe(true);
   });
 });

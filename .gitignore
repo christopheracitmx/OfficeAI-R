@@ -1,9 +1,16 @@
-node_modules
-dist
-data/*.db
-data/*.db-*
+# Herramientas descargables (Node portable, Obscura, clones de referencia): se reinstalan, no se versionan
+tools/
+assets-descarga/
+# Skills de terceros (se instalan aparte)
+.claude/
+# Secretos y datos locales
 .env
-data/live-*
-data/live2.log
-data/runner/
-data/runner-test/
+*.log
+node_modules/
+dist/
+crm/data/agent.token
+crm/data/backups/
+crm/data/runner/
+crm/data/runner-test/
+crm/data/*.db*
+crm/data/live-*

@@ -1,0 +1,185 @@
+meta_dungeon:
+  proyecto: "ACITMX Prospecting Office"
+  tipo: "Internal Tool (CRM ligero + equipo de agentes IA)"
+  objetivo: "Entregar más prospectos B2B calificados al equipo de ventas de ACITMX y darle al dueño un CRM sencillo con analíticas."
+  problema_resuelve: "Generar prospectos es manual y lento; el dueño necesita visibilidad simple del progreso de prospección y ventas sin perder tiempo."
+
+  pipeline:
+    flujo: "[17] -> [00] -> [15] -> [00.5] -> [18] -> [03] -> [04] -> [04.5] -> [14] -> [10] -> [SP]"
+    activadas:
+      "00.5": "CRM con >5 pantallas"
+      "15": "Más de 5 entidades relacionadas + analíticas"
+      "14": "Agentes IA son el núcleo del producto"
+    omitidas:
+      "01/02": "Proyecto nuevo (CRM). DECISIÓN 2026-11-25: se descarta Munder Difflin; el CRM trae su propio runner y su propia oficina virtual (P5-P7)."
+      "13": "Herramienta interna, sin envío a terceros. Reglas de privacidad documentadas abajo."
+      "16": "Sin monetización"
+
+  alcance:
+    incluye:
+      - "CRM (SQLite) en español: prospectos, empresas, contactos, interacciones, paquetes de producto; el dueño anota a qué vendedor canaliza (texto libre, sin catálogo de vendedores)"
+      - "Score de éxito 0-100 por prospecto con justificación"
+      - "Dashboard del dueño (embudo, semana, zona, giro, nivel A/B/C, canalizado a, conversión)"
+      - "API local con Zod + servidor MCP para los agentes"
+      - "Reportes por email (Resend) solo a destinatarios internos, editables en la pestaña Configuración (inicial: christopher.rodriguez@acitmx.com)"
+      - "Operación SOLO bajo demanda: corridas acotadas iniciadas por el dueño, nada 24/7"
+      - "Motor de IA configurable en un solo lugar (hoy Claude Code; intercambiable por OpenCode/Gemini)"
+      - "Roster de agentes + prompts versionados (config/offices/prospeccion/agents/*.md) + runner propio dirigido por workflow (config/offices/prospeccion/workflow.json)"
+    excluye:
+      - "Contacto directo a prospectos"
+      - "Asignación o sugerencia de vendedores (el dueño canaliza manualmente)"
+      - "Ejecución automática/24-7 o con cron"
+      - "Login (v1)"
+      - "Munder Difflin (reemplazado por runner propio; tools/munder-difflin queda solo como referencia histórica, MIT, sin copiar assets)"
+      - "Prospectos de gobierno"
+
+  stack:
+    frontend: "React + Vite + TypeScript, Tailwind (UI en español)"
+    backend: "Node 22 + Express + Zod"
+    database: "SQLite local (better-sqlite3), migraciones versionadas; capa de acceso aislada para migrar luego"
+    auth: "Ninguna en v1; API enlazada solo a 127.0.0.1"
+    deployment: "Local (Windows 11)"
+    otras_herramientas:
+      - "Runner propio dentro del servidor del CRM (src/server/runner): orquestación en código por workflow de datos; motor = CLI headless (claude -p) con la suscripción; modelo base claude-sonnet-5-5"
+      - "Claude Code / OpenCode / Gemini CLI como motores"
+      - "Servidor MCP propio (crm-mcp) para que los agentes usen el CRM"
+      - "Obscura (browser headless de agentes; MCP/CDP; sin stealth, con --obey-robots)"
+      - "Google Places API oficial SOLO para descubrir (place_id, nombre, dirección), contador de cuota (tope 4,900/mes, cero gasto)"
+      - "Sitio web y contactos: web_search del motor + Obscura (gratis en dinero)"
+      - "Lectura web: herramienta obscura_extract con cadena de fallbacks: caché -> obscura fetch (CLI) -> Playwright/CDP -> web_search -> sin_datos y continuar; spike de compatibilidad en P0"
+      - "Directorio propio de empresas (SQLite) con método de descubrimiento y origen; descubrir barato, procesar con IA en lotes pequeños"
+      - "Roster de agentes: ver 14-ai-native/agent-roster.md"
+      - "Resend (solo email interno)"
+
+  goals:
+    - "G-1: >= 20 prospectos nuevos calificados/semana tras 4 semanas de operación (línea base a medir)"
+    - "G-2: 100% de prospectos con score y justificación"
+    - "G-3: 0 correos enviados a destinatarios fuera de la allowlist (verificado por tests y bitácora)"
+    - "G-4: Dashboard del dueño carga en < 2 s con 10 000 prospectos"
+    - "G-5: < 5% de duplicados en la base"
+
+  usuarios:
+    - tipo: "dueño"
+      cantidad_estimada: 1
+      permisos: [leer todo, editar prospectos, cambiar estados, anotar canalización, editar Configuración, ver analíticas]
+    - tipo: "agentes IA"
+      cantidad_estimada: "5-6"
+      permisos: [crear/actualizar prospectos y notas, registrar actividad, enviar reporte interno]
+      limites: [sin borrar, sin enviar a externos, sin cambiar estado a Ganado/Perdido]
+    - tipo: "equipo de ventas"
+      cantidad_estimada: "por definir"
+      permisos: "Sin acceso en v1 (reciben prospectos del dueño)"
+
+  ui_spec:
+    pantallas:
+      - "Dashboard del dueño"
+      - "Lista de prospectos (filtros, score, estado)"
+      - "Detalle de prospecto (empresa, contactos, score, propuesta de paquete, borrador de correo, historial)"
+      - "Embudo / tablero Kanban por estado"
+      - "Por asignar (cola del dueño)"
+      - "Vendedores y oficinas"
+      - "Paquetes de producto sugeridos"
+      - "Actividad de agentes (bitácora)"
+      - "Ver oficina: espejo visual en vivo de los agentes (solo lectura, alimentado por eventos propios; 3D tipo Lego opcional en fase posterior)"
+      - "Configuración (CRUD de correos destinatarios de reportes, lista no contactar, tope de empresas por corrida, motor de IA activo, cuota de Places)"
+      - "Panel de corrida (iniciar/detener corrida, zona, giro, límite; estado en vivo)"
+    layout_principal: "sidebar"
+    tema: "claro; paleta de marca: Ice White #F4F8FA, Deep Teal #0F3D47, Brand Teal #00ADA9 (logo)"
+    design_system: "custom sobre Tailwind (tokens en :root, ver ui-spec.md)"
+    idioma: "es-MX"
+
+  estados_prospecto: [Nuevo, Calificado, Reportado al dueño, Asignado, En contacto, Propuesta, Ganado, Perdido, Descartado]
+
+  ai_level:
+    nivel: alto
+    modo_prompts: verbose
+    requiere_voice: no
+
+  reglas_no_negociables:
+    - "Los agentes NO contactan a prospectos. Cero envío externo."
+    - "Resend solo envía a destinatarios en allowlist; la validación vive en el servidor, no en el prompt."
+    - "Guardar primero, avisar después: el prospecto se persiste en SQLite antes de enviar el correo; el email es solo una alerta y el CRM muestra el reporte completo como respaldo."
+    - "Places solo para descubrir; sitio web y contactos se buscan con web_search + Obscura. Tope mensual 4,900 (límite Pro - 100), sin gasto."
+    - "Los agentes descubren por múltiples métodos (nichos, directorios públicos, parques industriales, noticias, hallazgos oportunistas), no solo Places; todo hallazgo se registra en el directorio con su origen."
+    - "Piloto limitado a CDMX y Estado de México; ampliar zonas solo desde Configuración."
+    - "No mock data en runtime"
+    - "SQLite es source of truth; todo cambio de agente queda en bitácora"
+    - "Agentes sin permiso de borrar; descarte = cambio de estado"
+    - "Excluir gobierno y lista de no contactar antes de guardar"
+    - "Cada afirmación de un agente cita su fuente (URL); sin inventar datos de contacto"
+    - "Zod valida toda entrada de la API y del MCP"
+    - "Secretos (Resend, API keys) solo en .env, nunca en el repo"
+    - "Naming consistente end-to-end"
+
+  privacidad:
+    - "Solo datos de empresas y contactos de negocio públicamente disponibles"
+    - "Guardar fuente y fecha de cada dato; permitir borrar a petición"
+    - "Revisión legal LFPDPPP antes de cualquier contacto masivo (lo hace el humano)"
+
+  performance_budget:
+    LCP: "< 2.5 s"
+    INP: "< 200 ms"
+    CLS: "< 0.1"
+    API_P95: "< 300 ms (local)"
+    JS_BUNDLE: "< 250 KB gzip"
+
+  db_schema_policy:
+    entidades: [empresas, contactos, prospectos, fuentes, interacciones, paquetes, paquete_items, corridas, actividad_agentes, destinatarios_internos, no_contactar, scores]
+    relaciones:
+      - "empresa 1-N contactos"
+      - "empresa 1-N prospectos"
+      - "prospecto.canalizado_a: texto libre (nullable), lo escribe el dueño"
+      - "corrida 1-N empresas descubiertas; corrida 1-N actividad_agentes"
+      - "prospecto 1-N interacciones, fuentes, scores"
+      - "prospecto N-M paquetes"
+    politicas: "Migraciones SQL numeradas, FKs activas, soft-delete, timestamps UTC"
+
+  session_restore:
+    template: |
+      [CONTEXTO SAVE POINT]
+      Proyecto: ACITMX Prospecting Office
+      Stack: runner propio (src/server/runner) + CRM React/Vite + Express + SQLite + MCP + Resend (solo interno)
+      Estado: Capas 17, 00, 15 (schema-v1.sql) y 00.5 (ui-spec.md) en borrador; siguiente 18 (AI Setup)
+      Dungeon activo: 00 -> 15
+      Paso actual: 2 de 11
+      Restricciones técnicas: agentes sin contacto externo; allowlist en servidor; sin login; SQLite; UI en español
+
+  decisiones_p5:
+    - fecha: 2026-11-25
+      decision: "Se reemplaza Munder Difflin por un runner propio. Michael (agente IA coordinador) desaparece: lo sustituye una máquina de estados en código (cero tokens de coordinación)."
+    - decision: "Runner DIRIGIDO POR DATOS (requisito del dueño: plataforma reutilizable y vendible, edificio con pisos/oficinas). El motor genérico (src/server/runner) no menciona prospectos/empresas/Lenovo; el flujo vive en config/offices/<office_id>/workflow.json (pasos, fases, devoluciones de QA con máximo, topes, verificaciones SQL de solo lectura) y en las herramientas MCP de cada oficina. Código propio de una oficina entra por 'ganchos' con nombre (src/server/offices/<office>.ts)."
+    - decision: "office_id en corridas, actividad_agentes y salidas_agente (migración 002, default 'prospeccion'); parámetros de corrida genéricos en corridas.params (JSON); SSE filtra con ?office_id=; rutas /api/oficinas, /api/corridas?office_id=, /api/salidas."
+    - decision: "Verificación contra la BASE DE DATOS, no contra el texto del agente: cada paso declara con SQL qué debe quedar guardado; si falta se reintenta UNA vez y luego cuenta para el circuit breaker."
+    - decision: "Agrupación de pasos baratos (ahorro de plan; ~9 k tokens de costo fijo por llamada): Guardián en LOTE (1 llamada para todo el lote), Estratega+Armador juntos y Calificador+Redactor juntos. Las devoluciones de QA repiten solo el rol señalado. agrupar_pasos=false en engine.yaml separa todos. Por empresa: 6 llamadas (Rastreador, Analista, Estratega+Armador, QA-1, Calificador+Redactor, QA-2) en lugar de 9, más 1 Guardián por lote."
+    - decision: "Modelo base fijo claude-sonnet-5-5 (engine.yaml: modelo) y --effort low por defecto (engine.yaml: esfuerzo) por el plan Pro; cada agente solo ve las herramientas MCP que necesita (CRM_TOOLS) y WebSearch solo si su rol la usa."
+    - decision: "Candados de seguridad en código (CANDADOS_PROSPECCION), añadidos al final de cada prompt; no editables desde archivos de prompts ni, en P6, desde la UI. Los prompts salen de una interfaz PromptSource (hoy archivos; P6 la cambia por tablas)."
+    - decision: "salidas_agente se llena en cada paso (agente, paso, item, resumen, contenido, tokens, duración, resultado) para el panel del agente de P6/P7."
+    - decision: "Cuota de Places: si se agota con el lote incompleto la corrida termina como pausada_cuota_places tras procesar lo ya descubierto; el Explorador completa el lote si puede. Límite del plan: pausada_limite_plan (sin reintentos); reanudar re-deriva el avance desde la base."
+
+  decisiones_p6:
+    - fecha: 2026-11-25
+      decision: "Biblioteca por office_id (kb_documentos, kb_versiones, kb_productos). Cualquier texto con montos ($, MXN, USD, pesos...) se rechaza en servidor (zod) y en la importación CSV; los agentes la consultan por fragmentos (kb_buscar <= 1500 caracteres en total, kb_leer por tramos de 2500) y nunca ven documentos archivados."
+    - decision: "Prompts en tablas con versionado inmutable (restaurar = versión nueva). Los archivos config/offices/<oficina>/agents/*.md son SOLO semilla: se cargan una vez; después manda la tabla. Composición: global + rol + lecciones aprobadas (máx. 10, ~600 tokens) + habilidades activas + contexto de la corrida + CANDADOS FIJOS en código al final. La UI no puede editar los candados."
+    - decision: "Habilidades = Markdown asignable a agentes (activar/desactivar, versiones); se inyectan en el prompt; no ejecutan código ni instalan nada. Biblioteca base de 6 habilidades cortas."
+    - decision: "salidas_agente guarda una fila por ROL del paso (los pasos agrupados quedan visibles para cada agente), más filas tipo 'codigo' para cierres hechos por el sistema; tokens_estimados = ponderado por costo (entrada + salida + 1.25 x caché escrita + 0.1 x caché leída) y tokens_brutos = suma bruta."
+    - decision: "Reducción de consumo (ver 04-execution/consumo-tokens.md): system prompt reemplazado en lugar de agregado, topes de páginas por paso (max_lecturas) y de texto devuelto, expediente por secciones y recortado, caché de páginas ya existente, Biblioteca por fragmentos."
+    - decision: "registro de cambios (cambios_log) para Biblioteca, prompts y habilidades: quién/cuándo cambió qué."
+
+  decisiones_p7a:
+    - fecha: 2026-11-25
+      decision: "Ver oficina es SIEMPRE 3D (three 0.187 + @react-three/fiber 9 + drei 10 + postprocessing). Se eliminó el 2D (pages/Oficina.tsx y OficinaPersonaje.tsx); quedan la lista textual accesible y la calidad Baja como modo de bajo consumo."
+    - decision: "Escena construida SOLO desde una definición JSON validada con zod (src/shared/oficina3d/definicion.ts): office + planta + salas + puestos + agentes, cada uno con `apariencia` (apariencia.ts: personaje, sala, oficina; defaults, paletas, presets de equipo, aleatorio reproducible con paridad 50/50 y composición que descarta campos inválidos). La oficina de prospección es la primera definición (prospeccion.ts) armada desde /api/agentes. El Constructor y el Personalizador editarán este mismo JSON."
+    - decision: "TODO procedural (sin modelos ni texturas externas; solo el logo existente). Kit de construcción que fusiona piezas con color por vértice: toda la oficina estática = 2 draw calls (sólido + emisivo); cada articulación del personaje es una malla. ~110 draw calls en Baja; chunk 3D diferido 300 kB gzip."
+    - decision: "Cámara ortográfica isométrica propia (sin controles de terceros): paneo y zoom limitados, giro en pasos de 90°, transición suave al seleccionar; frameloop 'demand' en pausa o con movimiento reducido."
+    - decision: "Eventos SSE reales (/api/events?office_id=) -> lógica pura eventos.ts: estado del agente (trabajando/alerta/inactivo con caducidad), burbuja (sin detalle en modo presentación) y traslado de expediente al siguiente del flujo (entrega) o al anterior (devolución QA). Estado vivo en una tienda externa leída en useFrame (sin setState por cuadro)."
+    - decision: "Verificación visual con captura REAL: playwright-core aislado en tools/pw-shot con Edge del sistema (GPU real vía ANGLE D3D11). Servidor de demostración con BD temporal y eventos simulados (test/p7-demo-servidor.ts) y prueba de humo (test/p7-humo-3d.mjs)."
+    - decision: "Skills de Three.js revisadas en carpeta aislada (tools/_skills-review); no se instalaron, se adoptaron notas (18-ai-setup/threejs-notas.md). La skill 3dviz-pro-max pedida por el dueño se revisó (MIT, Markdown/datos/plantillas, scripts Python sin red) pero la copia a .claude/skills fue bloqueada por el clasificador de permisos: queda pendiente de que el dueño la autorice."
+
+  decisiones_p7b:
+    - fecha: 2026-11-25
+      decision: "Pantalla completa con la Fullscreen API sobre el contenedor escena + panel del agente (PantallaCompleta.tsx): botón, atajo F, Esc lo maneja el navegador; coexiste con el modo presentación (primer Esc sale de pantalla completa, el segundo de la presentación). Controles mínimos sobre el lienzo: girar, calidad y salir."
+    - decision: "Modelo por paso: campo opcional `modelo` por paso en workflow.json (enum de los 4 modelos del CLI) con respaldo en `modelo:` de engine.yaml; se guarda en salidas_agente.modelo. Evaluación LIVE (3 corridas, ver consumo-tokens.md): Haiku degradó en QA-1, divergió en el Guardián y Calificador+Redactor quedó sin evaluar; por eso TODOS los pasos siguen en claude-sonnet-5-5. claude-fable-5-2 exige créditos en plan Pro: un credits_required ya no se confunde con límite del plan."
+    - decision: "Medidor de suscripción con datos REALES del CLI: cada rate_limit_event trae unifiedWindows.five_hour/seven_day con utilization (0-1) y resetsAt. Se guardan en limites_plan tras cada llamada (spike en 18-ai-setup/spike-limites-plan.md). Un dato de una ventana ya reiniciada se ignora. /usage no sirve en headless (va al modelo)."
+    - decision: "Reserva configurable (Configuración > Plan y reserva): 70 % de la ventana de 5 h y 90 % de la semanal por defecto; el runner revisa ANTES de cada llamada y termina la corrida como pausada_reserva_plan (migración 004 reconstruye corridas para el nuevo estado); reanudar la deja pasar (ignorarReserva). Sin porcentaje del CLI y con presupuesto del dueño, usa un estimado rotulado «estimado» (tokens ponderados de las últimas 5 h / presupuesto); sin ninguno no inventa cifras."
+    - decision: "Estimador por corrida (plan.ts/estimarCorrida, sin conceptos de negocio en src/server/runner): empresas × promedio de las últimas 5 corridas (o 95,000 de referencia); POST /api/corridas exige `confirmado: true` sobre el umbral (600,000 por defecto)."
+    - decision: "Mejoras 3D de bajo costo guiadas por la skill 3dviz-pro-max (subject-clarity y visual-anti-slop): rótulos de sala de tamaño constante en pantalla (sprite escalado por 1/zoom), nombres siempre visibles, burbujas descriptivas (qué produjo el agente y a quién pasa el expediente, sin datos de la empresa), encuadre por área, paredes perimetrales con ventanas con corte dinámico del lado de la cámara y puestos de la fila norte mirando al sur (caras visibles desde la vista inicial)."

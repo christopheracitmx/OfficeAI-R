@@ -1,0 +1,185 @@
+segmentation:
+  proyecto: "ACITMX Prospecting Office"
+  fecha: 2026-11-25
+  regla: "Cada paso < 2 h, verificable. Ningún archivo > 300 líneas. Node 22 portátil (tools/node22) para todo."
+  paquete: "crm/ (un solo paquete: src/server, src/mcp, src/web, src/shared)"
+  validacion_por_paso: ["npm run typecheck", "npm test", "npm run build (cuando hay web)"]
+
+  P0_fundacion:
+    - id: P0-1
+      titulo: "Scaffold del paquete crm (TS, vitest, vite, tailwind, eslint, prettier)"
+      criterio: "typecheck y test vacíos pasan"
+    - id: P0-2
+      titulo: "Capa de datos: migración 001 (schema-v1.sql), semillas, abrir DB, repositorios"
+      depende: [P0-1]
+      criterio: "tests de migración y semillas pasan"
+    - id: P0-3
+      titulo: "Dominio: zod schemas, permisos agente/dueño, derivación de zona CDMX/Edomex, reglas de allowlist"
+      depende: [P0-1]
+      criterio: "tests de zona, permisos y validación pasan"
+
+  P1_api:
+    - id: P1-1
+      titulo: "App Express (json→cors→helmet→morgan→rutas→notFound→errorHandler), bind 127.0.0.1"
+      depende: [P0-2]
+    - id: P1-2
+      titulo: "Endpoints del dueño: prospectos, directorio, configuración (destinatarios CRUD, no_contactar, giros, config), corridas, actividad, dashboard"
+      depende: [P1-1, P0-3]
+    - id: P1-3
+      titulo: "Servicio de correo (Resend) con guardia de allowlist, outbox, reintento y endpoint de reenvío"
+      depende: [P1-1]
+      criterio: "tests con transporte falso: nunca envía fuera de allowlist; fallo no pierde el prospecto"
+    - id: P1-4
+      titulo: "Endpoints de agentes: upsert empresa/hallazgo, contactos, expediente, finalizar (guardar→enviar)"
+      depende: [P1-2, P1-3]
+      criterio: "agente no puede poner estados del dueño; sin fuente no se guarda contacto; sin precios"
+    - id: P1-5
+      titulo: "Tope de Places (contador mensual) + SSE de eventos en vivo"
+      depende: [P1-1]
+
+  P2_herramientas_agentes:
+    - id: P2-1
+      titulo: "obscura_extract (cache→obscura fetch→web_search fallback), extracción por regex"
+      depende: [P0-2]
+      criterio: "prueba real contra acitmx.net/contacto"
+    - id: P2-2
+      titulo: "places_search (API Places New, field mask mínimo, contador, sin lat/lng)"
+      depende: [P1-5]
+      criterio: "tests con fetch simulado; tope respetado"
+    - id: P2-3
+      titulo: "Servidor MCP crm-mcp (stdio) con todas las herramientas"
+      depende: [P1-4, P2-1, P2-2]
+
+  P3_ui:
+    - id: P3-1
+      titulo: "Shell web: Vite+React+Tailwind, tokens de marca, sidebar, router, cliente API"
+      depende: [P1-2]
+    - id: P3-2
+      titulo: "Inicio (dashboard) + Prospectos (lista) + Detalle"
+      depende: [P3-1]
+    - id: P3-3
+      titulo: "Embudo, Directorio, Actividad"
+      depende: [P3-1]
+    - id: P3-4
+      titulo: "Configuración (correos CRUD, no contactar, giros, corridas, cuotas)"
+      depende: [P3-1]
+    - id: P3-5
+      titulo: "Corrida (formulario, estado) + Ver oficina v1 (2D estilizada, en vivo por SSE)"
+      depende: [P3-1, P1-5]
+
+  P4_integracion:
+    - id: P4-1
+      titulo: "config/engine.yaml, .env.example, roster de Munder (prompts), guía de arranque, scripts start"
+    - id: P4-2
+      titulo: "Prueba extremo a extremo con datos reales (flujo completo con transporte de correo falso)"
+    - id: P4-3
+      titulo: "Ver oficina 3D (three.js) — revisar skills antes (capa 04 posterior)"
+
+  rollback: "El repo no está en git; antes de P0-1 se inicializa git local en crm/ y se hace commit por paso (rollback = git reset al commit previo)."
+
+  P5_runner_propio:
+    contexto: "Decisión del dueño (2026-11-25): NO usar Munder Difflin; el CRM trae su propia oficina virtual y un RUNNER que orquesta en código. Michael (agente IA) desaparece: lo reemplaza una máquina de estados."
+    reglas: "Cada paso < 2 h, archivos <= 300 líneas, commit por paso. Gates por paso: tsc, eslint, vitest, prettier, vite build."
+    pasos:
+      - id: P5-1
+        titulo: "SPIKE del CLI headless (claude -p) contra el MCP de acitmx-crm; documentar flags, salida stream-json, límite de plan y exit codes"
+        entregable: "docs/dungeons/18-ai-setup/spike-runner.md"
+      - id: P5-2
+        titulo: "Base de herramientas para agentes: crm_expediente (lectura), filtro CRM_TOOLS en el MCP, corrida_id automático en altas de agentes"
+        depende: [P5-1]
+      - id: P5-3
+        titulo: "Adaptador de motor (interfaz ejecutarAgente), spawn con timeout/abort que mata el árbol, adaptador claude-code, lector de engine.yaml; opencode/gemini sin verificar en vivo"
+        depende: [P5-1]
+        criterio: "tests con CLI simulado (script node)"
+      - id: P5-4
+        titulo: "Prompts versionados en config/offices/<oficina>/agents/*.md (bloque común + por agente), cargador PromptSource y workflow.json por oficina (runner dirigido por datos, office_id)"
+        depende: [P5-2]
+      - id: P5-5
+        titulo: "Orquestador: máquina de estados por empresa, devoluciones QA, descubrimiento, circuit breaker, pausas, un solo pipeline; eventos al EventBus"
+        depende: [P5-3, P5-4]
+        criterio: "tests: flujo feliz, devolución QA, límite de plan, detener, timeout, no arranca sin corrida"
+      - id: P5-6
+        titulo: "Endpoints owner (iniciar/detener/reanudar/progreso) + pantalla Corrida con progreso en vivo; quitar instrucción de Michael"
+        depende: [P5-5]
+      - id: P5-7
+        titulo: "Prueba LIVE gated por LIVE=1 (1-3 empresas, Places desactivado, correo falso)"
+        depende: [P5-6]
+      - id: P5-8
+        titulo: "Cierre: gates 04.5/10, guía, .bat, Save Point"
+        depende: [P5-7]
+
+  P7a_oficina_3d:
+    contexto: "Ver oficina pasa a SIEMPRE 3D (Three.js + @react-three/fiber + drei). Se elimina el 2D; queda lista textual accesible y modo de bajo consumo del mismo 3D. Spec: 00-meta-dungeon/p6-p8-oficina-3d-spec.md (P7, Personalizador, 3D siempre). Ampliación (Personalizador UI, edificio multipiso, Constructor, P6.5) queda para P7b+."
+    reglas: "Cada paso < 2 h, archivos <= 300 líneas, commit por paso. Gates por paso: tsc, eslint --max-warnings 0, prettier, vitest; build + audit + depcheck + madge + react-doctor al cierre. Sin modelos ni texturas externas (todo procedural); escena construida SOLO desde el JSON de definición validado con zod."
+    pasos:
+      - id: P7a-1
+        titulo: "SPIKE de captura WebGL real: playwright-core aislado en tools/pw-shot con Edge/Chrome del sistema (channel); capturas al scratchpad"
+        entregable: "docs/dungeons/18-ai-setup/spike-captura-3d.md"
+      - id: P7a-2
+        titulo: "Revisión de skills/repos Three.js en carpeta aislada (sin instalar en .claude/skills); notas adoptadas"
+        entregable: "docs/dungeons/18-ai-setup/threejs-notas.md"
+      - id: P7a-3
+        titulo: "Dependencias three, @react-three/fiber, @react-three/drei, postprocessing (+@types/three); licencias y npm audit"
+      - id: P7a-4
+        titulo: "Esquema zod de definición de oficina (office, salas, puestos, agentes) y `apariencia` (personaje, sala, oficina) con defaults, presets y aleatorio 50/50"
+        criterio: "tests vitest de esquema, composición y paridad"
+      - id: P7a-5
+        titulo: "Primera definición: oficina de prospección (recepción, 5 áreas, dirección, biblioteca, aprendizaje, cafetería) desde /api/agentes"
+        depende: [P7a-4]
+      - id: P7a-6
+        titulo: "Mapeo evento SSE -> estado/animación de agente y traslado de expediente (lógica pura)"
+        criterio: "tests vitest del mapeo"
+      - id: P7a-7
+        titulo: "Escena base: canvas diferido (chunk aparte), cámara ortográfica isométrica, paneo/zoom limitados, rotación 90°, calidad Alta/Media/Baja, frameloop demand en pausa; piso, salas y paredes"
+        depende: [P7a-3, P7a-5]
+      - id: P7a-8
+        titulo: "Mobiliario procedural con geometrías/materiales compartidos e instancias (puestos, recepción, biblioteca, cafetería, juntas, utilería por área)"
+        depende: [P7a-7]
+      - id: P7a-9
+        titulo: "Personaje minifigura con rig (cabeza, torso, brazos, piernas) y animaciones por transform: inactivo, trabajando, caminando/entregando, alerta, pausa"
+        depende: [P7a-7]
+      - id: P7a-10
+        titulo: "Tráfico de expedientes dirigido por SSE + burbujas + rótulos legibles + «Oficina en pausa»"
+        depende: [P7a-6, P7a-9]
+      - id: P7a-11
+        titulo: "Look: sombras, bloom sutil en pantallas, polvo/vapor, transición de cámara, día/noche, prefers-reduced-motion"
+        depende: [P7a-8, P7a-9]
+      - id: P7a-12
+        titulo: "Interacción: raycast -> panel lateral (Estado, Salidas, Prompt, Habilidades, Historial, Aprendizaje «Próximamente»), Biblioteca, selector de piso, modo presentación, lista accesible"
+        depende: [P7a-10]
+      - id: P7a-13
+        titulo: "Eliminar 2D, prueba de humo del canvas con captura real, gates completos"
+        depende: [P7a-12]
+      - id: P7a-14
+        titulo: "Cierre: meta-dungeon, guía, Save Point"
+        depende: [P7a-13]
+
+  P7b_pantalla_modelo_plan:
+    contexto: "P7b: pantalla completa del 3D, modelo configurable por paso con evaluación de Haiku, medidor de suscripción con reserva y estimador, y mejoras visuales de bajo costo de la oficina 3D. Cuida el plan Pro de una sola suscripción."
+    reglas: "Cada paso < 2 h, archivos <= 300 líneas. Gates por paso: tsc, eslint --max-warnings 0, prettier, vitest; build + audit + depcheck + madge + react-doctor al cierre. Máximo 3 corridas LIVE; sin Places ni correos reales."
+    pasos:
+      - id: P7b-1
+        titulo: "SPIKE de límites del plan: qué expone el CLI (rate_limit_event, result, auth status, /usage) y qué --model acepta"
+        entregable: "docs/dungeons/18-ai-setup/spike-limites-plan.md"
+      - id: P7b-2
+        titulo: "Modelo por paso (workflow.json `modelo` + engine.yaml) y migración 004 (limites_plan, salidas_agente.modelo, estado pausada_reserva_plan)"
+        depende: [P7b-1]
+      - id: P7b-3
+        titulo: "Límites del plan: lectura de unifiedWindows, persistencia, reserva (pausada_reserva_plan, reanudar), estimado rotulado y estimador por corrida con confirmación; CLI simulado extendido"
+        depende: [P7b-2]
+        criterio: "p7b-plan.test.ts (12 pruebas)"
+      - id: P7b-4
+        titulo: "UI: medidor en barra lateral y Corrida, Configuración > Plan y reserva, estimador y confirmación en Corrida, modelo en «Prompt final»"
+        depende: [P7b-3]
+      - id: P7b-5
+        titulo: "Evaluación LIVE de Haiku (3 corridas, 1 empresa): calidad y tokens; defaults solo donde no degradó"
+        depende: [P7b-3]
+        entregable: "docs/dungeons/04-execution/consumo-tokens.md"
+      - id: P7b-6
+        titulo: "Pantalla completa (Fullscreen API, F, Esc, controles mínimos, panel de agente) + prueba de humo con captura"
+      - id: P7b-7
+        titulo: "Mejoras 3D de bajo costo (skill 3dviz-pro-max): rótulos de tamaño constante, nombres siempre, burbujas descriptivas, encuadre por área, paredes con ventanas, puestos mirando a la cámara"
+        depende: [P7b-6]
+      - id: P7b-8
+        titulo: "Cierre: gates, guía, meta-dungeon, Save Point"
+        depende: [P7b-4, P7b-5, P7b-7]

@@ -1,0 +1,71 @@
+master_interviewer_result:
+  proyecto: "ACITMX Prospecting Office"
+  fecha: 2026-11-25
+  vision: >
+    Una Oficina de Agentes de IA (corriendo en Munder Difflin, sin fork) que busca
+    prospectos B2B para ACITMX, los califica y se los reporta al dueño por correo
+    con una propuesta lista. Un mini CRM local (SQLite) registra el estado y las
+    analíticas. Los agentes NUNCA contactan a clientes: son asistentes internos
+    y todo contacto externo lo hace un humano.
+
+  negocio:
+    empresa: "ACITMX (https://acitmx.net/)"
+    giro: "Integración de tecnología B2B en toda la República Mexicana"
+    productos:
+      - "Distribuidor Platinum directo de Lenovo: todo el catálogo de https://psref.lenovo.com/"
+      - "Distribuidor Aruba (redes)"
+    oficinas: [CDMX, Mérida, Estado de México, Querétaro, Guanajuato]
+    cliente_ideal: "Empresas PyME y grandes, B2B. NO gobierno."
+    flujo_actual_leads: >
+      Todos los leads llegan a una persona (el dueño/distribuidor de leads) que los reparte
+      a vendedores; cada vendedor tiene su propia cartera.
+
+  decisiones_confirmadas:
+    arquitectura: "Opción A: Munder Difflin como runtime; el CRM es una app separada"
+    motores_ia: [Claude Code, OpenCode, Gemini CLI]
+    fuentes: [Google Places API oficial con tope gratuito (cero gasto), sitio web de la empresa]
+    browser_agentes: "Obscura (navegador headless en Rust, Apache-2.0, CLI + MCP + CDP). Usar build SIN stealth, con --obey-robots, serve en 127.0.0.1"
+    email: "Resend, remitente info@mail.acitmx.net, SOLO hacia destinatarios internos (allowlist elegida por el dueño)"
+    modo_agentes: "Borradores + reporte al dueño. Cero contacto directo con prospectos."
+    auth: "Sin login en v1. Solo agentes de IA y el dueño modifican el CRM."
+    base_de_datos: "SQLite local (migrar más adelante si crece)"
+    idioma_crm: "Español"
+
+  requerimientos_derivados:
+    - "Cada prospecto con score de éxito (0-100) y su justificación"
+    - "Dashboard simple para el dueño: embudo, prospectos por semana, por zona/giro, canalizado a, tasa de conversión"
+    - "Paquete de productos sugerido; la canalización a vendedores la hace el dueño (campo de texto libre)"
+    - "Pestaña Configuración: CRUD de correos destinatarios de reportes"
+    - "Operación solo bajo demanda por corridas acotadas; motor de IA configurable (hoy Claude Code)"
+    - "Deduplicación de prospectos (mismo dominio/teléfono/razón social)"
+    - "Bitácora de actividad de agentes (auditable)"
+    - "Exclusión automática de gobierno, y lista de 'no contactar'"
+
+  gaps_identificados:
+    - "G1: RESUELTO — Obscura = navegador headless con MCP/CDP"
+    - "G2: RESUELTO — destinatario inicial christopher.rodriguez@acitmx.com (editable en UI); Resend ya configurado"
+    - "G3: RESUELTO/DESCARTADO — el dueño canaliza; no se modelan vendedores"
+    - "G4: RESUELTO — corre en Windows 11 solo cuando el dueño la abre; sin 24/7"
+    - "G5: RESUELTO — API oficial de Places con tope gratuito. Pendiente: confirmar cuotas vigentes y términos de almacenamiento de datos de Places"
+
+  preguntas_pendientes_no_bloqueantes:
+    - "G1, G2, G5 se resuelven en capa 18 (AI Setup) y no bloquean 00/15/00.5"
+
+  scope_preliminar:
+    incluye:
+      - "CRM local (prospectos, empresas, contactos, interacciones, paquetes, corridas)"
+      - "Dashboard de analíticas para el dueño"
+      - "API local + servidor MCP para que los agentes lean/escriban el CRM"
+      - "Roster de agentes con system prompts alineados a ACITMX"
+      - "Envío de reportes/borradores por Resend a correos internos"
+    excluye:
+      - "Contacto automático a prospectos"
+      - "Login/roles (v1)"
+      - "Fork de Munder Difflin (3D/i18n queda como pista opcional futura)"
+      - "Prospectos de gobierno"
+      - "Facturación, cotizador, integración con ERP"
+      - "Cualquier cobro/monetización"
+
+  proximos_pasos:
+    - "Revisar meta-dungeon.yaml y confirmar"
+    - "Capa 15 (modelo de datos) -> 00.5 (UI/UX) -> 18 (AI Setup + roster de agentes)"

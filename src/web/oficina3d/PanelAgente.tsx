@@ -12,7 +12,8 @@ import { useTienda, type Tienda } from './tienda';
 const TABS = ['Estado', 'Salidas', 'Prompt', 'Habilidades', 'Historial', 'Aprendizaje'] as const;
 type Tab = (typeof TABS)[number];
 
-export const nombrePrompt = (id: string) => id.toLowerCase().replace(/-/g, '');
+/** Nombre del archivo/prompt de un rol (QA-1 -> qa1). */
+const nombrePrompt = (id: string) => id.toLowerCase().replace(/-/g, '');
 
 function Estado({ a, t }: { a: AgenteDef3d; t: Tienda }) {
   const reg = useTienda(t, (e) => e.registros[a.id]);

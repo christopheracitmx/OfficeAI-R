@@ -4,22 +4,15 @@
  */
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CALIDADES, type Calidad } from '../../shared/oficina3d/apariencia';
 import type { SalaDef } from '../../shared/oficina3d/definicion';
 import { Button, ErrorBanner, PageHeader, Skeleton, cx, useToast } from '../components/ui';
+import { Controles } from './Controles';
 import { ListaAgentes } from './ListaAgentes';
 import { PanelAgente } from './PanelAgente';
 import { useTienda } from './tienda';
 import { hayWebGL, movimientoReducido, useOficina, usePreferencias } from './usarOficina';
 
 const Escena = lazy(() => import('./escena/Escena'));
-const ETQ_CALIDAD: Record<Calidad, string> = {
-  alta: 'Alta',
-  media: 'Media',
-  baja: 'Baja (bajo consumo)',
-};
-const sel = 'rounded-lg border border-line bg-white px-2 py-1.5 text-sm';
-
 export function Oficina() {
   const [presentacion, setPresentacion] = useState(false);
   const { def, tienda, conectado, agentes } = useOficina(presentacion);
@@ -44,49 +37,6 @@ export function Oficina() {
     if (s.accion === 'biblioteca') navegar('/biblioteca');
     else toast('Sala de aprendizaje: próximamente (P6.5).');
   };
-  const rotar = (d: number) => tienda.set({ rotacion: tienda.get().rotacion + d });
-
-  const controles = (
-    <div className="flex flex-wrap items-center gap-2">
-      <label className="flex items-center gap-1 text-sm">
-        Piso
-        <select aria-label="Piso" className={sel} value="1" onChange={() => undefined}>
-          <option value="1">1 · {def?.office.nombre ?? 'Prospección'}</option>
-        </select>
-      </label>
-      <label className="flex items-center gap-1 text-sm">
-        Calidad
-        <select
-          aria-label="Calidad gráfica"
-          className={sel}
-          value={pref.calidad}
-          onChange={(e) => pref.setCalidad(e.target.value as Calidad)}
-        >
-          {CALIDADES.map((c) => (
-            <option key={c} value={c}>
-              {ETQ_CALIDAD[c]}
-            </option>
-          ))}
-        </select>
-      </label>
-      <select
-        aria-label="Iluminación"
-        className={sel}
-        value={pref.ciclo}
-        onChange={(e) => pref.setCiclo(e.target.value as 'dia' | 'noche' | 'auto')}
-      >
-        <option value="dia">Día</option>
-        <option value="noche">Noche</option>
-        <option value="auto">Según la hora</option>
-      </select>
-      <Button onClick={() => rotar(-1)} aria-label="Girar vista a la izquierda">
-        ⟲ 90°
-      </Button>
-      <Button onClick={() => rotar(1)} aria-label="Girar vista a la derecha">
-        ⟳ 90°
-      </Button>
-    </div>
-  );
 
   const escena = !webgl ? (
     <div className="rounded-2xl bg-deep p-8 text-center text-ice">
@@ -177,7 +127,9 @@ export function Oficina() {
           </>
         }
       />
-      <div className="mb-3">{controles}</div>
+      <div className="mb-3">
+        <Controles nombre={def?.office.nombre ?? 'Prospección'} pref={pref} t={tienda} />
+      </div>
       <div className="flex gap-4">
         <div className="min-w-0 flex-1">{escena}</div>
         {seleccionado && (

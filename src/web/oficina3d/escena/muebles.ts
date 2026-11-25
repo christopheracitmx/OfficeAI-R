@@ -15,6 +15,11 @@ export const oscurecer = (c: string, t: number) => mezclar(c, '#000000', t);
 /** Escala de puesto y personaje frente a la cuadrícula (proporción visual de la planta). */
 export const ESCALA = 1.3;
 export const ALTO_MESA = 0.44;
+
+/** Rotación de un puesto (grados, 0 = mira al norte/-z) a radianes en Y. */
+export function rotY(rot: number): number {
+  return (-rot * Math.PI) / 180;
+}
 /** Pantalla del monitor en el marco del puesto (para la malla instanciada que se enciende). */
 export const PANTALLA = { pos: [0, 0.665, -0.705] as const, w: 0.44, h: 0.26 };
 

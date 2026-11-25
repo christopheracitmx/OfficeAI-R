@@ -4,18 +4,18 @@
  * reducido; luz cálida con sombras, bloom sutil en pantallas (Alta), polvo y vapor ligeros.
  */
 import { Sparkles } from '@react-three/drei';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { Bloom, EffectComposer } from '@react-three/postprocessing';
-import { useEffect } from 'react';
 import * as THREE from 'three';
 import type { Calidad } from '../../../shared/oficina3d/apariencia';
 import type { DefinicionOficina, SalaDef } from '../../../shared/oficina3d/definicion';
 import { useTienda, type Tienda } from '../tienda';
 import { Camara } from './Camara';
+import { Diagnostico } from './Diagnostico';
 import { Estatico } from './Estatico';
 import { Personaje } from './Personaje';
 
-export const AJUSTES: Record<
+const AJUSTES: Record<
   Calidad,
   { dpr: [number, number]; sombra: number; bloom: boolean; particulas: number; detalle: boolean }
 > = {
@@ -75,27 +75,6 @@ function Luces({ d, sombra, noche }: { d: DefinicionOficina; sombra: number; noc
         ))}
     </>
   );
-}
-
-/** Ganchos de prueba (humo con captura real) y métricas: window.__oficina3d. */
-function Diagnostico({ d, calidad }: { d: DefinicionOficina; calidad: Calidad }) {
-  const gl = useThree((s) => s.gl);
-  useEffect(() => {
-    const w = window as unknown as { __oficina3d?: Record<string, unknown> };
-    const id = setInterval(() => {
-      w.__oficina3d = {
-        listo: true,
-        agentes: d.agentes.length,
-        salas: d.salas.length,
-        calidad,
-        llamadas: gl.info.render.calls,
-        triangulos: gl.info.render.triangles,
-        geometrias: gl.info.memory.geometries,
-      };
-    }, 500);
-    return () => clearInterval(id);
-  }, [d, calidad, gl]);
-  return null;
 }
 
 function Cafe({ d }: { d: DefinicionOficina }) {

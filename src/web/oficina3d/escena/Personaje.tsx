@@ -14,10 +14,9 @@ import {
 } from '../../../shared/oficina3d/definicion';
 import { estadoVisible } from '../../../shared/oficina3d/eventos';
 import { puntoCaminata, useTienda, type Tienda } from '../tienda';
-import { rotY } from './Estatico';
 import { CADERA_Y, HOMBRO, geoFigura, liberarFigura } from './figura';
 import { hdr, matPlastico } from './kit';
-import { ESCALA, PANTALLA } from './muebles';
+import { ESCALA, PANTALLA, rotY } from './muebles';
 
 const SIN_PUNTERO = { pointerEvents: 'none' } as const;
 const APAGADA = new THREE.Color('#0E1B20');

@@ -4,13 +4,9 @@ import * as THREE from 'three';
 import { textoLegible } from '../../../shared/oficina3d/apariencia';
 import type { DefinicionOficina, SalaDef } from '../../../shared/oficina3d/definicion';
 import { Kit, Marco, matBrillo, matPlastico } from './kit';
-import { ESCALA, puesto } from './muebles';
+import { ESCALA, puesto, rotY } from './muebles';
 import { placaBase, salas } from './salas';
 import { utileria } from './utileria';
-
-export function rotY(rot: number): number {
-  return (-rot * Math.PI) / 180;
-}
 
 function construir(d: DefinicionOficina, detalle: boolean) {
   const k = new Kit();
@@ -72,7 +68,9 @@ function Rotulo({ s }: { s: SalaDef }) {
 function Logo({ d }: { d: DefinicionOficina }) {
   const tex = useMemo(() => {
     if (!d.office.logo) return null;
-    const t = new THREE.TextureLoader().load(d.office.logo);
+    const t = new THREE.TextureLoader().load(d.office.logo, undefined, undefined, () =>
+      console.warn('No se pudo cargar el logo de la oficina; se muestra el tótem sin logo.'),
+    );
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 4;
     return t;

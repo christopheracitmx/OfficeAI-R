@@ -100,12 +100,16 @@ export function parsearCsv(texto: string): string[][] {
   for (let i = 0; i < t.length; i++) {
     const c = t[i]!;
     if (comillas) {
-      if (c === '"' && t[i + 1] === '"') ((campo += '"'), i++);
-      else if (c === '"') comillas = false;
+      if (c === '"' && t[i + 1] === '"') {
+        campo += '"';
+        i++;
+      } else if (c === '"') comillas = false;
       else campo += c;
     } else if (c === '"') comillas = true;
-    else if (c === sep) (fila.push(campo), (campo = ''));
-    else if (c === '\n' || c === '\r') {
+    else if (c === sep) {
+      fila.push(campo);
+      campo = '';
+    } else if (c === '\n' || c === '\r') {
       if (c === '\r' && t[i + 1] === '\n') i++;
       fila.push(campo);
       campo = '';

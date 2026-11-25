@@ -74,7 +74,10 @@ function fragmento(cuerpo: string, ts: string[]): string {
   let mejorN = -1;
   for (const p of partes) {
     const n = ts.reduce((a, t) => a + (norm(p).includes(t) ? 1 : 0), 0);
-    if (n > mejorN) ((mejor = p), (mejorN = n));
+    if (n > mejorN) {
+      mejor = p;
+      mejorN = n;
+    }
   }
   const t = mejor.trim();
   return t.length > TOPE_FRAGMENTO ? `${t.slice(0, TOPE_FRAGMENTO)}…` : t;

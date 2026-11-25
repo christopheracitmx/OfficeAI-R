@@ -1,0 +1,3 @@
+# Motor de IA activo. Cambia SOLO esta línea cuando llegues al límite del plan.
+# Valores: claude-code | opencode | gemini
+engine: claude-code

@@ -32,8 +32,9 @@ log({
   prompt: val('--append-system-prompt'),
 });
 
-const emit = (o) => process.stdout.write(JSON.stringify(o) + "
-");
+const emit = (o) =>
+  process.stdout.write(`${JSON.stringify(o)}
+`);
 emit({
   type: 'system',
   subtype: 'init',

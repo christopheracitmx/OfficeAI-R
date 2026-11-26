@@ -140,6 +140,12 @@ export function PanelAgente({
           <p className="text-sm text-muted">
             {a.rol} · {a.area}
           </p>
+          <Link
+            to={`/personalizar?tab=personajes&id=${encodeURIComponent(a.id)}`}
+            className="mt-1 inline-block text-sm text-brand-strong hover:underline"
+          >
+            Personalizar apariencia
+          </Link>
         </div>
         <Button variante="fantasma" onClick={onCerrar} aria-label="Cerrar panel">
           ✕

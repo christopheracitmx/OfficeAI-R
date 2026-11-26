@@ -61,6 +61,13 @@ export function Diagnostico({ d, calidad }: { d: DefinicionOficina; calidad: Cal
         geometrias: gl.info.memory.geometries,
         muestra,
         salaPantalla,
+        // Lo que la escena recibió (la escena se construye SOLO de esto): permite comprobar cambios sin adivinar píxeles.
+        apariencia: {
+          camisas: Object.fromEntries(d.agentes.map((a) => [a.id, a.apariencia.camisa])),
+          peinados: Object.fromEntries(d.agentes.map((a) => [a.id, a.apariencia.peinado])),
+          pisos: Object.fromEntries(d.salas.map((s) => [s.id, s.apariencia.colorPiso])),
+          paleta: d.office.apariencia.paleta,
+        },
       };
     }, 500);
     return () => clearInterval(id);

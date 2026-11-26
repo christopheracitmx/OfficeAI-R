@@ -25,10 +25,10 @@ export interface PresetFila {
 /** Tamaño máximo (caracteres) de un preset importado. */
 export const LIMITE_IMPORTAR = 20_000;
 /** Campos que un preset NO puede traer: identidad y plano pertenecen a cada entidad. */
-const PROHIBIDOS: Record<Entidad, string[]> = {
-  personaje: ['nombre', 'cuerpo'],
-  sala: [...CAMPOS_PLANO],
-  oficina: ['planta', 'marca', 'logo', 'logoUrl'],
+const PROHIBIDOS: Record<Entidad, ReadonlySet<string>> = {
+  personaje: new Set(['nombre', 'cuerpo']),
+  sala: new Set<string>(CAMPOS_PLANO),
+  oficina: new Set(['planta', 'marca', 'logo', 'logoUrl']),
 };
 
 interface Cruda {
@@ -75,7 +75,7 @@ function validar(tipo: Entidad, nombre: string, json: unknown): Campos {
     throw new KbError(400, 'El nombre debe tener entre 1 y 60 caracteres');
   const { ok, errores } = validarCampos(tipo, json);
   if (errores.length > 0) throw new KbError(400, errores.join('; '));
-  const mal = Object.keys(ok).filter((k) => PROHIBIDOS[tipo].includes(k));
+  const mal = Object.keys(ok).filter((k) => PROHIBIDOS[tipo].has(k));
   if (mal.length > 0) throw new KbError(400, `Un preset no puede incluir: ${mal.join(', ')}`);
   if (Object.keys(ok).length === 0) throw new KbError(400, 'El preset está vacío');
   return ok;

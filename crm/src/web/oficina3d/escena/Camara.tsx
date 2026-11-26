@@ -44,10 +44,13 @@ export function Camara({ d, t, quieto }: { d: DefinicionOficina; t: Tienda; quie
   }, [ajuste, invalidate]);
 
   // Seleccionar agente => centrar y acercar
+  const primera = useRef(true);
   useEffect(() => {
-    let previo = t.get().seleccionado;
-    let previoEnc = t.get().encuadre?.n ?? 0;
-    return t.suscribir(() => {
+    // Al montar se atiende lo que ya estuviera elegido/encuadrado (p. ej. la vista previa del Personalizador).
+    let previo = primera.current ? null : t.get().seleccionado;
+    let previoEnc = primera.current ? 0 : (t.get().encuadre?.n ?? 0);
+    primera.current = false;
+    const alCambiar = () => {
       const enc = t.get().encuadre;
       if (enc && enc.n !== previoEnc) {
         previoEnc = enc.n;
@@ -71,7 +74,9 @@ export function Camara({ d, t, quieto }: { d: DefinicionOficina; t: Tienda; quie
         s.current.zoomMeta = Math.max(s.current.zoomMeta, ajuste * 2.2);
       }
       invalidate();
-    });
+    };
+    alCambiar();
+    return t.suscribir(alCambiar);
   }, [t, d, ajuste, invalidate]);
 
   useEffect(() => {

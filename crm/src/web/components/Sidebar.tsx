@@ -14,6 +14,7 @@ const ITEMS = [
   { to: '/embudo', etiqueta: 'Embudo', icono: '▥', soloProspeccion: true },
   { to: '/directorio', etiqueta: 'Directorio', icono: '▤', soloProspeccion: true },
   { to: '/oficina', etiqueta: 'Ver oficina', icono: '✦', badge: 'activa' },
+  { to: '/personalizar', etiqueta: 'Personalizar', icono: '✿' },
   { to: '/corrida', etiqueta: 'Corrida', icono: '▶' },
   { to: '/biblioteca', etiqueta: 'Biblioteca', icono: '▣' },
   { to: '/prompts', etiqueta: 'Prompts', icono: '✎' },

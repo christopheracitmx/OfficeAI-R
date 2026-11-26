@@ -15,6 +15,7 @@ import { Habilidades } from './pages/Habilidades';
 import { Edificio } from './pages/Edificio';
 import { CorridaSegunOficina, InicioSegunOficina, SoloProspeccion } from './pages/PorOficina';
 import { Oficina } from './oficina3d/Oficina3D';
+import { Personalizar } from './personalizar/Personalizar';
 import { useOficinaActiva } from './lib/oficinaActiva';
 import { Prompts } from './pages/Prompts';
 import { Prospectos } from './pages/Prospectos';
@@ -23,6 +24,11 @@ import { Salidas } from './pages/Salidas';
 /** Cambiar de piso reinicia la pantalla 3D (estado vivo y escena propios de cada oficina). */
 function OficinaDelPiso() {
   return <Oficina key={useOficinaActiva()} />;
+}
+
+/** Cada piso tiene su propia personalización: cambiar de piso reinicia la pantalla. */
+function PersonalizarDelPiso() {
+  return <Personalizar key={useOficinaActiva()} />;
 }
 
 function Layout() {
@@ -67,6 +73,7 @@ function Layout() {
               }
             />
             <Route path="/oficina" element={<OficinaDelPiso />} />
+            <Route path="/personalizar" element={<PersonalizarDelPiso />} />
             <Route path="/corrida" element={<CorridaSegunOficina />} />
             <Route path="/biblioteca" element={<Biblioteca />} />
             <Route path="/prompts" element={<Prompts />} />

@@ -198,6 +198,12 @@ function OficinaPiso() {
               {conectado ? '● En vivo' : '○ Reconectando…'}
             </span>
             <Link
+              to="/personalizar"
+              className="rounded-lg border border-line bg-white px-3.5 py-2 text-sm font-medium text-deep hover:bg-brand-soft"
+            >
+              Personalizar
+            </Link>
+            <Link
               to="/oficina?vista=edificio"
               className="rounded-lg border border-line bg-white px-3.5 py-2 text-sm font-medium text-deep hover:bg-brand-soft"
             >

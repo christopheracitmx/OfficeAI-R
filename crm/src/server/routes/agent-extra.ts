@@ -2,7 +2,7 @@ import type { Request, Router } from 'express';
 import { z } from 'zod';
 import { puedeCambiarEstado } from '../../shared/domain';
 import { actividadInput, finalizarInput } from '../../shared/schemas';
-import { agenteDe, oficinaAgente } from './agent';
+import { agenteDe, oficinaAgente } from './agente-util';
 import { consumirPlaces, corridaActivaId, QuotaExceededError } from '../services/admin';
 import { buscarKb, leerKb } from '../services/kb-buscar';
 import { registrarActividad } from '../services/events';

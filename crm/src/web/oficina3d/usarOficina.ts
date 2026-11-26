@@ -2,12 +2,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CALIDADES, type Calidad } from '../../shared/oficina3d/apariencia';
 import { oficinaEnPausa } from '../../shared/oficina3d/eventos';
-import { definicionProspeccion } from '../../shared/oficina3d/prospeccion';
+import type { DefinicionOficina } from '../../shared/oficina3d/definicion';
+import { useOficinaActiva } from '../lib/oficinaActiva';
 import { useApi, useEventosEnVivo, type EventoActividad } from '../lib/api';
-import type { AgenteFila, EstadoApp } from '../lib/types';
+import type { EstadoApp } from '../lib/types';
 import { Tienda } from './tienda';
-
-export const OFICINA_ID = 'prospeccion';
 
 function leer(clave: string): string | null {
   try {
@@ -63,12 +62,11 @@ export function usePreferencias() {
 }
 
 export function useOficina(presentacion: boolean) {
-  const agentes = useApi<AgenteFila[]>(`/agentes?office_id=${OFICINA_ID}`);
+  const oficinaId = useOficinaActiva();
+  // La planta la entrega el servidor (esquema zod validado); el roster sigue siendo el de la oficina activa.
+  const planta = useApi<DefinicionOficina>(`/oficinas/${oficinaId}/definicion`);
   const estado = useApi<EstadoApp>('/estado', { refreshMs: 6000 });
-  const def = useMemo(
-    () => (agentes.data ? definicionProspeccion(agentes.data) : null),
-    [agentes.data],
-  );
+  const def = useMemo(() => planta.data ?? null, [planta.data]);
   const [tienda] = useState(() => new Tienda(null, movimientoReducido()));
   useEffect(() => {
     tienda.definir(def);
@@ -78,7 +76,7 @@ export function useOficina(presentacion: boolean) {
     (e: EventoActividad) => tienda.evento(e, presentacion),
     [tienda, presentacion],
   );
-  const conectado = useEventosEnVivo(alEvento, OFICINA_ID);
+  const conectado = useEventosEnVivo(alEvento, oficinaId);
 
   const corridaActiva = !!estado.data?.corrida_activa || !!estado.data?.runner?.activo;
   useEffect(() => {
@@ -91,5 +89,5 @@ export function useOficina(presentacion: boolean) {
     return () => clearInterval(id);
   }, [tienda, corridaActiva]);
 
-  return { def, tienda, conectado, estado, agentes };
+  return { def, tienda, conectado, estado, agentes: planta };
 }

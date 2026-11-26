@@ -80,3 +80,12 @@ En `crm\` (con `tools\node22` en el PATH): `npm run build` y luego `npx tsx test
 - **Reflexión** es un botón: muestra el consumo estimado y pide confirmación; respeta la reserva del plan. Nunca corre sola.
 - **Casos dorados > Evaluar** mide un cambio de prompt contra casos de prueba (gasta plan, pide confirmación).
 - **Configuración > Respaldos**: crear respaldo y restaurar (escribe RESTAURAR; antes se respalda el estado actual). **Registro de cambios** y **Exportar CSV** (Prospectos).
+
+## 3g. Edificio con varios pisos
+
+- **Edificio** (barra lateral): una tarjeta por piso (oficina) con estado, agentes, última corrida, lecciones pendientes y % de uso del plan. Desde ahí creas un piso nuevo (plantilla vacía o duplicando otro), renombras, subes/bajas de piso y archivas. Nada se borra: lo archivado se restaura cuando quieras.
+- **Selector de piso** (barra lateral y «Ver oficina»): fija la oficina activa de TODA la app (Biblioteca, Prompts, Habilidades, Salidas, Aprendizaje, Corrida y Actividad muestran solo ese piso). Prospectos, Embudo y Directorio existen únicamente en el piso de Prospección.
+- **Ver edificio en 3D** («Ver oficina» → «Ver edificio»): fachada con los pisos; la luz de cada piso se enciende cuando trabaja. Clic en un piso para entrar. Av Pág / Re Pág cambian de piso dentro de la oficina.
+- **La IA atiende de una llamada a la vez en todo el edificio**: si dos pisos corren a la vez, esperan turno (cuida tu plan; el medidor y la reserva son globales).
+- **Flujo (avanzado)** en la tarjeta de un piso creado por ti: el flujo como JSON validado. Los pisos nuevos solo pueden usar Biblioteca, lectura web y aviso interno. Al duplicar Prospección el flujo copiado usa herramientas del CRM y no se podrá iniciar hasta editarlo (el Constructor de oficinas, futuro, lo hará guiado).
+- Tu base se migra sola al abrir el CRM (hay respaldo automático previo en `crm\data\backups`); tus prospectos quedan en el piso de Prospección.

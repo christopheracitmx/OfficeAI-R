@@ -111,6 +111,7 @@ export function DialogoOficina({
             <label className="flex items-center gap-2">
               <input
                 type="radio"
+                name="plantilla"
                 checked={plantilla === 'vacia'}
                 onChange={() => setPlantilla('vacia')}
               />
@@ -119,6 +120,7 @@ export function DialogoOficina({
             <label className="flex items-center gap-2">
               <input
                 type="radio"
+                name="plantilla"
                 checked={plantilla === 'duplicar'}
                 onChange={() => setPlantilla('duplicar')}
               />

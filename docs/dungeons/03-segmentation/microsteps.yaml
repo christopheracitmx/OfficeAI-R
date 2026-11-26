@@ -194,3 +194,10 @@ segmentation:
     - {id: P6.5-7, titulo: "UI Aprendizaje, feedback por etapa, Desempeño, Casos dorados", estado: hecho, commit: ee7de45}
     - {id: P6.5-8, titulo: "UI Respaldos, Registro de cambios, Exportar CSV", estado: hecho, commit: ee7de45}
     - {id: P6.5-9, titulo: "Panel 3D Aprendizaje + clic en sala + humo 3D con capturas", estado: hecho, commit: ee7de45}
+
+  P8-edificio:
+    - {id: P8E-1, titulo: "Migración 006 oficinas + office_id faltante + API de pisos (crear vacía/duplicar, renombrar, reordenar, archivar/restaurar)", estado: hecho, commit: ca2902e}
+    - {id: P8E-2, titulo: "Runner multi-oficina con cola global de IA, herramientas MCP por oficina y puerta de agente", estado: hecho, commit: ca2902e}
+    - {id: P8E-3, titulo: "UI: selector de piso global, pantalla Edificio, diálogos, editor de flujo, corrida genérica", estado: hecho, commit: 7ced6ac}
+    - {id: P8E-4, titulo: "3D Edificio, selector de piso en la oficina, PageUp/PageDown, humo con capturas", estado: hecho, commit: "git log: feat(P8-edificio 4-5)"}
+    - {id: P8E-5, titulo: "Pruebas, gates, guía, meta-dungeon y Save Point", estado: hecho, commit: "git log: feat(P8-edificio 4-5)"}

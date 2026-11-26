@@ -1,7 +1,10 @@
 /** Barra de controles de la vista 3D: piso (preparado), calidad, iluminación y giro de 90°. */
 import { CALIDADES, type Calidad } from '../../shared/oficina3d/apariencia';
 import type { DefinicionOficina } from '../../shared/oficina3d/definicion';
+import { SelectorPiso } from '../components/SelectorPiso';
 import { Button } from '../components/ui';
+import { fijarOficinaActiva } from '../lib/oficinaActiva';
+import { useOficinaActual } from '../lib/useOficinas';
 import type { Tienda } from './tienda';
 import type { usePreferencias } from './usarOficina';
 
@@ -13,12 +16,10 @@ const ETQ_CALIDAD: Record<Calidad, string> = {
 const sel = 'rounded-lg border border-line bg-white px-2 py-1.5 text-sm';
 
 export function Controles({
-  nombre,
   pref,
   t,
   d,
 }: {
-  nombre: string;
   pref: ReturnType<typeof usePreferencias>;
   t: Tienda;
   d: DefinicionOficina | null;
@@ -34,15 +35,26 @@ export function Controles({
         : { x: d.planta.ancho / 2, z: d.planta.fondo / 2, k: 1, n },
     });
   };
+  const { id, lista } = useOficinaActual();
+  const idx = lista.findIndex((o) => o.id === id);
+  const irA = (d: number) => {
+    const o = lista[idx + d];
+    if (o) fijarOficinaActiva(o.id);
+  };
   const rotar = (d: number) => t.set({ rotacion: t.get().rotacion + d });
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <label className="flex items-center gap-1 text-sm">
-        Piso
-        <select aria-label="Piso" className={sel} value="1" onChange={() => undefined}>
-          <option value="1">1 · {nombre}</option>
-        </select>
-      </label>
+      <SelectorPiso />
+      <Button
+        aria-label="Piso de arriba (Re Pág)"
+        disabled={idx < 0 || idx >= lista.length - 1}
+        onClick={() => irA(1)}
+      >
+        ▲
+      </Button>
+      <Button aria-label="Piso de abajo (Av Pág)" disabled={idx <= 0} onClick={() => irA(-1)}>
+        ▼
+      </Button>
       <label className="flex items-center gap-1 text-sm">
         Vista
         <select

@@ -3,10 +3,14 @@
  * accesible y el modo de bajo consumo (calidad Baja) del mismo 3D.
  */
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import type { SalaDef } from '../../shared/oficina3d/definicion';
 import { Button, ErrorBanner, PageHeader, Skeleton, cx } from '../components/ui';
+import { SelectorPiso } from '../components/SelectorPiso';
+import { fijarOficinaActiva } from '../lib/oficinaActiva';
+import { useOficinaActual } from '../lib/useOficinas';
 import { Controles } from './Controles';
+import { Edificio3D } from './Edificio3D';
 import { ListaAgentes } from './ListaAgentes';
 import { PanelAgente } from './PanelAgente';
 import { BarraPantalla, usePantallaCompleta } from './PantallaCompleta';
@@ -14,7 +18,48 @@ import { useTienda } from './tienda';
 import { hayWebGL, movimientoReducido, useOficina, usePreferencias } from './usarOficina';
 
 const Escena = lazy(() => import('./escena/Escena'));
+/** «Ver oficina»: el piso activo en 3D, o (con ?vista=edificio) la fachada del edificio con todos los pisos. */
 export function Oficina() {
+  const [params, setParams] = useSearchParams();
+  const pref = usePreferencias();
+  const [quieto] = useState(movimientoReducido);
+  if (params.get('vista') !== 'edificio') return <OficinaPiso />;
+  return (
+    <>
+      <PageHeader
+        titulo="Edificio"
+        subtitulo="Todos los pisos en corte. Entra a cualquiera con un clic."
+        acciones={<Button onClick={() => setParams({})}>Ver el piso activo</Button>}
+      />
+      <div className="mb-3 flex items-center gap-3">
+        <SelectorPiso />
+        <label className="flex items-center gap-1 text-sm">
+          Calidad
+          <select
+            aria-label="Calidad gráfica"
+            className="rounded-lg border border-line bg-white px-2 py-1.5 text-sm"
+            value={pref.calidad}
+            onChange={(e) => pref.setCalidad(e.target.value as 'alta' | 'media' | 'baja')}
+          >
+            <option value="alta">Alta</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja (bajo consumo)</option>
+          </select>
+        </label>
+      </div>
+      <Edificio3D
+        pref={pref}
+        quieto={quieto}
+        onEntrar={(id) => {
+          fijarOficinaActiva(id);
+          setParams({});
+        }}
+      />
+    </>
+  );
+}
+
+function OficinaPiso() {
   const [presentacion, setPresentacion] = useState(false);
   const { def, tienda, conectado, agentes } = useOficina(presentacion);
   const pref = usePreferencias();
@@ -25,6 +70,23 @@ export function Oficina() {
   const enPausa = useTienda(tienda, (e) => e.enPausa);
   const selId = useTienda(tienda, (e) => e.seleccionado);
   const navegar = useNavigate();
+  const { id: pisoId, lista: pisos } = useOficinaActual();
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+      const d = e.key === 'PageUp' ? 1 : e.key === 'PageDown' ? -1 : 0;
+      if (!d) return;
+      const i = pisos.findIndex((o) => o.id === pisoId);
+      const sig = pisos[i + d];
+      if (sig) {
+        e.preventDefault();
+        fijarOficinaActiva(sig.id);
+      }
+    };
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [pisos, pisoId]);
   const seleccionado = def?.agentes.find((a) => a.id === selId) ?? null;
 
   useEffect(() => {
@@ -125,18 +187,24 @@ export function Oficina() {
     <>
       <PageHeader
         titulo="Ver oficina"
-        subtitulo="Tu equipo de agentes en 3D, en vivo (solo lectura)."
+        subtitulo="Tu equipo de agentes en 3D, en vivo (solo lectura). Av Pág / Re Pág cambian de piso."
         acciones={
           <>
             <span className={cx('text-xs', conectado ? 'text-ok' : 'text-muted')}>
               {conectado ? '● En vivo' : '○ Reconectando…'}
             </span>
+            <Link
+              to="/oficina?vista=edificio"
+              className="rounded-lg border border-line bg-white px-3.5 py-2 text-sm font-medium text-deep hover:bg-brand-soft"
+            >
+              Ver edificio
+            </Link>
             <Button onClick={() => setPresentacion(true)}>Modo presentación</Button>
           </>
         }
       />
       <div className="mb-3">
-        <Controles nombre={def?.office.nombre ?? 'Prospección'} pref={pref} t={tienda} d={def} />
+        <Controles pref={pref} t={tienda} d={def} />
       </div>
       <div ref={pantalla} className={cx('flex gap-4', fs.activa && 'h-screen bg-deep p-3')}>
         <div className="min-w-0 flex-1">{escena}</div>

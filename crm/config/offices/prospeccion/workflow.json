@@ -155,7 +155,14 @@
       "agente": "QA-1",
       "roles": ["QA-1"],
       "prompts": ["qa1"],
-      "herramientas": ["crm_expediente", "crm_qa", "obscura_extract", "kb_buscar", "kb_leer"],
+      "herramientas": [
+        "crm_expediente",
+        "crm_qa",
+        "crm_etapa_empresa",
+        "obscura_extract",
+        "kb_buscar",
+        "kb_leer"
+      ],
       "web": false,
       "max_turnos": 14
     },
@@ -196,6 +203,7 @@
       "herramientas": [
         "crm_expediente",
         "crm_qa",
+        "crm_etapa_empresa",
         "crm_finalizar_prospecto",
         "kb_buscar",
         "kb_leer"

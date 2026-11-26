@@ -1,6 +1,13 @@
 import { Resend } from 'resend';
 import type { Db } from '../db';
+import { scoreMinimoCorreo } from './calidad';
 import { nowIso } from '../db';
+import {
+  adjuntosLogo,
+  envolverCorreo,
+  markdownATexto,
+  remitenteConNombre,
+} from './email-plantilla';
 
 export interface MailMessage {
   from: string;
@@ -8,6 +15,7 @@ export interface MailMessage {
   subject: string;
   text: string;
   html: string;
+  attachments?: { filename: string; content: string; contentId: string }[];
 }
 
 export interface Mailer {
@@ -26,6 +34,7 @@ export class ResendMailer implements Mailer {
       subject: msg.subject,
       text: msg.text,
       html: msg.html,
+      ...(msg.attachments ? { attachments: msg.attachments } : {}),
     });
     if (error || !data) throw new Error(error?.message ?? 'Resend no devolvió id');
     return { id: data.id };
@@ -51,9 +60,6 @@ export function assertDestinoPermitido(db: Db, email: string): void {
   if (!fila) throw new DestinoNoPermitidoError(`Destinatario no permitido: ${email}`);
 }
 
-const esc = (s: string): string =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
 export interface ReporteMail {
   asunto: string;
   texto: string;
@@ -67,14 +73,22 @@ export function armarReporte(p: {
   reporte_md: string;
   url: string;
 }): ReporteMail {
-  const asunto = `ACITMX · Nuevo prospecto: ${p.empresa}${p.nivel ? ` (Nivel ${p.nivel}, ${p.score})` : ''}`;
-  const texto = `${p.reporte_md}\n\n— Ver en el CRM: ${p.url}\n(Este correo es una alerta interna; el expediente completo está en el CRM.)`;
-  const html =
-    `<div style="font-family:Segoe UI,Arial,sans-serif;color:#0F3D47;max-width:640px">` +
-    `<h2 style="color:#007F7C;margin:0 0 12px">Nuevo prospecto: ${esc(p.empresa)}</h2>` +
-    `<div style="white-space:pre-wrap;line-height:1.5">${esc(p.reporte_md)}</div>` +
-    `<p style="margin-top:20px"><a href="${esc(p.url)}" style="color:#007F7C">Ver en el CRM</a></p>` +
-    `<p style="color:#4B6670;font-size:12px">Alerta interna de ACITMX Prospecting Office. El expediente completo está en el CRM.</p></div>`;
+  const asunto = `Nuevo prospecto: ${p.empresa}${p.nivel ? ` · Nivel ${p.nivel}` : ''}${p.score != null ? ` (${p.score})` : ''}`;
+  const texto = `Nuevo prospecto: ${p.empresa}
+
+${markdownATexto(p.reporte_md)}
+
+Alerta interna de ${'Prospecting Office AI'}; el expediente completo está en el CRM.`;
+  const html = envolverCorreo({
+    preheader: `${p.empresa}${p.nivel ? ` · Nivel ${p.nivel}` : ''}: nuevo prospecto listo para revisar en el CRM.`,
+    etiqueta: 'Nuevo prospecto',
+    titulo: p.empresa,
+    subtitulo: 'Nuevo prospecto encontrado por tu equipo de agentes',
+    nivel: p.nivel,
+    score: p.score,
+    cuerpoMd: p.reporte_md,
+    pie: 'Alerta interna de ACITMX. El expediente completo, la evidencia y el seguimiento están en el CRM.',
+  });
   return { asunto, texto, html };
 }
 
@@ -83,7 +97,7 @@ export async function procesarEnvios(
   db: Db,
   mailer: Mailer,
   prospectoId: number,
-  opts: { from: string; baseUrl: string },
+  opts: { from: string; baseUrl: string; soloDestinatarios?: string[] },
 ): Promise<{ enviados: number; fallidos: number }> {
   const p = db
     .prepare(
@@ -100,6 +114,8 @@ export async function procesarEnvios(
       }
     | undefined;
   if (!p || !p.reporte_md) return { enviados: 0, fallidos: 0 };
+  // Solo se avisa de prospectos que alcanzan el score mínimo configurado (por defecto 60).
+  if ((p.score ?? 0) < scoreMinimoCorreo(db)) return { enviados: 0, fallidos: 0 };
   const mail = armarReporte({
     empresa: p.empresa,
     nivel: p.nivel,
@@ -107,22 +123,25 @@ export async function procesarEnvios(
     reporte_md: p.reporte_md,
     url: `${opts.baseUrl}/prospectos/${p.id}`,
   });
-  const pendientes = db
+  let pendientes = db
     .prepare(
       "SELECT id, destinatario FROM envios_email WHERE prospecto_id = ? AND estado IN ('pendiente','fallido')",
     )
     .all(prospectoId) as { id: number; destinatario: string }[];
+  const solo = opts.soloDestinatarios?.map((e) => e.toLowerCase());
+  if (solo) pendientes = pendientes.filter((e) => solo.includes(e.destinatario.toLowerCase()));
   let enviados = 0;
   let fallidos = 0;
   for (const envio of pendientes) {
     try {
       assertDestinoPermitido(db, envio.destinatario);
       const r = await mailer.send({
-        from: opts.from,
+        from: remitenteConNombre(opts.from),
         to: envio.destinatario,
         subject: mail.asunto,
         text: mail.texto,
         html: mail.html,
+        attachments: adjuntosLogo(),
       });
       db.prepare(
         "UPDATE envios_email SET estado='enviado', resend_id=?, error=NULL, intentos=intentos+1, actualizado_en=? WHERE id=?",
@@ -137,4 +156,73 @@ export async function procesarEnvios(
     }
   }
   return { enviados, fallidos };
+}
+
+export interface ResultadoReenvio {
+  destinatario: string;
+  estado: 'enviado' | 'fallido';
+  error: string | null;
+}
+
+/**
+ * Reenvío manual del dueño. Sin selección: a todo destinatario activo al que aún no le consta un envío correcto.
+ * Con selección (ids de destinatarios_internos activos): a esos, aunque ya hayan recibido el correo.
+ * Crea la fila de envío si el destinatario se agregó después de finalizar el prospecto.
+ */
+export async function reenviarProspecto(
+  db: Db,
+  mailer: Mailer,
+  prospectoId: number,
+  opts: { from: string; baseUrl: string; destinatarioIds?: number[] },
+): Promise<{ resultados: ResultadoReenvio[]; enviados: number; fallidos: number }> {
+  const activos = db
+    .prepare('SELECT id, email FROM destinatarios_internos WHERE activo = 1 ORDER BY id')
+    .all() as { id: number; email: string }[];
+  const ids = opts.destinatarioIds;
+  const elegidos = ids ? activos.filter((a) => ids.includes(a.id)) : activos;
+  // Envíos fallidos a correos que ya no están en la lista activa nunca podrán salir (la guardia los bloquea):
+  // se retiran para que no dejen el aviso de «correo no enviado» para siempre.
+  db.prepare(
+    `DELETE FROM envios_email WHERE prospecto_id = ? AND estado != 'enviado'
+       AND destinatario NOT IN (SELECT email FROM destinatarios_internos WHERE activo = 1 COLLATE NOCASE)`,
+  ).run(prospectoId);
+  const t = nowIso();
+  const objetivo: string[] = [];
+  for (const d of elegidos) {
+    const fila = db
+      .prepare(
+        'SELECT id, estado FROM envios_email WHERE prospecto_id = ? AND destinatario = ? COLLATE NOCASE',
+      )
+      .get(prospectoId, d.email) as { id: number; estado: string } | undefined;
+    if (!fila) {
+      db.prepare('INSERT INTO envios_email (prospecto_id, destinatario) VALUES (?, ?)').run(
+        prospectoId,
+        d.email,
+      );
+    } else if (ids || fila.estado !== 'enviado') {
+      db.prepare("UPDATE envios_email SET estado='pendiente', actualizado_en=? WHERE id=?").run(
+        t,
+        fila.id,
+      );
+    } else continue;
+    objetivo.push(d.email);
+  }
+  const out = await procesarEnvios(db, mailer, prospectoId, {
+    from: opts.from,
+    baseUrl: opts.baseUrl,
+    soloDestinatarios: objetivo,
+  });
+  const resultados = objetivo.map((email) => {
+    const f = db
+      .prepare(
+        'SELECT estado, error FROM envios_email WHERE prospecto_id = ? AND destinatario = ? COLLATE NOCASE',
+      )
+      .get(prospectoId, email) as { estado: string; error: string | null };
+    return {
+      destinatario: email,
+      estado: f.estado === 'enviado' ? ('enviado' as const) : ('fallido' as const),
+      error: f.error,
+    };
+  });
+  return { resultados, ...out };
 }

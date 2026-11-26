@@ -1,3 +1,4 @@
+import { MotorIA } from '../components/MotorIA';
 import { DiagnosticoInstalacion } from '../components/AvisosInstalacion';
 import { useState } from 'react';
 import { numeroSeguro } from '../lib/types';
@@ -15,6 +16,7 @@ import { ConfRespaldos } from './ConfRespaldos';
 const TABS = [
   'Correos de reportes',
   'Corridas',
+  'Motor de IA',
   'Cuotas y motor',
   'Plan y reserva',
   'Herramientas del piso',
@@ -274,6 +276,7 @@ export function Configuracion() {
       {tab === 'Herramientas del piso' && <ConfHerramientas />}
       {tab === 'Fuentes de descubrimiento' && <ConfFuentes />}
       {tab === 'Corridas' && <Corridas />}
+      {tab === 'Motor de IA' && <MotorIA />}
       {tab === 'Cuotas y motor' && <Cuotas />}
       {tab === 'Plan y reserva' && <ConfPlan />}
       {tab === 'No contactar' && <NoContactar />}

@@ -13,6 +13,7 @@ import {
   useToast,
 } from '../components/ui';
 import { FeedbackProspecto } from '../components/FeedbackProspecto';
+import { ReenviarCorreo } from '../components/ReenviarCorreo';
 import { api, useApi } from '../lib/api';
 import { fechaCorta, type ProspectoDetalle, jsonLista } from '../lib/types';
 
@@ -70,21 +71,6 @@ export function DetalleProspecto() {
       </div>
     );
 
-  const reenviar = async () => {
-    try {
-      const r = await api<{ enviados: number; fallidos: number }>(`/prospectos/${d.id}/reenviar`, {
-        method: 'POST',
-        body: {},
-      });
-      toast(
-        r.enviados > 0 ? 'Correo reenviado' : 'El correo sigue sin poder enviarse',
-        r.enviados > 0 ? 'ok' : 'error',
-      );
-      reload();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : 'No se pudo reenviar', 'error');
-    }
-  };
   const desglose = d.score_desglose
     ? (JSON.parse(d.score_desglose) as Record<string, number>)
     : null;
@@ -147,9 +133,13 @@ export function DetalleProspecto() {
       {falloCorreo && (
         <div className="flex items-center justify-between rounded-lg border border-warn/40 bg-warn/10 px-4 py-3">
           <span>El correo no se envió, pero el prospecto está guardado aquí.</span>
-          <Button variante="secundario" onClick={reenviar}>
-            Reenviar
-          </Button>
+          <ReenviarCorreo prospecto={d} onListo={reload} />
+        </div>
+      )}
+
+      {!falloCorreo && d.reporte_md && (
+        <div className="flex justify-end">
+          <ReenviarCorreo prospecto={d} onListo={reload} />
         </div>
       )}
 

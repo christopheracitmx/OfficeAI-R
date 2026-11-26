@@ -124,10 +124,10 @@ describe('Dominio: permisos, niveles y precios', () => {
     expect(puedeCambiarEstado('owner', 'Ganado')).toBe(true);
   });
   it('niveles por score', () => {
-    expect(nivelPorScore(75)).toBe('A');
-    expect(nivelPorScore(74)).toBe('B');
-    expect(nivelPorScore(50)).toBe('B');
-    expect(nivelPorScore(49)).toBe('C');
+    expect(nivelPorScore(80)).toBe('A');
+    expect(nivelPorScore(79)).toBe('B');
+    expect(nivelPorScore(60)).toBe('B');
+    expect(nivelPorScore(59)).toBe('C');
   });
   it('detecta precios y costos', () => {
     expect(mencionaPrecio('Cuesta $12,000 por equipo')).toBe(true);

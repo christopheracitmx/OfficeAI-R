@@ -36,3 +36,20 @@ export function actualizarPromptsFuentes(db: Db, dirOficinas: string): void {
     guardarPrompt(db, office, prompt, nuevo, 'P11: fuentes gratuitas de descubrimiento');
   }
 }
+
+const MARCA_FORMATO = 'FORMATO DE CORREO';
+const BLOQUE_FORMATO =
+  'FORMATO DE CORREO: el reporte se envía como correo con diseño profesional; escribe Markdown limpio. Primera línea en negritas con el saludo ("**Oye jefe, encontré a X.**"); cada sección como título (`## 1. Resumen`, `## 2. Por qué es buen prospecto`, etc.); viñetas `- ` con una idea cada una y rótulos en negritas (`- **Giro:** ...`); una línea en blanco entre bloques; sin tablas ni HTML y sin repetir el nombre de la empresa como título (el correo ya lo trae).';
+
+/** Añade al Redactor (una sola vez, como versión nueva y restaurable) cómo escribir el reporte para el correo con diseño. */
+export function actualizarPromptRedactorFormato(db: Db): void {
+  const activo = promptActivo(db, 'prospeccion', 'redactor');
+  if (activo === undefined || activo.includes(MARCA_FORMATO)) return;
+  guardarPrompt(
+    db,
+    'prospeccion',
+    'redactor',
+    `${activo.trim()}\n${BLOQUE_FORMATO}`,
+    'Formato del correo profesional',
+  );
+}

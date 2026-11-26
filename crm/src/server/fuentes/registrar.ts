@@ -1,3 +1,4 @@
+import { resolverGiro } from '../services/calidad';
 import type { Db } from '../db';
 import { nowIso } from '../db';
 import { dominioDe, enNoContactar } from '../services/empresas';
@@ -201,9 +202,7 @@ export function registrarCandidato(db: Db, c: Candidato, o: OpcionesRegistro): R
     return { status: eraDeEstaFuente ? 'existente' : 'fusionada', id: previa.id };
   }
 
-  const giro = db
-    .prepare('SELECT id FROM taxonomia_giros WHERE nombre = ? COLLATE NOCASE')
-    .get(c.giro) as { id: number } | undefined;
+  const giroId = resolverGiro(db, c.giro, false);
   const cf: Record<string, string> = {};
   for (const k of Object.keys(camposDe(c))) cf[k] = c.fuente_id;
   const ahora = nowIso();
@@ -222,7 +221,7 @@ export function registrarCandidato(db: Db, c: Candidato, o: OpcionesRegistro): R
         c.fuente_id,
         c.fuente_url ?? null,
         `${c.fuente_id}${o.consulta ? `: ${o.consulta}` : ''}`.slice(0, 500),
-        giro?.id ?? null,
+        giroId,
         c.direccion || null,
         zona.municipio ?? c.municipio ?? null,
         zona.codigo_postal ?? c.codigo_postal ?? null,

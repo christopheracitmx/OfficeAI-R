@@ -133,6 +133,7 @@ describe('P11 el runner usa primero las fuentes por código y luego a los agente
   it('completa el lote con DENUE local sin llamar al Explorador ni al Cartógrafo', async () => {
     const m = await montar();
     try {
+      m.db.prepare("UPDATE configuracion SET valor='0' WHERE clave='fuentes_pre_score_min'").run();
       await importarDenue(m.db, [FX('denue-muestra.csv')], { version: 'muestra' });
       const r = await m.post('/api/corridas', corridaBody(2));
       expect(r.status).toBe(201);

@@ -13,6 +13,8 @@ El DENUE local (paso 3) NO necesita token. El token solo habilita la fuente «DE
 3. Abre `crm\.env` (si no existe, abre una vez `iniciar-crm.bat` para que se cree) y escribe, sin comillas ni espacios:
    ```
    DENUE_TOKEN=tu_token_aqui
+
+   
    ```
    La plantilla comentada está en `crm\.env.example`. NUNCA pegues el token en un chat, en git ni en un documento.
 4. Reinicia el CRM (cierra y abre `iniciar-crm.bat`).

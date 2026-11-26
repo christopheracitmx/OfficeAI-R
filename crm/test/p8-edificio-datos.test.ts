@@ -50,6 +50,8 @@ describe('P8 migración 006: conserva los datos de prospección', () => {
       '007_apariencias.sql',
       '008_p10_herramientas.sql',
       '009_fuentes.sql',
+      '010_precalificacion.sql',
+      '011_niveles_calidad.sql',
     ]);
     expect(db.prepare('SELECT nombre, office_id FROM empresas').get()).toEqual({
       nombre: 'Acme Logística SA',

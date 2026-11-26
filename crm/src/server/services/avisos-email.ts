@@ -1,5 +1,11 @@
 import type { Db } from '../db';
 import { nowIso } from '../db';
+import {
+  adjuntosLogo,
+  envolverCorreo,
+  markdownATexto,
+  remitenteConNombre,
+} from './email-plantilla';
 import { assertDestinoPermitido, type Mailer } from './mailer';
 
 /** Tope de correos de aviso por oficina y hora (evita que un agente en bucle llene la bandeja). */
@@ -11,9 +17,6 @@ export interface ResultadoCorreo {
   fallidos: number;
   omitido?: string;
 }
-
-const esc = (s: string): string =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
  * Correo de aviso interno de una oficina. Patrón outbox: se guarda ANTES de enviar. Solo a
@@ -61,18 +64,26 @@ export async function enviarAvisoCorreo(
     ),
   );
   const asunto = `${o.nombre} · ${opts.asunto}`;
-  const html = `<div style="font-family:Segoe UI,Arial,sans-serif;max-width:640px"><h3>${esc(opts.asunto)}</h3><p style="white-space:pre-wrap">${esc(opts.texto)}</p><p style="color:#666;font-size:12px">Aviso interno de la oficina «${esc(o.nombre)}» (agente ${esc(opts.agente)}).</p></div>`;
+  const html = envolverCorreo({
+    preheader: opts.asunto,
+    etiqueta: 'Aviso interno',
+    titulo: opts.asunto,
+    subtitulo: `${o.nombre} · agente ${opts.agente}`,
+    cuerpoMd: opts.texto,
+    pie: `Aviso interno de la oficina «${o.nombre}» (agente ${opts.agente}).`,
+  });
   let enviados = 0;
   let fallidos = 0;
   for (const [i, d] of destinos.entries()) {
     try {
       assertDestinoPermitido(db, d.email);
       const r = await mailer.send({
-        from: opts.from,
+        from: remitenteConNombre(opts.from),
         to: d.email,
         subject: asunto,
-        text: `${opts.texto}\n\n— Aviso interno de la oficina «${o.nombre}».`,
+        text: `${markdownATexto(opts.texto)}\n\n— Aviso interno de la oficina «${o.nombre}».`,
         html,
+        attachments: adjuntosLogo(),
       });
       db.prepare(
         "UPDATE avisos_email SET estado='enviado', resend_id=?, intentos=intentos+1, actualizado_en=? WHERE id=?",

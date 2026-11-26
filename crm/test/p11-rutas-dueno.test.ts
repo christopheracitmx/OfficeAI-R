@@ -41,7 +41,12 @@ describe('P11 rutas del dueño: Configuración → Fuentes de descubrimiento', (
         'mapbox_search',
       ]),
     );
-    expect(r.body.config).toEqual({ tamano_min: 11, incluir_sin_tamano: true });
+    expect(r.body.config).toEqual({
+      tamano_min: 11,
+      incluir_sin_tamano: true,
+      pre_score_min: 70,
+      correo_score_min: 60,
+    });
   });
 
   it('activar/desactivar es por oficina y el tope solo aplica a fuentes con cuota', async () => {

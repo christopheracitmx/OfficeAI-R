@@ -63,6 +63,8 @@ export interface ResultadoAgente {
   tokens?: number;
   /** Consumo equivalente: entrada + salida + 1.25×caché escrita + 0.1×caché leída (refleja mejor el costo real). */
   tokens_ponderados?: number;
+  /** Proveedor/modelo que realmente atendió el paso (motores de API); si falta se usa el del paso/engine.yaml. */
+  modelo_usado?: string;
   timeout?: boolean;
   abortado?: boolean;
   error?: string;

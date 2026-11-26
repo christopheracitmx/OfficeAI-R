@@ -14,7 +14,8 @@ import { GLOBAL, guardarPrompt, leccionesAprobadas, promptActivo } from '../serv
 import { CASOS_DORADOS_PROSPECCION } from './casos-dorados-semilla';
 import { HABILIDADES_BASE } from './habilidades-base';
 import { DOCS_SEMILLA, PRODUCTOS_SEMILLA } from './semilla-prospeccion';
-import { actualizarPromptsFuentes } from './prompts-fuentes';
+import { actualizarPromptsCalidad } from './prompts-calidad';
+import { actualizarPromptRedactorFormato, actualizarPromptsFuentes } from './prompts-fuentes';
 
 /** Prompts desde las tablas (editables en la UI); si falta alguno, cae al archivo semilla. */
 export class PromptsBd implements PromptSource {
@@ -101,7 +102,11 @@ export function sembrarOficina(db: Db, dirOficinas: string, wf: Workflow): void 
     if (o === 'prospeccion') sembrarProspeccion(db);
   });
   tx();
-  if (o === 'prospeccion') actualizarPromptsFuentes(db, dirOficinas);
+  if (o === 'prospeccion') {
+    actualizarPromptsFuentes(db, dirOficinas);
+    actualizarPromptRedactorFormato(db);
+    actualizarPromptsCalidad(db);
+  }
 }
 
 function sembrarProspeccion(db: Db): void {

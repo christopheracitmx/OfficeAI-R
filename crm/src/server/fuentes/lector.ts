@@ -58,6 +58,14 @@ export async function* lineas(ruta: string): AsyncGenerator<string> {
   }
 }
 
+/** Líneas tal cual (GeoJSON Lines / JSON Lines): cada línea es un registro; NO se unen por comillas impares. */
+export async function* lineasPlanas(ruta: string): AsyncGenerator<string> {
+  const rl = createReadStream(ruta, { encoding: 'utf8' });
+  for await (const l of createInterface({ input: rl, crlfDelay: Infinity })) {
+    if (l.trim()) yield l;
+  }
+}
+
 const sinAcento = (s: string): string =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 

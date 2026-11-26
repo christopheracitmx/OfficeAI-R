@@ -13,6 +13,7 @@
     "start": "tsx src/server/index.ts",
     "mcp": "tsx src/mcp/index.ts",
     "datasets:importar": "tsx scripts/importar-dataset.ts",
+    "datasets:precalificar": "tsx scripts/precalificar-dataset.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --check .",

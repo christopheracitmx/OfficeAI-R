@@ -17,7 +17,7 @@ import {
 } from '../services/consultas';
 import { cambiarEtapa, upsertEmpresa } from '../services/empresas';
 import { diagnosticarDeps } from '../services/diagnostico';
-import { assertDestinoPermitido, procesarEnvios } from '../services/mailer';
+import { assertDestinoPermitido, reenviarProspecto } from '../services/mailer';
 import { aprendizajeRouter } from './aprendizaje';
 import { cerebroRouter } from './cerebro';
 import { corridasRouter } from './corridas';
@@ -27,7 +27,12 @@ import { oficinasRouter } from './oficinas';
 import { ajustesRouter } from './oficinas-ajustes';
 import { datosRouter } from './datos';
 import { fuentesRouter } from './fuentes';
+import { motorRouter } from './motor';
 import { ah, HttpError, idParam, oficinaDe, parse, qstr, type Deps } from './util';
+
+const reenvioBody = z.object({
+  destinatario_ids: z.array(z.number().int().positive()).max(50).optional(),
+});
 
 export function ownerRouter(d: Deps): Router {
   const r = Router();
@@ -70,6 +75,7 @@ export function ownerRouter(d: Deps): Router {
 
   r.use(datosRouter(d));
   r.use(fuentesRouter(d));
+  r.use(motorRouter(d));
   r.use(aprendizajeRouter(d));
 
   // ---- Prospectos
@@ -113,13 +119,13 @@ export function ownerRouter(d: Deps): Router {
     '/prospectos/:id/reenviar',
     ah(async (q, res) => {
       const id = idParam(q);
-      const falló = db
-        .prepare(
-          "UPDATE envios_email SET estado='pendiente' WHERE prospecto_id=? AND estado='fallido'",
-        )
-        .run(id);
-      const out = await procesarEnvios(db, d.mailer, id, { from: d.from, baseUrl: d.baseUrl });
-      res.json({ reintentados: falló.changes, ...out });
+      const body = parse(reenvioBody, q.body ?? {});
+      const out = await reenviarProspecto(db, d.mailer, id, {
+        from: d.from,
+        baseUrl: d.baseUrl,
+        ...(body.destinatario_ids ? { destinatarioIds: body.destinatario_ids } : {}),
+      });
+      res.json(out);
     }),
   );
 

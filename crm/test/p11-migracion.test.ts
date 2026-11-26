@@ -36,7 +36,11 @@ describe('P11 migración 009 conserva los datos (BD de archivo temporal con dato
       )
       .all();
 
-    expect(migrate(db)).toEqual(['009_fuentes.sql']);
+    expect(migrate(db)).toEqual([
+      '009_fuentes.sql',
+      '010_precalificacion.sql',
+      '011_niveles_calidad.sql',
+    ]);
     expect(
       db
         .prepare(

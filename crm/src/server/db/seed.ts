@@ -1,3 +1,4 @@
+import { rellenarGiros } from '../services/calidad';
 import type Database from 'better-sqlite3';
 import { PRESETS_BASE } from '../../shared/oficina3d/aleatorio-lugares';
 import { nombreNorm } from '../fuentes/normalizar';
@@ -24,6 +25,8 @@ const CONFIG_INICIAL: Record<string, string> = {
   zonas_piloto: JSON.stringify(['CDMX', 'Estado de México']),
   motor_ia: 'claude-code',
   // P11: fuentes de descubrimiento gratuitas
+  correo_score_min: '60',
+  fuentes_pre_score_min: '70',
   fuentes_tamano_min: '11',
   fuentes_incluir_sin_tamano: '1',
   fuente_tope_denue_api: '2000',
@@ -59,6 +62,7 @@ export function seed(db: Database.Database, opciones: OpcionesSeed = {}): void {
   tx();
   sembrarPresets(db);
   rellenarNombreNorm(db);
+  rellenarGiros(db);
 }
 
 /** Presets de apariencia de fábrica (idempotente: por tipo y nombre, solo los `builtin`). */

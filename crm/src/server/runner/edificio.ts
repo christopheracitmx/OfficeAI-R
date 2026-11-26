@@ -66,6 +66,10 @@ export class RunnerEdificio {
     return this.runners.get(officeId)?.estado().activo ?? false;
   }
 
+  hayCorridaActiva(): boolean {
+    return this.oficinasIds().some((id) => this.estaActiva(id));
+  }
+
   /** Estado de una oficina, o (sin argumento) de la primera con corrida; si ninguna, el inactivo. */
   estado(officeId?: string): EstadoEdificio {
     const vivos = [...this.runners.entries()].filter(([, r]) => r.estado().activo);

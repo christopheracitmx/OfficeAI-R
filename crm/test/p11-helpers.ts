@@ -27,6 +27,8 @@ export const dirTemporal = (prefijo = 'p11-'): string => {
 export const bd = (): Db => openDb(':memory:');
 
 export async function conDatasets(db: Db): Promise<void> {
+  // Las muestras son pequeñas: sin filtro de precalificación (en producción el mínimo por defecto es 70).
+  db.prepare("UPDATE configuracion SET valor='0' WHERE clave='fuentes_pre_score_min'").run();
   await importarDenue(db, [FX('denue-muestra.csv')], { version: 'muestra-2026-05' });
   await importarOverture(db, FX('overture-muestra.geojsonl'), { version: '2026-11-18.0' });
 }
@@ -108,6 +110,13 @@ export function appFuentes(o: {
         con(
           api
             .patch(u)
+            .set('Origin', UI)
+            .send(b ?? {}),
+        ),
+      put: (u: string, b?: object) =>
+        con(
+          api
+            .put(u)
             .set('Origin', UI)
             .send(b ?? {}),
         ),

@@ -2,6 +2,7 @@ import type { Db } from '../db';
 import { norm } from '../services/zona';
 import { scianDeGiro } from './scian';
 import type { BusquedaFuente, Candidato } from './tipos';
+import { precalificarDataset } from './precalificar';
 import { resolverZona } from './zona-filtro';
 
 export interface RegistroDataset {
@@ -108,6 +109,7 @@ export function guardarDataset(
       meta.nota,
     );
   })();
+  precalificarDataset(db, fuente);
   return n;
 }
 
@@ -169,6 +171,18 @@ export function buscarDataset(
     where.push(`(d.personal_est >= ?${incluirSinTamano ? ' OR d.personal_est IS NULL' : ''})`);
     p.push(q.min_personal);
   }
+  // Precalificación por código: nunca a la IA lo descartado ni lo que no llega al score mínimo configurado.
+  const preMin = Number(
+    (
+      db.prepare("SELECT valor FROM configuracion WHERE clave = 'fuentes_pre_score_min'").get() as
+        { valor: string } | undefined
+    )?.valor ?? 70,
+  );
+  where.push('d.pre_descarte IS NULL');
+  if (preMin > 0) {
+    where.push('(d.pre_score IS NULL OR d.pre_score >= ?)');
+    p.push(preMin);
+  }
   where.push(
     'NOT EXISTS (SELECT 1 FROM empresa_fuentes ef WHERE ef.fuente_id = d.fuente_id AND ef.registro_id = d.registro_id AND ef.office_id = ?)',
   );
@@ -177,7 +191,7 @@ export function buscarDataset(
   const filas = db
     .prepare(
       `SELECT d.* FROM dataset_registros d WHERE ${where.join(' AND ')}
-       ORDER BY (d.personal_est IS NULL), d.personal_est DESC, d.registro_id LIMIT ?`,
+       ORDER BY d.pre_score DESC, (d.personal_est IS NULL), d.personal_est DESC, d.registro_id LIMIT ?`,
     )
     .all(...p, limite) as RegistroDataset[];
   return filas.map(aCandidato);

@@ -31,7 +31,7 @@ describe('Flujo completo del expediente', () => {
 
     expect(h.mailer.enviados).toHaveLength(1);
     expect(h.mailer.enviados[0]!.to).toBe(DESTINATARIO_PRUEBA);
-    expect(h.mailer.enviados[0]!.from).toBe('info@mail.acitmx.net');
+    expect(h.mailer.enviados[0]!.from).toBe('Prospecting Office AI <info@mail.acitmx.net>');
 
     const det = (await h.owner.get(`/api/prospectos/${prospecto_id}`)).body;
     expect(det.estado).toBe('Reportado');

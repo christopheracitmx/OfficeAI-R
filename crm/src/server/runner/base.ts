@@ -247,7 +247,7 @@ export class RunnerBase {
         extra.promptTokens,
         r.turnos ?? null,
         JSON.stringify(extra.usadas),
-        def.modelo ?? this.d.cfg.modelo ?? null,
+        r.modelo_usado ?? def.modelo ?? this.d.cfg.modelo ?? null,
       );
   }
 

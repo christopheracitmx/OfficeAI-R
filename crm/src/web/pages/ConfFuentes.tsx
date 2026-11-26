@@ -31,7 +31,12 @@ interface Descartada {
 interface Resp {
   fuentes: Fuente[];
   descartadas: Descartada[];
-  config: { tamano_min: number; incluir_sin_tamano: boolean };
+  config: {
+    tamano_min: number;
+    incluir_sin_tamano: boolean;
+    pre_score_min: number;
+    correo_score_min: number;
+  };
 }
 
 const inp = 'rounded-lg border border-line bg-white px-3 py-2';
@@ -41,6 +46,8 @@ export function ConfFuentes() {
   const toast = useToast();
   const [prueba, setPrueba] = useState<Record<string, string>>({});
   const [min, setMin] = useState<string | null>(null);
+  const [pre, setPre] = useState<string | null>(null);
+  const [cor, setCor] = useState<string | null>(null);
   const run = async (fn: () => Promise<unknown>, ok?: string) => {
     try {
       await fn();
@@ -115,6 +122,56 @@ export function ConfFuentes() {
             Guardar
           </Button>
         </div>
+      </Card>
+      <Card>
+        <h3 className="mb-2 font-semibold">Calidad: solo lo mejor llega a la IA y al correo</h3>
+        <div className="flex flex-wrap items-center gap-4">
+          <label className="text-muted">
+            Pre-score mínimo para analizar con IA (0-100)
+            <input
+              aria-label="Pre-score mínimo"
+              type="number"
+              min={0}
+              max={100}
+              className={cx(inp, 'ml-2 w-20')}
+              value={pre ?? data.config.pre_score_min}
+              onChange={(e) => setPre(e.target.value)}
+            />
+          </label>
+          <label className="text-muted">
+            Score mínimo para enviar correo (0-100)
+            <input
+              aria-label="Score mínimo de correo"
+              type="number"
+              min={0}
+              max={100}
+              className={cx(inp, 'ml-2 w-20')}
+              value={cor ?? data.config.correo_score_min}
+              onChange={(e) => setCor(e.target.value)}
+            />
+          </label>
+          <Button
+            onClick={() =>
+              void run(
+                () =>
+                  api('/fuentes-config', {
+                    method: 'PATCH',
+                    body: {
+                      pre_score_min: numeroSeguro(pre ?? '', data.config.pre_score_min),
+                      correo_score_min: numeroSeguro(cor ?? '', data.config.correo_score_min),
+                    },
+                  }),
+                'Calidad guardada',
+              )
+            }
+          >
+            Guardar
+          </Button>
+        </div>
+        <p className="mt-2 text-sm text-muted">
+          Nivel A: 80 o más · B: 60 a 79 · C: menos de 60. Bajo el score mínimo el prospecto se
+          descarta y no se envía.
+        </p>
       </Card>
       {data.fuentes.map((f) => (
         <Card key={f.id}>

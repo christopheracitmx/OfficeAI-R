@@ -1,3 +1,4 @@
+import { MotorIA } from '../components/MotorIA';
 import { useState } from 'react';
 import {
   Button,
@@ -150,6 +151,7 @@ export function Corrida() {
                   />
                 </label>
               </div>
+              <MotorIA compacto />
               <p className="text-sm text-muted">
                 Al pulsar «Iniciar corrida» los agentes empiezan a trabajar y consumen plan de IA (
                 {estado.data?.motor_ia ?? '—'}). Lotes pequeños cuidan tu plan; puedes detenerla

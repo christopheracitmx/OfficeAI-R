@@ -22,6 +22,8 @@ const patchInput = z.object({
 const configInput = z.object({
   tamano_min: z.number().int().min(0).max(1000).optional(),
   incluir_sin_tamano: z.boolean().optional(),
+  pre_score_min: z.number().int().min(0).max(100).optional(),
+  correo_score_min: z.number().int().min(0).max(100).optional(),
 });
 const importarInput = z.object({
   archivos: z.array(z.string().trim().min(1).max(200)).min(1).max(12),
@@ -61,6 +63,8 @@ export function fuentesRouter(d: Deps): Router {
         config: {
           tamano_min: Number(cfg('fuentes_tamano_min') ?? 11),
           incluir_sin_tamano: cfg('fuentes_incluir_sin_tamano') !== '0',
+          pre_score_min: Number(cfg('fuentes_pre_score_min') ?? 70),
+          correo_score_min: Number(cfg('correo_score_min') ?? 60),
         },
       });
     }),
@@ -74,6 +78,10 @@ export function fuentesRouter(d: Deps): Router {
         'INSERT INTO configuracion (clave, valor, actualizado_en) VALUES (?, ?, ?) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor, actualizado_en = excluded.actualizado_en',
       );
       if (b.tamano_min !== undefined) up.run('fuentes_tamano_min', String(b.tamano_min), nowIso());
+      if (b.pre_score_min !== undefined)
+        up.run('fuentes_pre_score_min', String(b.pre_score_min), nowIso());
+      if (b.correo_score_min !== undefined)
+        up.run('correo_score_min', String(b.correo_score_min), nowIso());
       if (b.incluir_sin_tamano !== undefined)
         up.run('fuentes_incluir_sin_tamano', b.incluir_sin_tamano ? '1' : '0', nowIso());
       res.json({ ok: true });

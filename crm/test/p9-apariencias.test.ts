@@ -42,6 +42,8 @@ describe('P9 migración 007 con datos previos (BD de archivo temporal)', () => {
       '007_apariencias.sql',
       '008_p10_herramientas.sql',
       '009_fuentes.sql',
+      '010_precalificacion.sql',
+      '011_niveles_calidad.sql',
     ]);
     expect(db.prepare('SELECT nombre FROM empresas').get()).toEqual({
       nombre: 'Acme Logística SA',
@@ -54,7 +56,7 @@ describe('P9 migración 007 con datos previos (BD de archivo temporal)', () => {
       db.prepare('SELECT COUNT(*) AS n FROM presets_apariencia WHERE builtin = 1').get(),
     ).toEqual({ n: 11 });
     // respaldo previo a la migración
-    expect(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get()).toEqual({ n: 9 });
+    expect(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get()).toEqual({ n: 11 });
     db.close();
     // reabrir con openDb no repite ni pierde nada
     const otra = openDb(join(dir, 'crm.db'));

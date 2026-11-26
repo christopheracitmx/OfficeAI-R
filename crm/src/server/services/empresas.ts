@@ -1,4 +1,5 @@
 import type { z } from 'zod';
+import { resolverGiro } from './calidad';
 import type { Db } from '../db';
 import { nowIso } from '../db';
 import type { contactoInput, empresaInput, etapaInput, fichaInput } from '../../shared/schemas';
@@ -64,11 +65,7 @@ export function upsertEmpresa(db: Db, input: EmpresaIn): ResultadoUpsert {
       .get(input.nombre) as { id: number } | undefined);
   if (previa) return { status: 'existente', id: previa.id };
 
-  const giro = input.giro
-    ? (db
-        .prepare('SELECT id FROM taxonomia_giros WHERE nombre = ? COLLATE NOCASE')
-        .get(input.giro) as { id: number } | undefined)
-    : undefined;
+  const giroId = resolverGiro(db, input.giro, true);
   const ahora = nowIso();
   const r = db
     .prepare(
@@ -83,7 +80,7 @@ export function upsertEmpresa(db: Db, input: EmpresaIn): ResultadoUpsert {
       input.metodo_descubrimiento,
       input.origen_url ?? null,
       input.origen_nota ?? null,
-      giro?.id ?? null,
+      giroId,
       input.direccion ?? null,
       zona.municipio,
       zona.codigo_postal,
@@ -169,10 +166,7 @@ export function agregarContacto(
 }
 
 export function guardarFicha(db: Db, f: z.infer<typeof fichaInput>): void {
-  const giro = f.giro
-    ? (db.prepare('SELECT id FROM taxonomia_giros WHERE nombre = ? COLLATE NOCASE').get(f.giro) as
-        { id: number } | undefined)
-    : undefined;
+  const giroId = resolverGiro(db, f.giro, true);
   const dominio = dominioDe(f.sitio_web);
   const tx = db.transaction(() => {
     const r = db
@@ -186,7 +180,7 @@ export function guardarFicha(db: Db, f: z.infer<typeof fichaInput>): void {
         f.tamano ?? null,
         f.sucursales ?? null,
         f.resumen ?? null,
-        giro?.id ?? null,
+        giroId,
         f.sitio_web ?? null,
         dominio,
         f.sitio_verificado === undefined ? null : f.sitio_verificado ? 1 : 0,
@@ -213,4 +207,8 @@ export function cambiarEtapa(db: Db, e: z.infer<typeof etapaInput>): void {
       e.empresa_id,
     );
   if (r.changes === 0) throw new Error('Empresa no encontrada');
+  if (e.etapa === 'descartada')
+    db.prepare(
+      "UPDATE prospectos SET estado='Descartado', actualizado_en=? WHERE empresa_id=? AND estado IN ('Nuevo','Calificado')",
+    ).run(nowIso(), e.empresa_id);
 }

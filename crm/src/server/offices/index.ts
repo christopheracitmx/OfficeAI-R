@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import type { Db } from '../db';
 import type { OficinaDef } from '../runner/estado';
 import { RunnerEdificio } from '../runner/edificio';
+import { crearDespachador } from '../runner/despachador';
 import { crearEjecutor, leerEngineYaml, type ConfigRunner } from '../runner/motor';
 import { ArchivosPrompts, Prompts } from '../runner/prompts';
 import { Runner } from '../runner/runner';
@@ -40,11 +41,18 @@ export function crearRunner(o: OpcionesRunner): RunnerEdificio {
   const cfg = o.cfg ?? leerEngineYaml(resolve(o.raiz, 'config', 'engine.yaml'));
   sincronizarOficinasArchivo(o.db, dirOficinas);
   const tsx = resolve(o.raiz, 'node_modules', 'tsx', 'dist', 'cli.mjs');
+  const ctxMotor = {
+    workDir: resolve(o.raiz, 'data', 'runner'),
+    mcp: { command: process.execPath, args: [tsx, resolve(o.raiz, 'src', 'mcp', 'index.ts')] },
+  };
+  // El motor se elige a mano en Configuración → Motor de IA (Claude por defecto); en pruebas `ejecutar` lo fija el test.
   const motor =
     o.ejecutar ??
-    crearEjecutor(cfg, {
-      workDir: resolve(o.raiz, 'data', 'runner'),
-      mcp: { command: process.execPath, args: [tsx, resolve(o.raiz, 'src', 'mcp', 'index.ts')] },
+    crearDespachador({
+      db: o.db,
+      env: o.env,
+      ctx: ctxMotor,
+      claude: crearEjecutor(cfg, ctxMotor),
     });
   const edificio = new RunnerEdificio(cfg, o.db);
   const ejecutar = edificio.cola.envolver(motor);

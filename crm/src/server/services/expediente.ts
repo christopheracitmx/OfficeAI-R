@@ -1,4 +1,5 @@
 import type { Db } from '../db';
+import { contrastarConFuentes } from './calidad';
 
 /**
  * Expediente compacto de una empresa para los agentes de análisis, revisión y redacción.
@@ -46,6 +47,8 @@ function expedienteCompleto(db: Db, empresaId: number): Record<string, unknown> 
     .get(empresaId) as { prospecto_id: number } | undefined;
   return {
     empresa: recortar(e as Record<string, unknown>, { resumen: 700, origen_nota: 300 }),
+    // Contraste por código con DENUE/Overture: giro/tamaño/contactos objetivos para comparar con lo que dice la web.
+    contraste_fuentes: contrastarConFuentes(db, empresaId),
     contactos: q(
       'SELECT tipo, valor, nombre, puesto, fuente_url FROM contactos WHERE empresa_id = ? ORDER BY tipo, id',
       empresaId,

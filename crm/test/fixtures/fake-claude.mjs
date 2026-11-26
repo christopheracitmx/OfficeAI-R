@@ -228,6 +228,12 @@ else {
       valor: `contacto${empresaId}@ejemplo.mx`,
       fuente_url: 'https://ejemplo.mx/contacto',
     });
+    await api('POST', '/contactos', {
+      empresa_id: empresaId,
+      tipo: 'telefono',
+      valor: '5555550100',
+      fuente_url: 'https://ejemplo.mx/contacto',
+    });
     if (escenario.rastreador_olvida && !mensaje.includes('REINTENTO'))
       terminar('Terminé (sin cerrar la etapa)');
     await api('POST', '/etapa', { empresa_id: empresaId, etapa: 'enriquecida' });

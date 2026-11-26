@@ -241,3 +241,29 @@ segmentation:
     - {id: P12-3, titulo: "GUIA-INSTALACION.md y enlaces en README y GUIA-PUESTA-EN-MARCHA", estado: hecho, commit: "git log: docs(P12-4)"}
     - {id: P12-4, titulo: "Verificación desde cero en clon limpio; fixes: .npmrc ignore-scripts, errorlevel del .bat, prueba p8 intermitente", estado: hecho, commit: "git log: fix(P12)"}
     - {id: P12-5, titulo: "Gates, evidencia, meta-dungeon, Save Point", estado: hecho, commit: "git log: docs(P12)"}
+
+  P13-router-ia:
+    - {id: P13-1, titulo: "Spike en vivo: OpenCode+DeepSeek Flash, Gemini CLI, Codex CLI con MCP y caso dorado", estado: pendiente, plan: "02-framework/p13-router-ia-plan.md"}
+    - {id: P13-2, titulo: "Migracion 012, cuentas/perfiles por oficina, secretos, API del dueno", estado: pendiente}
+    - {id: P13-3, titulo: "Nucleo del ruteador (orden, cooldown, recuperacion, pausa total, roles criticos) con adaptadores falsos", estado: pendiente}
+    - {id: P13-4, titulo: "Adaptadores OpenCode/Gemini endurecidos + OpenAI + clasificador de errores", estado: pendiente}
+    - {id: P13-5, titulo: "Medidor generalizado, topes USD, consumo_motor, eventos", estado: pendiente}
+    - {id: P13-6, titulo: "Integracion en el runner (perfil por oficina, herencia del global)", estado: pendiente}
+    - {id: P13-7, titulo: "UI: Configuracion Motor de IA, pestana Motor por oficina, insignia en Corrida", estado: pendiente}
+    - {id: P13-8, titulo: "Calidad por proveedor con casos dorados (aprobado/solo_apoyo)", estado: pendiente}
+    - {id: P13-9, titulo: "Guia de pasos manuales, gates, Save Point", estado: pendiente}
+
+  P14-rediseno-ux-ui:
+    - {id: P14-D0, titulo: "Direccion: PRODUCT.md, DESIGN.md, 3 propuestas visuales y decision del dueno", estado: pendiente, plan: "02-framework/p14-rediseno-ux-ui-plan.md"}
+    - {id: P14-D1, titulo: "Auditoria con skills (impeccable audit/critique, deslop, ui-ux-pro-max) y capturas de referencia", estado: pendiente}
+    - {id: P14-D2, titulo: "Fundaciones: tokens, tipografia local, iconos, modo oscuro, reduced-motion", estado: pendiente}
+    - {id: P14-D3, titulo: "Componentes base (Button, Card, Badge de nivel, Input, Tabla, Tabs, Dialog, EmptyState)", estado: pendiente}
+    - {id: P14-D4, titulo: "Navegacion y shell: sidebar agrupado, Ctrl+K, migas, avisos", estado: pendiente}
+    - {id: P14-D5, titulo: "Paginas clave: Inicio, Prospectos, Detalle, Embudo, Corrida", estado: pendiente}
+    - {id: P14-D6, titulo: "Paginas de gestion: Edificio, Directorio, Datos, Biblioteca, Prompts, Habilidades, Aprendizaje, Salidas, Actividad, Configuracion", estado: pendiente}
+    - {id: P14-D7, titulo: "Movimiento: coreografia de entradas, listas, estados y feedback", estado: pendiente}
+    - {id: P14-D8, titulo: "Escena 3D: direccion de arte, iluminacion, HUD, preloader, camara de entrada, THREE.Timer", estado: pendiente}
+    - {id: P14-D9, titulo: "3D: personajes, muebles y utileria v2 con instancing", estado: pendiente}
+    - {id: P14-D10, titulo: "3D: efectos de actividad, edificio multipiso, controles integrados", estado: pendiente}
+    - {id: P14-D11, titulo: "Rendimiento 3D (threejs-performance), accesibilidad AA", estado: pendiente}
+    - {id: P14-D12, titulo: "Quality Gate, pre-deploy, guia de diseno, Save Point", estado: pendiente}

@@ -29,6 +29,7 @@ import {
   registrarQa,
 } from '../services/prospectos';
 import { z } from 'zod';
+import { bloqueosDeCalidad } from '../services/calidad';
 import { agentExtra } from './agent-extra';
 import { agentFuentes } from './agent-fuentes';
 import { agentHerramientas } from './agent-herramientas';
@@ -236,6 +237,14 @@ export function agentRouter(d: Deps): Router {
     '/qa',
     ah((q, res) => {
       const qa = parse(revisionQaInput, q.body);
+      if (qa.aprobado) {
+        const bloqueos = bloqueosDeCalidad(db, qa.prospecto_id, qa.etapa);
+        if (bloqueos.length > 0)
+          throw new HttpError(
+            409,
+            `No se puede aprobar (${qa.etapa.toUpperCase()}): ${bloqueos.join('; ')}. Rechaza con crm_qa aprobado=false, devolviendo al agente responsable.`,
+          );
+      }
       const out = registrarQa(db, qa);
       log(
         q,

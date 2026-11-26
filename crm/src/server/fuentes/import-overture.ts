@@ -4,7 +4,7 @@ import type { Db } from '../db';
 import { derivarZona, norm } from '../services/zona';
 import { giroDeCategoria } from './categorias';
 import { guardarDataset, type RegistroDataset } from './dataset';
-import { lineas } from './lector';
+import { lineasPlanas } from './lector';
 import { correoNorm, nombreNorm, telefonoNorm, webNorm } from './normalizar';
 import { esGobierno } from './scian';
 import type { ResumenImport } from './import-denue';
@@ -23,8 +23,10 @@ const licenciaDe = (dataset: string): string =>
 
 // Esquema tolerante: el de Overture ha cambiado entre versiones; solo exigimos lo mínimo.
 const feature = z.object({
+  // Desde 2026 el id va en el Feature; en liberaciones anteriores iba dentro de properties.
+  id: z.string().nullish(),
   properties: z.object({
-    id: z.string(),
+    id: z.string().nullish(),
     names: z.object({ primary: z.string().nullish() }).nullish(),
     categories: z.object({ primary: z.string().nullish() }).nullish(),
     taxonomy: z.object({ primary: z.string().nullish() }).nullish(),
@@ -72,6 +74,8 @@ export function filaOverture(
   const f = feature.safeParse(json);
   if (!f.success) return { descarte: 'formato' };
   const p = f.data.properties;
+  const id = f.data.id ?? p.id;
+  if (!id) return { descarte: 'formato' };
   const nombre = p.names?.primary?.trim();
   if (!nombre) return { descarte: 'sin_nombre' };
   if (p.operating_status && p.operating_status !== 'open') return { descarte: 'cerrado' };
@@ -96,7 +100,7 @@ export function filaOverture(
   const municipio = zona.municipio ?? dir?.locality ?? null;
   return {
     fuente_id: 'overture_local',
-    registro_id: p.id,
+    registro_id: id,
     nombre,
     nombre_norm: nombreNorm(nombre),
     scian: null,
@@ -117,7 +121,7 @@ export function filaOverture(
     lng: lng ?? null,
     licencia: licenciaDe(dataset),
     atribucion: `© Overture Maps Foundation (origen: ${dataset}, liberación ${version})`,
-    url: `https://explorer.overturemaps.org/?id=${encodeURIComponent(p.id)}`,
+    url: `https://explorer.overturemaps.org/?id=${encodeURIComponent(id)}`,
   };
 }
 
@@ -130,7 +134,7 @@ export async function importarOverture(
   const min = o.confianza_min ?? 0.5;
   const resumen: ResumenImport = { leidos: 0, guardados: 0, descartados: {} };
   const registros: RegistroDataset[] = [];
-  for await (const l of lineas(archivo)) {
+  for await (const l of lineasPlanas(archivo)) {
     if (!l.trim() || l.trim() === ',') continue;
     resumen.leidos++;
     const r = filaOverture(l, min, o.version);

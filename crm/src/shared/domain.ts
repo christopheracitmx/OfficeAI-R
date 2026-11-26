@@ -69,8 +69,8 @@ export const AGENTES = [
 export type Agente = (typeof AGENTES)[number];
 
 export function nivelPorScore(score: number): Nivel {
-  if (score >= 75) return 'A';
-  if (score >= 50) return 'B';
+  if (score >= 80) return 'A';
+  if (score >= 60) return 'B';
   return 'C';
 }
 

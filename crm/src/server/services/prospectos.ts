@@ -1,4 +1,5 @@
 import type { z } from 'zod';
+import { bloqueosDeCalidad, scoreMinimoCorreo } from './calidad';
 import type { Db } from '../db';
 import { nowIso } from '../db';
 import { nivelPorScore } from '../../shared/domain';
@@ -54,7 +55,26 @@ export function guardarPropuestas(db: Db, p: Propuestas): number {
   return id;
 }
 
-export function guardarScore(db: Db, s: z.infer<typeof scoreInput>): { nivel: string } {
+/** Descarta el prospecto y su empresa (no se avisa por correo ni queda como prospecto activo). */
+export function descartarProspecto(db: Db, prospectoId: number, motivo: string): void {
+  const p = db.prepare('SELECT empresa_id FROM prospectos WHERE id = ?').get(prospectoId) as
+    { empresa_id: number } | undefined;
+  if (!p) return;
+  db.transaction(() => {
+    db.prepare("UPDATE prospectos SET estado='Descartado', actualizado_en=? WHERE id=?").run(
+      nowIso(),
+      prospectoId,
+    );
+    db.prepare(
+      "UPDATE empresas SET etapa='descartada', descartada_motivo='otro', origen_nota=COALESCE(origen_nota,'') || ?, actualizado_en=? WHERE id=?",
+    ).run(` [${motivo}]`, nowIso(), p.empresa_id);
+  })();
+}
+
+export function guardarScore(
+  db: Db,
+  s: z.infer<typeof scoreInput>,
+): { nivel: string; descartado?: true; aviso?: string } {
   const nivel = nivelPorScore(s.score);
   const r = db
     .prepare(
@@ -70,6 +90,16 @@ export function guardarScore(db: Db, s: z.infer<typeof scoreInput>): { nivel: st
       s.prospecto_id,
     );
   if (r.changes === 0) throw new Error('Prospecto no encontrado');
+  // Calidad por código: bajo el mínimo no vale la pena redactar, revisar ni avisar.
+  const min = scoreMinimoCorreo(db);
+  if (s.score < min) {
+    descartarProspecto(db, s.prospecto_id, `Score ${s.score} por debajo del mínimo (${min})`);
+    return {
+      nivel,
+      descartado: true,
+      aviso: `Score ${s.score} < ${min}: el prospecto quedó DESCARTADO. No redactes reporte ni sigas; termina.`,
+    };
+  }
   return { nivel };
 }
 
@@ -145,7 +175,7 @@ function ultimaQaAprobada(db: Db, prospectoId: number, etapa: string): boolean {
 
 export type ResultadoFinalizar =
   | { ok: true; envios_creados: number; sin_destinatarios: boolean }
-  | { ok: false; razones: string[] };
+  | { ok: false; razones: string[]; descartado?: true };
 
 /** Guarda primero, avisa después: marca Reportado y deja los envíos en cola (outbox). */
 export function finalizarProspecto(db: Db, prospectoId: number): ResultadoFinalizar {
@@ -162,6 +192,15 @@ export function finalizarProspecto(db: Db, prospectoId: number): ResultadoFinali
     | undefined;
   if (!p) return { ok: false, razones: ['Prospecto no encontrado'] };
   const razones: string[] = [];
+  // Puerta de calidad: bajo el score mínimo NO se envía y NO se conserva como prospecto (evita llenar la base de basura).
+  const min = scoreMinimoCorreo(db);
+  if (p.score !== null && p.score < min) {
+    const motivo = `Score ${p.score} por debajo del mínimo (${min}): descartado automáticamente`;
+    descartarProspecto(db, prospectoId, motivo);
+    return { ok: false, razones: [motivo], descartado: true };
+  }
+  const bloqueos = bloqueosDeCalidad(db, prospectoId, 'qa2');
+  for (const b of bloqueos) razones.push(b);
   if (p.estado === 'Revision humana') razones.push('El prospecto está en revisión humana');
   if (!ultimaQaAprobada(db, prospectoId, 'qa1')) razones.push('Falta aprobación de QA-1');
   if (!ultimaQaAprobada(db, prospectoId, 'qa2')) razones.push('Falta aprobación de QA-2');

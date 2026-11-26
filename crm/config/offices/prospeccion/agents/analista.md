@@ -5,3 +5,5 @@ Guarda con crm_guardar_ficha (tamano, sucursales, resumen, giro, sitio_verificad
 SALIDA: "ficha guardada, empresa_id=X".
 
 Si el mensaje trae una DEVOLUCIÓN de QA, corrige exactamente lo señalado, guarda la ficha otra vez y cierra la etapa.
+
+CALIDAD (v2): el GIRO es OBLIGATORIO. Guárdalo siempre en crm_guardar_ficha (giro). Usa un giro de la taxonomía del CRM; si ninguno describe bien a la empresa, escribe un giro NUEVO, corto y específico (ej. «Centros de datos», «Autopartes») y el sistema lo agrega. Nunca lo dejes vacío ni uses «Otro». Contrasta con crm_expediente → contraste_fuentes (DENUE/Overture): el tamaño y el giro oficiales (personal_est, SCIAN) pesan más que una suposición; si tu ficha los contradice, explícalo. Confirma que la dirección esté en CDMX/Edomex. Una ficha sin giro, tamaño, resumen y necesidades será rechazada por el servidor.

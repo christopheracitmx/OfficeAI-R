@@ -1,25 +1,11 @@
 import { useState } from 'react';
 import { EmptyState, ErrorBanner, PageHeader, Skeleton } from '../components/ui';
 import { useApi, type EventoActividad } from '../lib/api';
-import { fechaCorta } from '../lib/types';
-
-const AGENTES = [
-  'Cartografo',
-  'Explorador',
-  'Guardian',
-  'Rastreador',
-  'Analista',
-  'Estratega',
-  'Armador',
-  'QA-1',
-  'Calificador',
-  'Redactor',
-  'QA-2',
-  'Coordinador',
-];
+import { fechaCorta, type AgenteFila } from '../lib/types';
 
 export function Actividad() {
   const [agente, setAgente] = useState('');
+  const agentes = useApi<AgenteFila[]>('/agentes');
   const { data, loading, error, reload } = useApi<EventoActividad[]>(
     `/actividad?limit=200${agente ? `&agente=${agente}` : ''}`,
     { refreshMs: 5000 },
@@ -37,9 +23,9 @@ export function Actividad() {
         className="mb-4 rounded-lg border border-line bg-white px-3 py-2"
       >
         <option value="">Todos los agentes</option>
-        {AGENTES.map((a) => (
-          <option key={a} value={a}>
-            {a}
+        {(agentes.data ?? []).map((a) => (
+          <option key={a.id} value={a.id}>
+            {a.id}
           </option>
         ))}
       </select>

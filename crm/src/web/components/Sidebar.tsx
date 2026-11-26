@@ -1,14 +1,18 @@
 import { NavLink } from 'react-router-dom';
 import { useApi } from '../lib/api';
 import type { ConteoLeccionesUi, Dashboard, EstadoApp } from '../lib/types';
+import { OFICINA_PRINCIPAL } from '../lib/oficinaActiva';
+import { useOficinaActual } from '../lib/useOficinas';
 import { PlanMedidor } from './PlanMedidor';
+import { SelectorPiso } from './SelectorPiso';
 import { cx } from './ui';
 
 const ITEMS = [
   { to: '/', etiqueta: 'Inicio', icono: '◧' },
-  { to: '/prospectos', etiqueta: 'Prospectos', icono: '◉', badge: 'sinVer' },
-  { to: '/embudo', etiqueta: 'Embudo', icono: '▥' },
-  { to: '/directorio', etiqueta: 'Directorio', icono: '▤' },
+  { to: '/edificio', etiqueta: 'Edificio', icono: '▦' },
+  { to: '/prospectos', etiqueta: 'Prospectos', icono: '◉', badge: 'sinVer', soloProspeccion: true },
+  { to: '/embudo', etiqueta: 'Embudo', icono: '▥', soloProspeccion: true },
+  { to: '/directorio', etiqueta: 'Directorio', icono: '▤', soloProspeccion: true },
   { to: '/oficina', etiqueta: 'Ver oficina', icono: '✦', badge: 'activa' },
   { to: '/corrida', etiqueta: 'Corrida', icono: '▶' },
   { to: '/biblioteca', etiqueta: 'Biblioteca', icono: '▣' },
@@ -27,6 +31,8 @@ export function Sidebar() {
   const sinVer = dash.data?.sin_ver ?? 0;
   const porRevisar = lecciones.data?.propuestas ?? 0;
   const activa = Boolean(estado.data?.corrida_activa);
+  const { id: oficinaId, oficina } = useOficinaActual();
+  const items = ITEMS.filter((it) => !('soloProspeccion' in it) || oficinaId === OFICINA_PRINCIPAL);
   return (
     <aside className="flex h-full w-[220px] shrink-0 flex-col bg-deep text-ice">
       <div className="p-4">
@@ -37,7 +43,10 @@ export function Sidebar() {
             className="mx-auto h-12 w-auto"
           />
         </div>
-        <p className="mt-3 text-center text-xs tracking-wide text-ice/70">Oficina de Prospección</p>
+        <p className="mt-3 text-center text-xs tracking-wide text-ice/70">
+          {oficina?.nombre ?? 'Oficina'}
+        </p>
+        <SelectorPiso oscuro className="mt-2" />
       </div>
       {estado.data?.base_datos.modo === 'demo' && (
         <div
@@ -49,7 +58,7 @@ export function Sidebar() {
         </div>
       )}
       <nav className="flex-1 space-y-1 px-3" aria-label="Principal">
-        {ITEMS.map((it) => (
+        {items.map((it) => (
           <NavLink
             key={it.to}
             to={it.to}

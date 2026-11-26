@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { oficinaActiva, useOficinaActiva } from './oficinaActiva';
 
 export class ApiError extends Error {
   constructor(
@@ -12,7 +13,7 @@ export class ApiError extends Error {
 export async function api<T>(path: string, init?: { method?: string; body?: unknown }): Promise<T> {
   const res = await fetch(`/api${path}`, {
     method: init?.method ?? 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-office-id': oficinaActiva() },
     ...(init?.body === undefined ? {} : { body: JSON.stringify(init.body) }),
   });
   if (!res.ok) {
@@ -49,15 +50,18 @@ interface Resultado<T> {
 }
 
 /** Carga datos con estados loading/error y recarga manual o periódica. */
-export function useApi<T>(path: string, opts?: { refreshMs?: number }): UseApi<T> {
+export function useApi<T>(rutaBase: string, opts?: { refreshMs?: number }): UseApi<T> {
   const [res, setRes] = useState<Resultado<T> | null>(null);
+  // La oficina activa forma parte de la clave: al cambiar de piso todo se vuelve a cargar.
+  const oficina = useOficinaActiva();
+  const path = `${rutaBase}|${oficina}`;
   const [tick, setTick] = useState(0);
   const refreshMs = opts?.refreshMs;
 
   useEffect(() => {
     let vivo = true;
     const cargar = () => {
-      api<T>(path)
+      api<T>(rutaBase)
         .then((d) => vivo && setRes({ path, data: d, error: null }))
         .catch((e: unknown) => {
           if (!vivo) return;
@@ -72,7 +76,7 @@ export function useApi<T>(path: string, opts?: { refreshMs?: number }): UseApi<T
       vivo = false;
       clearInterval(t);
     };
-  }, [path, refreshMs, tick]);
+  }, [path, rutaBase, refreshMs, tick]);
 
   const actual = res && res.path === path ? res : null;
   return {
@@ -85,6 +89,7 @@ export function useApi<T>(path: string, opts?: { refreshMs?: number }): UseApi<T
 
 export interface EventoActividad {
   id: number;
+  office_id?: string;
   corrida_id: number | null;
   agente: string;
   accion: string;

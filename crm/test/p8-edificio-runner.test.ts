@@ -83,7 +83,7 @@ function montar() {
     dentro++;
     maximo = Math.max(maximo, dentro);
     const t0 = Date.now();
-    await dormir(40);
+    await dormir(250); // holgura: el test pregunta por el estado mientras la corrida sigue en curso
     llamadas.push({ officeId: i.officeId, tools: i.mcpEnv['CRM_TOOLS'] ?? '', t0, t1: Date.now() });
     dentro--;
     return { ok: true, salida: 'listo' };

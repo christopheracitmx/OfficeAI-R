@@ -11,9 +11,8 @@ if exist "%RAIZ%tools\node22\node.exe" (
   where node >nul 2>&1
   if errorlevel 1 (
     echo ERROR: no se encontro Node.js en este equipo.
-    echo Instala Node 22 LTS desde https://nodejs.org/en/download y abre una ventana nueva.
-    echo Detalle en GUIA-INSTALACION.md, seccion "Requisitos".
-    pause
+    echo Instala Node 22 LTS ^(enlaces en GUIA-INSTALACION.md, seccion 1.2^) y abre una ventana nueva.
+        pause
     exit /b 1
   )
 )
@@ -25,7 +24,7 @@ if %NODE_MAJOR% GTR 24 goto :nodemalo
 goto :nodeok
 :nodemalo
 echo ERROR: esta app requiere Node 22, 23 o 24 y tienes Node %NODE_MAJOR%. Recomendado: Node 22 LTS.
-echo Descargalo en https://nodejs.org/en/download y vuelve a abrir. Detalle en GUIA-INSTALACION.md.
+echo Instala Node 22 LTS desde https://nodejs.org/en/download/archive/v22.23.5 ^(ver GUIA-INSTALACION.md, seccion 1.2^) y vuelve a abrir.
 pause
 exit /b 1
 :nodeok
@@ -45,17 +44,21 @@ where claude >nul 2>&1
 if errorlevel 1 echo AVISO: no se encontro el comando "claude" (Claude Code). El CRM abre, pero los agentes no podran trabajar hasta instalarlo e iniciar sesion ^(GUIA-INSTALACION.md^).
 
 rem --- 4) Dependencias y compilacion (solo la primera vez o tras actualizar) ---
-if not exist "node_modules" call npm ci
-if errorlevel 1 (
-  echo ERROR: fallo "npm ci". Revisa la seccion "Solucion de problemas" de GUIA-INSTALACION.md.
-  pause
-  exit /b 1
+if not exist "node_modules" (
+  call npm ci
+  if errorlevel 1 (
+    echo ERROR: fallo "npm ci". Revisa la seccion "Solucion de problemas" de GUIA-INSTALACION.md.
+    pause
+    exit /b 1
+  )
 )
-if not exist "dist\web\index.html" call npm run build
-if errorlevel 1 (
-  echo ERROR: fallo "npm run build". Revisa GUIA-INSTALACION.md.
-  pause
-  exit /b 1
+if not exist "dist\web\index.html" (
+  call npm run build
+  if errorlevel 1 (
+    echo ERROR: fallo "npm run build". Revisa GUIA-INSTALACION.md.
+    pause
+    exit /b 1
+  )
 )
 
 rem --- 5) Puerto y arranque ---

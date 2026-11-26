@@ -55,7 +55,9 @@ export const UTILERIA = [
 ] as const;
 export const ILUMINACION = ['calida', 'neutra', 'fria'] as const;
 export const CALIDADES = ['alta', 'media', 'baja'] as const;
-export const CICLOS = ['dia', 'noche', 'auto'] as const;
+export const CICLOS = ['dia', 'noche', 'auto', 'hora'] as const;
+export const FACHADAS = ['vidrio', 'ladrillo', 'moderno'] as const;
+export const LOGOS = ['base', 'ninguno', 'url'] as const;
 export const GENEROS = ['f', 'm'] as const;
 
 export type Genero = (typeof GENEROS)[number];
@@ -76,6 +78,8 @@ export const aparienciaPersonaje = z.object({
   colorAccesorio: hex,
   expresion: z.enum(EXPRESIONES),
   altura: z.number().min(0.9).max(1.1),
+  /** Nombre visible en la escena (si falta, el del roster del agente). */
+  nombre: z.string().trim().min(1).max(40).optional(),
 });
 export type AparienciaPersonaje = z.infer<typeof aparienciaPersonaje>;
 
@@ -142,7 +146,7 @@ export type PaletaId = keyof typeof PALETAS;
 export const PALETA_IDS = Object.keys(PALETAS) as [PaletaId, ...PaletaId[]];
 
 export const aparienciaOficina = z.object({
-  paleta: z.enum(PALETA_IDS),
+  paleta: z.enum([...PALETA_IDS, 'personalizada']),
   colores: z.object({
     primario: hex,
     secundario: hex,
@@ -151,10 +155,41 @@ export const aparienciaOficina = z.object({
     piso: hex,
   }),
   ciclo: z.enum(CICLOS),
+  /** Hora fija (0-24) cuando ciclo = 'hora'. */
   hora: z.number().min(0).max(24),
   calidad: z.enum(CALIDADES),
+  /** Marca blanca: nombre que se muestra en el tótem y el modo presentación (vacío = nombre de la oficina). */
+  marca: z.string().trim().max(60).default(''),
+  /** `base` = el logo de la definición; `ninguno`; `url` = `logoUrl` (ruta propia o https). */
+  logo: z.enum(LOGOS).default('base'),
+  logoUrl: z
+    .string()
+    .max(200)
+    .regex(/^(\/[\w./-]*|https:\/\/\S+)?$/, 'Ruta que empiece con / o URL https')
+    .default(''),
+  /** Tamaño de la planta (celdas); null = el de la definición. Se valida contra las salas. */
+  planta: z
+    .object({ ancho: z.number().int().min(8).max(80), fondo: z.number().int().min(8).max(80) })
+    .nullable()
+    .default(null),
+  /** Fachada del edificio (corte de este piso en la vista del Edificio). */
+  fachada: z.object({ estilo: z.enum(FACHADAS), color: hex }).default({
+    estilo: 'vidrio',
+    color: '#0F3D47',
+  }),
 });
 export type AparienciaOficina = z.infer<typeof aparienciaOficina>;
+
+/** ¿Se ve de noche? Según el ciclo de la oficina (o la hora del reloj en `auto`). */
+export function esNoche(
+  a: Pick<AparienciaOficina, 'ciclo' | 'hora'>,
+  horaReloj = new Date().getHours(),
+): boolean {
+  const h = a.ciclo === 'hora' ? a.hora : horaReloj;
+  if (a.ciclo === 'noche') return true;
+  if (a.ciclo === 'dia') return false;
+  return h >= 19 || h < 7;
+}
 
 // ---- Defaults
 export function defaultPersonaje(cuerpo: Genero): AparienciaPersonaje {
@@ -200,7 +235,18 @@ export function defaultOficina(paleta: PaletaId = 'acitmx'): AparienciaOficina {
     fondo: p.fondo,
     piso: p.piso,
   };
-  return { paleta, colores, ciclo: 'dia', hora: 11, calidad: 'alta' };
+  return {
+    paleta,
+    colores,
+    ciclo: 'dia',
+    hora: 11,
+    calidad: 'alta',
+    marca: '',
+    logo: 'base',
+    logoUrl: '',
+    planta: null,
+    fachada: { estilo: 'vidrio', color: p.primario },
+  };
 }
 
 // ---- Contraste (rótulos siempre legibles aunque el usuario elija colores extremos)

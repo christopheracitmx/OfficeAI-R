@@ -38,10 +38,18 @@ export function elegir<T>(rng: Rng, lista: readonly T[]): T {
   return lista[Math.floor(rng() * lista.length) % lista.length] as T;
 }
 
-const CAMISAS = ['#00ADA9', '#007F7C', '#164E5A', '#F2B33D', '#E07A5F', '#5B8DEF', '#F4F8FA'];
-const PANTALONES = ['#0F3D47', '#2A2A2A', '#3D4C63', '#6B5B4B', '#22313F'];
-const ZAPATOS = ['#2A2A2A', '#5A3A22', '#F4F8FA', '#0F3D47'];
-const ACCENTOS_ACC = ['#1E1E1E', '#0F3D47', '#D64545', '#F2B33D', '#00ADA9'];
+export const CAMISAS = [
+  '#00ADA9',
+  '#007F7C',
+  '#164E5A',
+  '#F2B33D',
+  '#E07A5F',
+  '#5B8DEF',
+  '#F4F8FA',
+];
+export const PANTALONES = ['#0F3D47', '#2A2A2A', '#3D4C63', '#6B5B4B', '#22313F'];
+export const ZAPATOS = ['#2A2A2A', '#5A3A22', '#F4F8FA', '#0F3D47'];
+export const ACCENTOS_ACC = ['#1E1E1E', '#0F3D47', '#D64545', '#F2B33D', '#00ADA9'];
 const PEINADOS_F = ['largo', 'chongo', 'coleta', 'rizado', 'corto'] as const;
 const PEINADOS_M = ['corto', 'rizado', 'calvo', 'corto', 'largo'] as const;
 

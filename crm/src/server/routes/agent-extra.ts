@@ -6,6 +6,7 @@ import { agenteDe, oficinaAgente } from './agente-util';
 import { consumirPlaces, corridaActivaId, QuotaExceededError } from '../services/admin';
 import { buscarKb, leerKb } from '../services/kb-buscar';
 import { registrarActividad } from '../services/events';
+import { enviarAvisoCorreo } from '../services/avisos-email';
 import { procesarEnvios } from '../services/mailer';
 import { finalizarProspecto } from '../services/prospectos';
 import { ah, HttpError, parse, qstr, type Deps } from './util';
@@ -137,24 +138,30 @@ export function agentExtra(r: Router, d: Deps, log: Log): void {
     }),
   );
 
-  /** Aviso interno (se ve en la Actividad y en el piso 3D de la oficina). No sale por correo ni a terceros. */
+  /** Aviso interno: siempre en la Actividad (y el piso 3D); además por correo SOLO a destinatarios internos si el dueño activó el correo del piso. */
   r.post(
     '/notificar',
-    ah((q, res) => {
+    ah(async (q, res) => {
       const office = oficinaDe(q);
       const n = parse(
         z.object({ asunto: z.string().trim().min(2).max(80), texto: z.string().trim().max(500) }),
         q.body,
       );
-      res.status(201).json(
-        registrarActividad(db, bus, {
-          agente: agenteDe(q),
-          accion: `aviso interno: ${n.asunto}`,
-          detalle: n.texto,
-          office_id: office,
-          corrida_id: corridaActivaId(db, office),
-        }),
-      );
+      const evento = registrarActividad(db, bus, {
+        agente: agenteDe(q),
+        accion: `aviso interno: ${n.asunto}`,
+        detalle: n.texto,
+        office_id: office,
+        corrida_id: corridaActivaId(db, office),
+      });
+      const correo = await enviarAvisoCorreo(db, d.mailer, {
+        from: d.from,
+        office,
+        agente: agenteDe(q),
+        asunto: n.asunto,
+        texto: n.texto,
+      });
+      res.status(201).json({ ...(evento as object), correo });
     }),
   );
 }

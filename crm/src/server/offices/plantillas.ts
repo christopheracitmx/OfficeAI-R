@@ -1,3 +1,4 @@
+import { HERRAMIENTAS_BASE } from '../../shared/catalogo';
 import type { Workflow } from '../runner/workflow';
 import { validarWorkflow } from '../runner/workflow';
 
@@ -27,7 +28,7 @@ export function workflowVacio(id: string, nombre: string): Workflow {
           agente: 'Asistente',
           roles: ['Asistente'],
           prompts: ['asistente'],
-          herramientas: ['kb_buscar', 'kb_leer', 'obscura_extract', 'notificar_interno'],
+          herramientas: [...HERRAMIENTAS_BASE],
           web: false,
           max_turnos: 10,
           max_lecturas: 5,

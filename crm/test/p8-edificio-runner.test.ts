@@ -181,13 +181,21 @@ describe('P8 runner multi-oficina', () => {
     expect(so).toEqual([{ office_id: 'archivos' }, { office_id: 'noticias' }]);
   });
 
-  it('herramientas MCP por oficina: las oficinas nuevas solo reciben kb_*, web y aviso interno', async () => {
+  it('herramientas MCP por oficina: las oficinas nuevas solo reciben kb_*, coleccion_*, web y aviso interno (sin archivos_*)', async () => {
     const m = montar();
     await m.owner.post('/api/oficinas', { nombre: 'Noticias' });
     await m.owner.post('/api/corridas', corrida('noticias'));
     await m.runner.esperarFin();
     const tools = m.llamadas[0]!.tools.split(',').sort();
-    expect(tools).toEqual(['kb_buscar', 'kb_leer', 'notificar_interno', 'obscura_extract']);
+    expect(tools).toEqual([
+      'coleccion_buscar',
+      'coleccion_listar',
+      'coleccion_upsert',
+      'kb_buscar',
+      'kb_leer',
+      'notificar_interno',
+      'obscura_extract',
+    ]);
   });
 
   it('un workflow editado con crm_* no es ejecutable; el duplicado de prospección tampoco', async () => {

@@ -16,6 +16,7 @@ import { fijarOficinaActiva, useOficinaActiva } from '../lib/oficinaActiva';
 import { useOficinas, type Oficina } from '../lib/useOficinas';
 import { fechaCorta } from '../lib/types';
 import { DialogoOficina, type ModoDialogo } from './EdificioDialogos';
+import { EdificioPaquetes, EnlaceExportar } from './EdificioPaquetes';
 import { WorkflowEditor } from './WorkflowEditor';
 
 const ESTADO_CORRIDA: Record<string, string> = {
@@ -115,6 +116,7 @@ function Tarjeta({
         )}
         {!archivada && <Button onClick={() => onAccion('duplicar')}>Duplicar</Button>}
         <Button onClick={() => onAccion('renombrar')}>Renombrar</Button>
+        <EnlaceExportar id={o.id} />
         {!archivada && (
           <>
             <Button
@@ -158,6 +160,7 @@ export function Edificio() {
   const [dialogo, setDialogo] = useState<{ modo: ModoDialogo; o: Oficina | null } | null>(null);
   const [archivar, setArchivar] = useState<Oficina | null>(null);
   const [flujo, setFlujo] = useState<Oficina | null>(null);
+  const [galeria, setGaleria] = useState(false);
 
   const recargar = () => {
     lista.reload();
@@ -210,6 +213,7 @@ export function Edificio() {
             >
               Ver edificio en 3D
             </Link>
+            <Button onClick={() => setGaleria(true)}>Galería e importar</Button>
             <Button variante="primario" onClick={() => setDialogo({ modo: 'crear', o: null })}>
               Nuevo piso
             </Button>
@@ -247,6 +251,16 @@ export function Edificio() {
             ))}
           </div>
         </>
+      )}
+      {galeria && (
+        <EdificioPaquetes
+          onCerrar={() => setGaleria(false)}
+          onHecho={(msg) => {
+            setGaleria(false);
+            toast(msg);
+            recargar();
+          }}
+        />
       )}
       {dialogo && (
         <DialogoOficina

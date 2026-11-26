@@ -27,6 +27,8 @@ export function createApp(d: Deps): express.Express {
   const app = express();
   app.disable('x-powered-by');
   // Orden canónico: json → cors → helmet → morgan → rutas → notFound → errorHandler
+  // Los paquetes de oficina admiten cuerpos más grandes (se vuelven a limitar al validar).
+  app.use('/api/paquetes', express.json({ limit: '2mb' }));
   app.use(express.json({ limit: '256kb' }));
   app.use(cors({ origin: d.uiOrigins }));
   app.use(helmet({ contentSecurityPolicy: false }));
@@ -67,6 +69,11 @@ export function createApp(d: Deps): express.Express {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onError: ErrorRequestHandler = (err, _req, res, _next) => {
     if (err instanceof HttpError) return void res.status(err.status).json({ error: err.message });
+    const tipo = (err as { type?: string } | null)?.type;
+    if (tipo === 'entity.too.large')
+      return void res.status(413).json({ error: 'El contenido enviado es demasiado grande' });
+    if (tipo === 'entity.parse.failed')
+      return void res.status(400).json({ error: 'El contenido no es JSON válido' });
     console.error('[error]', err);
     res.status(500).json({ error: 'Error interno' });
   };

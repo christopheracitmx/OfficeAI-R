@@ -62,7 +62,7 @@ export function crearRunner(o: OpcionesRunner): RunnerEdificio {
     const def: OficinaDef =
       id === OFFICE_ID
         ? oficinaProspeccion(wf, { mailer: o.mailer, from: o.from, baseUrl: o.baseUrl })
-        : { workflow: wf, ganchos: {}, herramientas: herramientasPermitidas(id) };
+        : { workflow: wf, ganchos: {}, herramientas: herramientasPermitidas(o.db, id) };
     return new Runner({
       db: o.db,
       bus: o.bus,
@@ -78,7 +78,7 @@ export function crearRunner(o: OpcionesRunner): RunnerEdificio {
     const of = obtenerOficina(o.db, id);
     if (!of || of.estado !== 'activa') throw new Error('La oficina está archivada');
     const wf = edificio.oficina(id)?.workflow;
-    const mal = wf ? herramientasNoPermitidas(wf, id) : [];
+    const mal = wf ? herramientasNoPermitidas(o.db, wf, id) : [];
     if (mal.length > 0)
       throw new Error(
         `El flujo usa herramientas no permitidas en esta oficina (${mal.join(', ')}). Edítalo en la vista avanzada.`,

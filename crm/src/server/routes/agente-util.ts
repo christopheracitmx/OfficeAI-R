@@ -5,7 +5,7 @@ import { AGENTES } from '../../shared/domain';
 export const oficinaAgente = (req: Request): string => req.header('x-office-id') || 'prospeccion';
 
 /** Rutas de agente que sirven a cualquier oficina; todo lo demás (crm_*) es solo de prospección. */
-export const RUTAS_COMUNES = /^\/(kb\/|actividad$|notificar$)/;
+export const RUTAS_COMUNES = /^\/(kb\/|actividad$|notificar$|coleccion\/|archivos\/)/;
 
 export function agenteDe(req: Request): string {
   const n = req.header('x-agent-name') ?? '';

@@ -17,6 +17,7 @@ const ITEMS = [
   { to: '/personalizar', etiqueta: 'Personalizar', icono: '✿' },
   { to: '/corrida', etiqueta: 'Corrida', icono: '▶' },
   { to: '/biblioteca', etiqueta: 'Biblioteca', icono: '▣' },
+  { to: '/datos', etiqueta: 'Datos', icono: '▧' },
   { to: '/prompts', etiqueta: 'Prompts', icono: '✎' },
   { to: '/habilidades', etiqueta: 'Habilidades', icono: '★' },
   { to: '/aprendizaje', etiqueta: 'Aprendizaje', icono: '✧', badge: 'lecciones' },

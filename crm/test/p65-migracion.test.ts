@@ -26,7 +26,12 @@ describe('P6.5 migración 005 conserva los datos', () => {
     db.prepare(
       "INSERT INTO lecciones (office_id, agente, tipo, texto, estado, origen, creado_en) VALUES ('prospeccion','Redactor','acierto','Lección previa del dueño.','aprobada','manual','2026-05-01')",
     ).run();
-    expect(migrate(db)).toEqual(['005_aprendizaje.sql', '006_edificio.sql', '007_apariencias.sql']);
+    expect(migrate(db)).toEqual([
+      '005_aprendizaje.sql',
+      '006_edificio.sql',
+      '007_apariencias.sql',
+      '008_p10_herramientas.sql',
+    ]);
     expect(
       db.prepare('SELECT texto, estado, version, actualizado_en FROM lecciones').get(),
     ).toEqual({

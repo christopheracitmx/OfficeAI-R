@@ -68,7 +68,7 @@ export function oficinasRouter(d: Deps): Router {
       ).n;
     const total = tokens();
     const wf = workflowDe(id);
-    const mal = wf ? herramientasNoPermitidas(wf, id) : [];
+    const mal = wf ? herramientasNoPermitidas(db, wf, id) : [];
     const advertencias = [
       ...(wf ? [] : ['El workflow no se pudo cargar: edítalo en la vista avanzada']),
       ...(mal.length > 0

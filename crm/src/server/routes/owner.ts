@@ -22,6 +22,9 @@ import { cerebroRouter } from './cerebro';
 import { corridasRouter } from './corridas';
 import { aparienciasRouter } from './apariencias';
 import { oficinasRouter } from './oficinas';
+import { ajustesRouter } from './oficinas-ajustes';
+import { coleccionesRouter } from './colecciones';
+import { paquetesRouter } from './paquetes';
 import { datosRouter } from './datos';
 import { ah, HttpError, idParam, oficinaDe, parse, qstr, type Deps } from './util';
 
@@ -188,6 +191,9 @@ export function ownerRouter(d: Deps): Router {
   r.use(cerebroRouter(d));
   r.use(oficinasRouter(d));
   r.use(aparienciasRouter(d));
+  r.use(ajustesRouter(d));
+  r.use(coleccionesRouter(d));
+  r.use(paquetesRouter(d));
 
   // ---- Configuración
   r.get(

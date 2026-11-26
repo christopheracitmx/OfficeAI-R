@@ -30,6 +30,7 @@ import {
 } from '../services/prospectos';
 import { z } from 'zod';
 import { agentExtra } from './agent-extra';
+import { agentHerramientas } from './agent-herramientas';
 import { agenteDe, oficinaAgente, RUTAS_COMUNES } from './agente-util';
 import { ah, HttpError, idParam, parse, qstr, type Deps } from './util';
 
@@ -247,6 +248,7 @@ export function agentRouter(d: Deps): Router {
   );
 
   agentExtra(r, d, log);
+  agentHerramientas(r, d);
 
   return r;
 }

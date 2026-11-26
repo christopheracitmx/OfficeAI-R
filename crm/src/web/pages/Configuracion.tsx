@@ -6,6 +6,7 @@ import type { Config, Destinatario, EstadoApp } from '../lib/types';
 
 import { NoContactar, Giros, inp } from './ConfListas';
 import { ConfCambios } from './ConfCambios';
+import { ConfHerramientas } from './ConfHerramientas';
 import { ConfPlan } from './ConfPlan';
 import { ConfRespaldos } from './ConfRespaldos';
 
@@ -14,6 +15,7 @@ const TABS = [
   'Corridas',
   'Cuotas y motor',
   'Plan y reserva',
+  'Herramientas del piso',
   'No contactar',
   'Giros',
   'Respaldos',
@@ -265,6 +267,7 @@ export function Configuracion() {
         ))}
       </div>
       {tab === 'Correos de reportes' && <Correos />}
+      {tab === 'Herramientas del piso' && <ConfHerramientas />}
       {tab === 'Corridas' && <Corridas />}
       {tab === 'Cuotas y motor' && <Cuotas />}
       {tab === 'Plan y reserva' && <ConfPlan />}

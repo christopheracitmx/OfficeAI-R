@@ -209,3 +209,18 @@ segmentation:
     - {id: P9-4, titulo: "UI Personalizar: pestañas Personajes/Salas/Oficina, controles accesibles, vista previa 3D, plano numérico", estado: hecho, commit: 9424ca9}
     - {id: P9-5, titulo: "Presets, equipo (uniforme/casual/formal/aleatorio 50/50), versiones, humo 3D real con capturas", estado: hecho, commit: 9424ca9}
     - {id: P9-6, titulo: "Gates, guía, meta-dungeon, Save Point", estado: hecho, commit: "git log: docs(P9)"}
+
+  P10a-herramientas:
+    - {id: P10a-1, titulo: "Migración 008 + colecciones tipadas (dedup, historial, archivo, CSV seguro) + API dueño + MCP coleccion_*", estado: hecho, commit: "git log: feat(P10a)"}
+    - {id: P10a-2, titulo: "archivos_* en sandbox (carpetas autorizadas, cuarentena reversible, log) + MCP", estado: hecho, commit: "git log: feat(P10a)"}
+    - {id: P10a-3, titulo: "notificar_interno por correo (outbox + guardia del mailer)", estado: hecho, commit: "git log: feat(P10a)"}
+    - {id: P10a-4, titulo: "Catálogo único de herramientas + candados + herramientas por piso", estado: hecho, commit: "git log: feat(P10a)"}
+    - {id: P10a-5, titulo: "Paquete de oficina JSON (export/import/vista previa) + galería de 4 plantillas", estado: hecho, commit: "git log: feat(P10a)"}
+    - {id: P10a-6, titulo: "UI Datos, Configuración > Herramientas del piso, Edificio galería/importar/exportar", estado: hecho, commit: "git log: feat(P10a)"}
+    - {id: P10a-7, titulo: "Tests (32 nuevos), gates y Save Point P10a", estado: hecho, commit: "git log: docs(P10a)"}
+
+  P10b-constructor:
+    - {id: P10b-1, titulo: "Núcleo: borrador, compilación a paquete validado, generador 3D", estado: hecho, commit: "git log: feat(P10a)"}
+    - {id: P10b-2, titulo: "Prompt Arquitecta, sesiones, motor conversacional (IA + formulario), rutas", estado: pendiente}
+    - {id: P10b-3, titulo: "UI Nuevo piso (9 fases) + vista previa 3D", estado: pendiente}
+    - {id: P10b-4, titulo: "Tests CLI simulado, humo 3D 4099, gates, Quality Gate, pre-deploy, docs, Save Point final", estado: pendiente}

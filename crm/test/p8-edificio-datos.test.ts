@@ -45,7 +45,7 @@ describe('P8 migración 006: conserva los datos de prospección', () => {
       INSERT INTO kb_documentos (office_id, tipo, titulo, contenido_md, creado_en, actualizado_en) VALUES ('prospeccion','voz','Tono','Hablar de tú','2026-01-01','2026-01-01');
       INSERT INTO lecciones (office_id, agente, tipo, texto, estado, origen, creado_en) VALUES ('prospeccion','Redactor','acierto','Sé breve','aprobada','manual','2026-01-01');
     `);
-    expect(migrate(db)).toEqual(['006_edificio.sql']);
+    expect(migrate(db)).toEqual(['006_edificio.sql', '007_apariencias.sql']);
     expect(db.prepare('SELECT nombre, office_id FROM empresas').get()).toEqual({
       nombre: 'Acme Logística SA',
       office_id: 'prospeccion',

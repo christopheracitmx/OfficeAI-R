@@ -6,6 +6,7 @@ import { nowIso } from '../db';
 import { PROMPT_ASISTENTE_VACIO, PROMPT_COMUN_VACIO, workflowVacio } from '../offices/plantillas';
 import type { Workflow } from '../runner/workflow';
 import { validarWorkflow } from '../runner/workflow';
+import { copiarApariencias } from './apariencias-equipo';
 import { registrarCambio } from './cambios';
 import { KbError } from './kb';
 import {
@@ -98,6 +99,8 @@ function duplicar(
         office: { ...def.office, id, nombre: i.nombre, piso: pisoDe(db, id) ?? 1 },
       }),
     );
+  // Apariencias (personajes, salas, oficina y presets propios) viajan con el duplicado.
+  copiarApariencias(db, origen, id);
 }
 
 function copiarBiblioteca(db: Db, origen: string, id: string, t: string): void {

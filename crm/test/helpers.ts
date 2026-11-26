@@ -32,25 +32,37 @@ export function harness() {
     env: { NODE_ENV: 'test' },
   });
   const api = request(app);
-  const owner = {
-    get: (u: string) => api.get(u).set('Origin', UI),
-    post: (u: string, b?: object) =>
-      api
-        .post(u)
-        .set('Origin', UI)
-        .send(b ?? {}),
-    patch: (u: string, b?: object) =>
-      api
-        .patch(u)
-        .set('Origin', UI)
-        .send(b ?? {}),
-    put: (u: string, b?: object) =>
-      api
-        .put(u)
-        .set('Origin', UI)
-        .send(b ?? {}),
-    del: (u: string) => api.delete(u).set('Origin', UI),
+  const duenoDe = (office?: string) => {
+    const con = (r: request.Test) => (office ? r.set('x-office-id', office) : r);
+    return {
+      get: (u: string) => con(api.get(u).set('Origin', UI)),
+      post: (u: string, b?: object) =>
+        con(
+          api
+            .post(u)
+            .set('Origin', UI)
+            .send(b ?? {}),
+        ),
+      patch: (u: string, b?: object) =>
+        con(
+          api
+            .patch(u)
+            .set('Origin', UI)
+            .send(b ?? {}),
+        ),
+      put: (u: string, b?: object) =>
+        con(
+          api
+            .put(u)
+            .set('Origin', UI)
+            .send(b ?? {}),
+        ),
+      del: (u: string) => con(api.delete(u).set('Origin', UI)),
+    };
   };
+  const owner = duenoDe();
+  /** Igual que `owner` pero para otra oficina (encabezado x-office-id). */
+  const ownerEn = duenoDe;
   const agent = (name = 'Coordinador') => ({
     get: (u: string) =>
       api.get(`/api/agent${u}`).set('x-agent-token', TOKEN).set('x-agent-name', name),
@@ -61,7 +73,7 @@ export function harness() {
         .set('x-agent-name', name)
         .send(b ?? {}),
   });
-  return { db, mailer, bus, api, owner, agent };
+  return { db, mailer, bus, api, owner, ownerEn, agent };
 }
 
 export type H = ReturnType<typeof harness>;

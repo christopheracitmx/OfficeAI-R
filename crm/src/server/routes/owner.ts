@@ -20,6 +20,7 @@ import { assertDestinoPermitido, procesarEnvios } from '../services/mailer';
 import { aprendizajeRouter } from './aprendizaje';
 import { cerebroRouter } from './cerebro';
 import { corridasRouter } from './corridas';
+import { aparienciasRouter } from './apariencias';
 import { oficinasRouter } from './oficinas';
 import { datosRouter } from './datos';
 import { ah, HttpError, idParam, oficinaDe, parse, qstr, type Deps } from './util';
@@ -186,6 +187,7 @@ export function ownerRouter(d: Deps): Router {
   r.use(corridasRouter(d));
   r.use(cerebroRouter(d));
   r.use(oficinasRouter(d));
+  r.use(aparienciasRouter(d));
 
   // ---- Configuración
   r.get(

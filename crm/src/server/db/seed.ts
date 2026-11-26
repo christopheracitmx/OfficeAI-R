@@ -1,4 +1,5 @@
 import type Database from 'better-sqlite3';
+import { PRESETS_BASE } from '../../shared/oficina3d/aleatorio-lugares';
 
 export const GIROS_INICIALES = [
   'Manufactura',
@@ -43,4 +44,19 @@ export function seed(db: Database.Database): void {
     }
   });
   tx();
+  sembrarPresets(db);
+}
+
+/** Presets de apariencia de fábrica (idempotente: por tipo y nombre, solo los `builtin`). */
+function sembrarPresets(db: Database.Database): void {
+  const existe = db.prepare(
+    'SELECT 1 FROM presets_apariencia WHERE builtin = 1 AND tipo = ? AND nombre = ?',
+  );
+  const ins = db.prepare(
+    "INSERT INTO presets_apariencia (tipo, nombre, json, builtin, office_id, creado_en) VALUES (?, ?, ?, 1, NULL, strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+  );
+  db.transaction(() => {
+    for (const p of PRESETS_BASE)
+      if (!existe.get(p.tipo, p.nombre)) ins.run(p.tipo, p.nombre, JSON.stringify(p.json));
+  })();
 }

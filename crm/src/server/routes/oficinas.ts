@@ -11,11 +11,11 @@ import { cargarWorkflowOficina } from '../offices/cargador';
 import { herramientasNoPermitidas } from '../offices/herramientas';
 import { validarConsultas, validarWorkflow, type Workflow } from '../runner/workflow';
 import { registrarCambio } from '../services/cambios';
+import { definicionEfectiva } from '../services/apariencias';
 import { KbError } from '../services/kb';
 import { crearOficina } from '../services/oficina-crear';
 import {
   archivarOficina,
-  definicionDe,
   listarOficinas,
   obtenerOficina,
   pisoDe,
@@ -167,7 +167,7 @@ export function oficinasRouter(d: Deps): Router {
   r.get(
     '/oficinas/:id/definicion',
     ah((q, res) => {
-      const def = definicionDe(db, existente(String(q.params['id'])));
+      const def = definicionEfectiva(db, existente(String(q.params['id'])));
       if (!def) throw new HttpError(404, 'Sin definición');
       res.json(def);
     }),

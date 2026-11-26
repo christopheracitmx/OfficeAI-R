@@ -89,3 +89,9 @@ En `crm\` (con `tools\node22` en el PATH): `npm run build` y luego `npx tsx test
 - **La IA atiende de una llamada a la vez en todo el edificio**: si dos pisos corren a la vez, esperan turno (cuida tu plan; el medidor y la reserva son globales).
 - **Flujo (avanzado)** en la tarjeta de un piso creado por ti: el flujo como JSON validado. Los pisos nuevos solo pueden usar Biblioteca, lectura web y aviso interno. Al duplicar Prospección el flujo copiado usa herramientas del CRM y no se podrá iniciar hasta editarlo (el Constructor de oficinas, futuro, lo hará guiado).
 - Tu base se migra sola al abrir el CRM (hay respaldo automático previo en `crm\data\backups`); tus prospectos quedan en el piso de Prospección.
+
+## 3h. Personalizar (apariencia de personajes, salas y oficina)
+
+En la barra lateral, **Personalizar** (también desde "Ver oficina" y el panel de cada agente). Tres pestañas: Personajes, Salas y Oficina. Cada cambio se ve al instante en la vista previa 3D y se guarda solo; hay Deshacer/Rehacer, Versiones, Comparar con default, Aleatorio, Guardar como preset, Importar y Exportar. Los presets de equipo (uniforme, casual, formal, aleatorio 50/50) están arriba en Personajes.
+
+Para ver esta función en tu CRM real: **cierra y vuelve a abrir el CRM** (iniciar-crm.bat). Al arrancar aplica la migración 007 conservando tus datos (hace un respaldo automático antes). El editor de salas usa tamaño y posición numéricos; arrastrar y soltar queda como mejora.

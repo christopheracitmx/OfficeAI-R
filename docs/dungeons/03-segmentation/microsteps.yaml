@@ -201,3 +201,11 @@ segmentation:
     - {id: P8E-3, titulo: "UI: selector de piso global, pantalla Edificio, diálogos, editor de flujo, corrida genérica", estado: hecho, commit: 7ced6ac}
     - {id: P8E-4, titulo: "3D Edificio, selector de piso en la oficina, PageUp/PageDown, humo con capturas", estado: hecho, commit: "git log: feat(P8-edificio 4-5)"}
     - {id: P8E-5, titulo: "Pruebas, gates, guía, meta-dungeon y Save Point", estado: hecho, commit: "git log: feat(P8-edificio 4-5)"}
+
+  P9-personalizador:
+    - {id: P9-1, titulo: "Esquema de apariencia ampliado, composición por capas, validación de plano, aleatorio por campo", estado: hecho, commit: 0d7ab46}
+    - {id: P9-2, titulo: "Migración 007 (apariencias, presets), versiones/rollback, API, presets import/export, copia al duplicar piso", estado: hecho, commit: 9841484}
+    - {id: P9-3, titulo: "Escena aplica apariencias (luz por sala, marca blanca, fachada, ciclo/calidad) con compartición estructural", estado: hecho, commit: ff25b66}
+    - {id: P9-4, titulo: "UI Personalizar: pestañas Personajes/Salas/Oficina, controles accesibles, vista previa 3D, plano numérico", estado: hecho, commit: 9424ca9}
+    - {id: P9-5, titulo: "Presets, equipo (uniforme/casual/formal/aleatorio 50/50), versiones, humo 3D real con capturas", estado: hecho, commit: 9424ca9}
+    - {id: P9-6, titulo: "Gates, guía, meta-dungeon, Save Point", estado: hecho, commit: "git log: docs(P9)"}

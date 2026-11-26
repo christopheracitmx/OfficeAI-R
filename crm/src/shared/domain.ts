@@ -85,3 +85,12 @@ const PRECIO_RE =
 export function mencionaPrecio(texto: string): boolean {
   return PRECIO_RE.test(texto);
 }
+
+/** Métodos de descubrimiento que solo escribe el código de las fuentes gratuitas (los agentes no los declaran). */
+export const METODOS_FUENTES = [
+  'denue_local',
+  'denue_api',
+  'osm_overpass',
+  'overture_local',
+] as const;
+export type MetodoFuente = (typeof METODOS_FUENTES)[number];

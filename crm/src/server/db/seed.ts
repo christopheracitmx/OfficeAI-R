@@ -1,5 +1,6 @@
 import type Database from 'better-sqlite3';
 import { PRESETS_BASE } from '../../shared/oficina3d/aleatorio-lugares';
+import { nombreNorm } from '../fuentes/normalizar';
 
 export const GIROS_INICIALES = [
   'Manufactura',
@@ -22,6 +23,11 @@ const CONFIG_INICIAL: Record<string, string> = {
   places_tope_pro: '4900',
   zonas_piloto: JSON.stringify(['CDMX', 'Estado de México']),
   motor_ia: 'claude-code',
+  // P11: fuentes de descubrimiento gratuitas
+  fuentes_tamano_min: '11',
+  fuentes_incluir_sin_tamano: '1',
+  fuente_tope_denue_api: '2000',
+  fuente_tope_osm_overpass: '300',
 };
 
 export const DESTINATARIO_INICIAL = 'christopher.rodriguez@acitmx.com';
@@ -45,6 +51,7 @@ export function seed(db: Database.Database): void {
   });
   tx();
   sembrarPresets(db);
+  rellenarNombreNorm(db);
 }
 
 /** Presets de apariencia de fábrica (idempotente: por tipo y nombre, solo los `builtin`). */
@@ -58,5 +65,18 @@ function sembrarPresets(db: Database.Database): void {
   db.transaction(() => {
     for (const p of PRESETS_BASE)
       if (!existe.get(p.tipo, p.nombre)) ins.run(p.tipo, p.nombre, JSON.stringify(p.json));
+  })();
+}
+
+/** Filas previas a P11 no tienen nombre normalizado: se calcula una vez (idempotente, solo las que faltan). */
+function rellenarNombreNorm(db: Database.Database): void {
+  const filas = db.prepare('SELECT id, nombre FROM empresas WHERE nombre_norm IS NULL').all() as {
+    id: number;
+    nombre: string;
+  }[];
+  if (filas.length === 0) return;
+  const up = db.prepare('UPDATE empresas SET nombre_norm = ? WHERE id = ?');
+  db.transaction(() => {
+    for (const f of filas) up.run(nombreNorm(f.nombre), f.id);
   })();
 }

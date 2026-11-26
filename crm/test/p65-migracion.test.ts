@@ -31,6 +31,7 @@ describe('P6.5 migración 005 conserva los datos', () => {
       '006_edificio.sql',
       '007_apariencias.sql',
       '008_p10_herramientas.sql',
+      '009_fuentes.sql',
     ]);
     expect(
       db.prepare('SELECT texto, estado, version, actualizado_en FROM lecciones').get(),

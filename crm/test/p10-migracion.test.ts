@@ -37,7 +37,7 @@ describe('P10 migración 008 conserva los datos (BD de archivo con datos previos
       oficinas: db.prepare('SELECT id, nombre FROM oficinas ORDER BY id').all(),
     };
 
-    expect(migrate(db)).toEqual(['008_p10_herramientas.sql']);
+    expect(migrate(db)).toEqual(['008_p10_herramientas.sql', '009_fuentes.sql']);
 
     expect(db.prepare('SELECT COUNT(*) AS n FROM empresas').get()).toEqual(antes.empresas);
     expect(db.prepare('SELECT id, nombre FROM oficinas ORDER BY id').all()).toEqual(antes.oficinas);

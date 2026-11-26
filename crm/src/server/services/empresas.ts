@@ -6,7 +6,7 @@ import { derivarZona, enZonaPiloto, norm } from './zona';
 
 type EmpresaIn = z.infer<typeof empresaInput>;
 
-const GOBIERNO_RE =
+export const GOBIERNO_RE =
   /(gobierno|ayuntamiento|municipio de|secretar[ií]a de|instituto mexicano|\bimss\b|\bissste\b|\bsat\b|dependencia|h\. ?congreso|presidencia municipal|delegaci[oó]n pol[ií]tica|alcald[ií]a de|\bcfe\b|\bpemex\b)/i;
 
 export type ResultadoUpsert =

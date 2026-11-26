@@ -8,7 +8,7 @@ export interface ZonaInfo {
   zona: string | null;
 }
 
-const CDMX_ZONAS: Record<string, string[]> = {
+export const CDMX_ZONAS: Record<string, string[]> = {
   'CDMX Norte': ['Azcapotzalco', 'Gustavo A. Madero'],
   'CDMX Centro': ['Cuauhtémoc', 'Miguel Hidalgo', 'Benito Juárez', 'Venustiano Carranza'],
   'CDMX Poniente': ['Álvaro Obregón', 'Cuajimalpa de Morelos', 'La Magdalena Contreras'],

@@ -62,7 +62,7 @@ export function Oficina() {
 function OficinaPiso() {
   const [presentacion, setPresentacion] = useState(false);
   const { def, tienda, conectado, agentes } = useOficina(presentacion);
-  const pref = usePreferencias();
+  const pref = usePreferencias(def?.office.apariencia);
   const [webgl] = useState(hayWebGL);
   const [quieto] = useState(movimientoReducido);
   const pantalla = useRef<HTMLDivElement>(null);
@@ -172,8 +172,12 @@ function OficinaPiso() {
       <div ref={pantalla} className="fixed inset-0 z-40 flex flex-col bg-deep p-6">
         <div className="mb-3 flex items-center justify-between text-ice">
           <div className="flex items-center gap-3">
-            <img src="/logo-acit.png" alt="ACITMX" className="h-9 rounded bg-ice p-1" />
-            <span className="text-lg font-semibold">{def?.office.nombre}</span>
+            {def?.office.logo && (
+              <img src={def.office.logo} alt="" className="h-9 rounded bg-ice p-1" />
+            )}
+            <span className="text-lg font-semibold">
+              {def?.office.apariencia.marca || def?.office.nombre}
+            </span>
           </div>
           <Button variante="secundario" onClick={() => setPresentacion(false)}>
             Salir (Esc)

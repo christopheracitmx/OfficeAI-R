@@ -61,6 +61,7 @@ export const LOGOS = ['base', 'ninguno', 'url'] as const;
 export const GENEROS = ['f', 'm'] as const;
 
 export type Genero = (typeof GENEROS)[number];
+export type Iluminacion = (typeof ILUMINACION)[number];
 export type Calidad = (typeof CALIDADES)[number];
 
 // ---- Personaje

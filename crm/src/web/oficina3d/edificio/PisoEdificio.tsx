@@ -36,11 +36,20 @@ export interface PropsPiso {
   onClick: (id: string) => void;
 }
 
+/** Ventanas de la fachada por estilo (posiciones x, ancho, alto, color). */
+const VENTANAS = {
+  vidrio: { xs: [-5, 0, 5], w: 3, h: 0.9, color: '#BFE8EE' },
+  ladrillo: { xs: [-6, -3, 0, 3, 6], w: 1.4, h: 0.9, color: '#F6E7C8' },
+  moderno: { xs: [0], w: 12.5, h: 0.8, color: '#8FD3E0' },
+} as const;
+
 export function PisoEdificio(p: PropsPiso) {
   const c = p.def?.office.apariencia.colores;
   const color = c?.secundario ?? '#00ADA9';
   const piso = c?.piso ?? '#E9E2D6';
-  const muro = c?.primario ?? '#0F3D47';
+  const fachada = p.def?.office.apariencia.fachada;
+  const muro = fachada?.color ?? c?.primario ?? '#0F3D47';
+  const vent = VENTANAS[fachada?.estilo ?? 'vidrio'];
   const lampara = useRef<THREE.MeshStandardMaterial>(null);
   const brillo = useRef<THREE.MeshBasicMaterial>(null);
   const tex = useMemo(() => rotulo(p.nombre, p.indice + 1, muro), [p.nombre, p.indice, muro]);
@@ -88,10 +97,10 @@ export function PisoEdificio(p: PropsPiso) {
         <boxGeometry args={[0.2, ALTO, FONDO]} />
         <meshStandardMaterial color={muro} roughness={0.6} />
       </mesh>
-      {[-5, 0, 5].map((x) => (
+      {vent.xs.map((x) => (
         <mesh key={x} position={[x, LOSA + ALTO * 0.6, -FONDO / 2 + 0.22]}>
-          <boxGeometry args={[3, 0.9, 0.04]} />
-          <meshStandardMaterial color="#BFE8EE" emissive="#BFE8EE" emissiveIntensity={0.35} />
+          <boxGeometry args={[vent.w, vent.h, 0.04]} />
+          <meshStandardMaterial color={vent.color} emissive={vent.color} emissiveIntensity={0.35} />
         </mesh>
       ))}
       {interior && (

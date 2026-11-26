@@ -7,7 +7,7 @@ import { Sparkles } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import * as THREE from 'three';
-import type { Calidad } from '../../../shared/oficina3d/apariencia';
+import type { Calidad, Iluminacion } from '../../../shared/oficina3d/apariencia';
 import type { DefinicionOficina, SalaDef } from '../../../shared/oficina3d/definicion';
 import { useTienda, type Tienda } from '../tienda';
 import { Camara } from './Camara';
@@ -35,7 +35,26 @@ export interface PropsEscena {
   onSala: (s: SalaDef) => void;
 }
 
-function Luces({ d, sombra, noche }: { d: DefinicionOficina; sombra: number; noche: boolean }) {
+/** Color de la luz de cada sala según su estilo de iluminación. */
+const LUZ_SALA: Record<Iluminacion, string> = {
+  calida: '#FFC98A',
+  neutra: '#FFFFFF',
+  fria: '#BFD8FF',
+};
+
+function Luces({
+  d,
+  sombra,
+  noche,
+  luzDia,
+}: {
+  d: DefinicionOficina;
+  sombra: number;
+  noche: boolean;
+  luzDia: boolean;
+}) {
+  // De día solo se añade luz propia a las salas con estilo distinto del cálido de fábrica.
+  const luces = d.salas.filter((s) => noche || (luzDia && s.apariencia.iluminacion !== 'calida'));
   const { ancho, fondo } = d.planta;
   const cx = ancho / 2;
   const cz = fondo / 2;
@@ -63,17 +82,16 @@ function Luces({ d, sombra, noche }: { d: DefinicionOficina; sombra: number; noc
       >
         <object3D attach="target" position={[cx, 0, cz]} />
       </directionalLight>
-      {noche &&
-        d.salas.map((s) => (
-          <pointLight
-            key={s.id}
-            position={[s.x + s.apariencia.ancho / 2, 2.2, s.z + s.apariencia.fondo / 2]}
-            intensity={6}
-            distance={7}
-            decay={1.6}
-            color="#FFC98A"
-          />
-        ))}
+      {luces.map((s) => (
+        <pointLight
+          key={s.id}
+          position={[s.x + s.apariencia.ancho / 2, 2.2, s.z + s.apariencia.fondo / 2]}
+          intensity={noche ? 6 : 2.2}
+          distance={7}
+          decay={1.6}
+          color={LUZ_SALA[s.apariencia.iluminacion]}
+        />
+      ))}
     </>
   );
 }
@@ -120,7 +138,7 @@ export default function Escena({ d, t, calidad, noche, quieto, onSeleccion, onSa
       aria-label={`Vista 3D de ${d.office.nombre}`}
     >
       <color attach="background" args={[fondo]} />
-      <Luces d={d} sombra={aj.sombra} noche={noche} />
+      <Luces d={d} sombra={aj.sombra} noche={noche} luzDia={calidad !== 'baja'} />
       <Camara d={d} t={t} quieto={quieto} />
       <Estatico d={d} detalle={aj.detalle} sombras={aj.sombra > 0} onSala={onSala} />
       <Perimetro d={d} noche={noche} />

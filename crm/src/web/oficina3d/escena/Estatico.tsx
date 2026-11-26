@@ -73,17 +73,41 @@ function Rotulo({ s }: { s: SalaDef }) {
   );
 }
 
-/** Logo ACITMX (asset existente) en un tótem a la entrada del pasillo, mirando hacia el pasillo. */
+/** Tótem de marca blanca: el nombre de la marca sobre el color primario, con texto de contraste garantizado. */
+function texturaMarca(texto: string, fondo: string): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 226;
+  const g = c.getContext('2d')!;
+  g.fillStyle = fondo;
+  g.fillRect(0, 0, 512, 226);
+  g.fillStyle = textoLegible(fondo);
+  g.font = '700 70px "Segoe UI", Inter, system-ui, sans-serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(texto, 256, 113, 460);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+
+/** Tótem a la entrada del pasillo: logo (de la definición o propio) o, sin logo, el nombre de la marca. */
 function Logo({ d }: { d: DefinicionOficina }) {
+  const { logo } = d.office;
+  const { marca, colores } = d.office.apariencia;
   const tex = useMemo(() => {
-    if (!d.office.logo) return null;
-    const t = new THREE.TextureLoader().load(d.office.logo, undefined, undefined, () =>
-      console.warn('No se pudo cargar el logo de la oficina; se muestra el tótem sin logo.'),
-    );
-    t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = 4;
-    return t;
-  }, [d.office.logo]);
+    if (logo) {
+      const cargador = new THREE.TextureLoader().setCrossOrigin('anonymous');
+      const t = cargador.load(logo, undefined, undefined, () =>
+        console.warn('No se pudo cargar el logo de la oficina; se muestra el tótem sin logo.'),
+      );
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 4;
+      return t;
+    }
+    return marca ? texturaMarca(marca, colores.primario) : null;
+  }, [logo, marca, colores.primario]);
   useEffect(() => () => tex?.dispose(), [tex]);
   if (!tex) return null;
   const z = d.planta.pasilloZ;

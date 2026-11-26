@@ -12,6 +12,7 @@
     "build": "tsc --noEmit && vite build",
     "start": "tsx src/server/index.ts",
     "mcp": "tsx src/mcp/index.ts",
+    "datasets:importar": "tsx scripts/importar-dataset.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --check .",

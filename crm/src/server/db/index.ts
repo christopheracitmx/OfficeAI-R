@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { seed } from './seed';
+import { seed, type OpcionesSeed } from './seed';
 
 export type Db = Database.Database;
 
@@ -10,13 +10,13 @@ const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), 'migrations
 const RESPALDOS_A_CONSERVAR = 5;
 
 /** Abre SQLite (archivo o ':memory:'), aplica migraciones pendientes (con respaldo) y semillas. */
-export function openDb(path: string): Db {
+export function openDb(path: string, opciones: OpcionesSeed = {}): Db {
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
   const db = new Database(path);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
   migrate(db);
-  seed(db);
+  seed(db, opciones);
   return db;
 }
 

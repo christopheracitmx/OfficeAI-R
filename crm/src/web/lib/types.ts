@@ -116,6 +116,11 @@ export interface EstadoApp {
   resend_configurado: boolean;
   remitente: string;
   corrida_activa: Corrida | null;
+  diagnostico?: {
+    claude: { disponible: boolean; version: string | null; aviso: string | null };
+    obscura: { disponible: boolean; ruta: string; aviso: string | null };
+    destinatarios: { activos: number; aviso: string | null };
+  };
 }
 
 export interface Corrida {

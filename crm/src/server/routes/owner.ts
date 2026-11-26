@@ -16,6 +16,7 @@ import {
   patchProspecto,
 } from '../services/consultas';
 import { cambiarEtapa, upsertEmpresa } from '../services/empresas';
+import { diagnosticarDeps } from '../services/diagnostico';
 import { assertDestinoPermitido, procesarEnvios } from '../services/mailer';
 import { aprendizajeRouter } from './aprendizaje';
 import { cerebroRouter } from './cerebro';
@@ -35,14 +36,13 @@ export function ownerRouter(d: Deps): Router {
   r.get(
     '/dashboard',
     ah((q, res) => {
-      // Los indicadores son de la oficina de prospección; las demás oficinas no producen prospectos.
       res.json(oficinaDe(q) === 'prospeccion' ? dashboard(db) : { sin_ver: 0, no_aplica: true });
     }),
   );
 
   r.get(
     '/estado',
-    ah((q, res) => {
+    ah(async (q, res) => {
       const cfg = admin.getConfig(db);
       const oficina = oficinaDe(q);
       const mes = new Date().toISOString().slice(0, 7);
@@ -63,11 +63,11 @@ export function ownerRouter(d: Deps): Router {
         resend_configurado: Boolean(d.env?.['RESEND_API_KEY']),
         remitente: d.from,
         corrida_activa: corrida,
+        diagnostico: await diagnosticarDeps(d),
       });
     }),
   );
 
-  // CSV/respaldos (antes de /prospectos/:id) y aprendizaje
   r.use(datosRouter(d));
   r.use(fuentesRouter(d));
   r.use(aprendizajeRouter(d));

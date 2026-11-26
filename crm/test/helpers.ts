@@ -5,6 +5,7 @@ import { EventBus } from '../src/server/services/events';
 import type { MailMessage, Mailer } from '../src/server/services/mailer';
 
 export const UI = 'http://ui.test';
+export const DESTINATARIO_PRUEBA = 'dueno@ejemplo.test';
 export const TOKEN = 'token-de-prueba';
 
 export class FakeMailer implements Mailer {
@@ -18,7 +19,7 @@ export class FakeMailer implements Mailer {
 }
 
 export function harness() {
-  const db: Db = openDb(':memory:');
+  const db: Db = openDb(':memory:', { destinatarioInicial: DESTINATARIO_PRUEBA });
   const mailer = new FakeMailer();
   const bus = new EventBus();
   const app = createApp({

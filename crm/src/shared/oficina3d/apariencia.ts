@@ -103,7 +103,7 @@ export type AparienciaSala = z.infer<typeof aparienciaSala>;
 // ---- Oficina / edificio
 export const PALETAS = {
   acitmx: {
-    nombre: 'ACITMX Teal',
+    nombre: 'Verde azulado (predeterminada)',
     primario: '#0F3D47',
     secundario: '#00ADA9',
     acento: '#F2B33D',

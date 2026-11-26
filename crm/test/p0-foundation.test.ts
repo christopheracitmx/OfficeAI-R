@@ -5,8 +5,8 @@ import { mencionaPrecio, nivelPorScore, puedeCambiarEstado } from '../src/shared
 import { contactoInput, propuestasInput } from '../src/shared/schemas';
 
 describe('DB: migraciones y semillas', () => {
-  it('aplica la migración 001 y siembra config, giros y destinatario', () => {
-    const db = openDb(':memory:');
+  it('aplica la migración 001 y siembra config, giros y el destinatario de CRM_DESTINATARIO_INICIAL', () => {
+    const db = openDb(':memory:', { destinatarioInicial: 'Dueno@Ejemplo.test ' });
     const tablas = db
       .prepare("SELECT name FROM sqlite_master WHERE type='table'")
       .all()
@@ -22,13 +22,30 @@ describe('DB: migraciones y semillas', () => {
     const dest = db.prepare('SELECT email FROM destinatarios_internos').all() as {
       email: string;
     }[];
-    expect(dest.map((d) => d.email)).toEqual(['christopher.rodriguez@acitmx.com']);
+    expect(dest.map((d) => d.email)).toEqual(['dueno@ejemplo.test']);
     const zonas = db
       .prepare("SELECT valor FROM configuracion WHERE clave='zonas_piloto'")
       .get() as {
       valor: string;
     };
     expect(JSON.parse(zonas.valor)).toEqual(['CDMX', 'Estado de México']);
+  });
+
+  it('sin CRM_DESTINATARIO_INICIAL (o inválido) no siembra ningún destinatario', () => {
+    for (const valor of [undefined, '', '   ', 'no-es-correo'])
+      expect(
+        openDb(':memory:', { destinatarioInicial: valor })
+          .prepare('SELECT COUNT(*) n FROM destinatarios_internos')
+          .get(),
+      ).toEqual({ n: 0 });
+  });
+
+  it('no altera a quien ya tiene destinatarios aunque el .env pida otro', async () => {
+    const db = openDb(':memory:', { destinatarioInicial: 'primero@ejemplo.test' });
+    const { seed } = await import('../src/server/db/seed');
+    seed(db, { destinatarioInicial: 'segundo@ejemplo.test' });
+    const filas = db.prepare('SELECT email FROM destinatarios_internos').all();
+    expect(filas).toEqual([{ email: 'primero@ejemplo.test' }]);
   });
 
   it('las semillas son idempotentes y no pisan cambios del dueño', () => {

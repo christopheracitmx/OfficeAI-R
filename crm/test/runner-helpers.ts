@@ -40,7 +40,7 @@ export async function montar(o: Opciones = {}) {
   const log = join(dir, 'log.jsonl');
   const esc = join(dir, 'escenario.json');
   writeFileSync(esc, JSON.stringify(o.escenario ?? {}));
-  const db = openDb(o.dbPath ?? ':memory:');
+  const db = openDb(o.dbPath ?? ':memory:', { destinatarioInicial: 'dueno@ejemplo.test' });
   const bus = new EventBus();
   const mailer = new FakeMailer();
   const server: Server = createServer();

@@ -100,7 +100,7 @@ export function Inicio() {
     <>
       <PageHeader
         titulo="Inicio"
-        subtitulo="Así va la prospección de ACITMX."
+        subtitulo="Así va la prospección."
         acciones={
           <Link to="/corrida">
             <Button variante="primario">Iniciar corrida</Button>

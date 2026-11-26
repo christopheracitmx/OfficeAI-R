@@ -7,6 +7,7 @@ import { createApp } from './app';
 import { openDb } from './db';
 import { crearRunner } from './offices';
 import { EventBus } from './services/events';
+import { comprobarClaudeReal, diagnosticar } from './services/diagnostico';
 import { DisabledMailer, ResendMailer, type Mailer } from './services/mailer';
 
 // Raíz del proyecto (carpeta crm): las rutas NO dependen del directorio desde el que se lance.
@@ -15,7 +16,8 @@ if (existsSync(resolve(RAIZ, '.env'))) process.loadEnvFile(resolve(RAIZ, '.env')
 
 const port = Number(process.env['CRM_PORT'] ?? 4010);
 const dbPath = resolve(RAIZ, process.env['CRM_DB_PATH'] ?? 'data/crm.db');
-const from = process.env['RESEND_FROM'] ?? 'info@mail.acitmx.net';
+// Sin RESEND_FROM se usa el remitente de pruebas de Resend (solo entrega al correo dueño de la cuenta de Resend).
+const from = process.env['RESEND_FROM']?.trim() || 'onboarding@resend.dev';
 
 /** Token que comparten el servidor y el proceso MCP (archivo local, no versionado). */
 function agentToken(): string {
@@ -38,7 +40,7 @@ const uiOrigins = [
   'http://localhost:5174',
 ];
 
-const db = openDb(dbPath);
+const db = openDb(dbPath, { destinatarioInicial: process.env['CRM_DESTINATARIO_INICIAL'] });
 const bus = new EventBus();
 const token = agentToken();
 const baseUrl = 'http://127.0.0.1:5174';
@@ -73,6 +75,8 @@ const app = createApp({
   env: process.env,
   runner,
   dbModo: 'real',
+  raiz: RAIZ,
+  comprobarClaude: comprobarClaudeReal,
 });
 
 // Solo local: jamás exponer a la red. Si el puerto está ocupado, sale con error claro (código 1).
@@ -84,10 +88,13 @@ try {
   db.close();
   process.exit(1);
 }
-console.info(`CRM ACITMX escuchando en http://127.0.0.1:${port}`);
+console.info(`CRM OfficeAI-R escuchando en http://127.0.0.1:${port}`);
 console.info(`Base de datos (real): ${dbPath}`);
 if (!process.env['RESEND_API_KEY'])
   console.warn('Aviso: RESEND_API_KEY vacío; los correos fallarán de forma controlada.');
+const diag = await diagnosticar(db, RAIZ, process.env, comprobarClaudeReal);
+for (const a of [diag.claude.aviso, diag.obscura.aviso, diag.destinatarios.aviso])
+  if (a) console.warn(`AVISO: ${a}`);
 
 // Cierre limpio: vuelca el WAL y cierra la base.
 for (const senal of ['SIGINT', 'SIGTERM'] as const)

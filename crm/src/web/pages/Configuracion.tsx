@@ -1,3 +1,4 @@
+import { DiagnosticoInstalacion } from '../components/AvisosInstalacion';
 import { useState } from 'react';
 import { numeroSeguro } from '../lib/types';
 import { Button, Card, ErrorBanner, PageHeader, cx, useToast } from '../components/ui';
@@ -124,7 +125,7 @@ function Correos() {
           aria-label="Correo"
           type="email"
           required
-          placeholder="correo@acitmx.com"
+          placeholder="correo@tuempresa.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className={cx(inp, 'w-72')}
@@ -233,6 +234,7 @@ function Cuotas() {
           (se conservan los últimos 5).
         </p>
       </Card>
+      <DiagnosticoInstalacion estado={e.data} />
       <Card>
         <div className="text-muted">Motor de IA activo</div>
         <div className="text-2xl font-bold">{e.data.motor_ia}</div>

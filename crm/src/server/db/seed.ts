@@ -30,10 +30,16 @@ const CONFIG_INICIAL: Record<string, string> = {
   fuente_tope_osm_overpass: '300',
 };
 
-export const DESTINATARIO_INICIAL = 'christopher.rodriguez@acitmx.com';
+export interface OpcionesSeed {
+  /** Correo del primer destinatario de reportes (viene de CRM_DESTINATARIO_INICIAL). Vacío: no se siembra ninguno. */
+  destinatarioInicial?: string | undefined;
+}
+
+const EMAIL_SIMPLE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Semillas idempotentes: no pisan valores que el dueño ya cambió. */
-export function seed(db: Database.Database): void {
+export function seed(db: Database.Database, opciones: OpcionesSeed = {}): void {
+  const inicial = (opciones.destinatarioInicial ?? '').trim().toLowerCase();
   const insConfig = db.prepare('INSERT OR IGNORE INTO configuracion (clave, valor) VALUES (?, ?)');
   const insGiro = db.prepare('INSERT OR IGNORE INTO taxonomia_giros (nombre) VALUES (?)');
   const hayDestinatarios = db.prepare('SELECT COUNT(*) AS n FROM destinatarios_internos').get() as {
@@ -42,10 +48,11 @@ export function seed(db: Database.Database): void {
   const tx = db.transaction(() => {
     for (const [k, v] of Object.entries(CONFIG_INICIAL)) insConfig.run(k, v);
     for (const g of GIROS_INICIALES) insGiro.run(g);
-    if (hayDestinatarios.n === 0) {
+    // Solo en bases nuevas (sin destinatarios) y solo si el .env lo pide: nunca se altera a quien ya tiene datos.
+    if (hayDestinatarios.n === 0 && EMAIL_SIMPLE.test(inicial)) {
       db.prepare('INSERT INTO destinatarios_internos (email, nombre) VALUES (?, ?)').run(
-        DESTINATARIO_INICIAL,
-        'Christopher',
+        inicial,
+        'Destinatario inicial',
       );
     }
   });

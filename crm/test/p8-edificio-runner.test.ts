@@ -74,7 +74,7 @@ describe('P8 cola global de llamadas de IA', () => {
 });
 
 function montar() {
-  const db = openDb(':memory:');
+  const db = openDb(':memory:', { destinatarioInicial: 'dueno@ejemplo.test' });
   const bus = new EventBus();
   const llamadas: { officeId: string; tools: string; t0: number; t1: number }[] = [];
   let dentro = 0;

@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
 
 // Extracción local y barata: el LLM solo recibe texto compacto + datos ya extraídos por código.
 
@@ -141,6 +142,10 @@ export async function fetchHtml(url: string, o: OpcionesFetch): Promise<string> 
   if (!/^https?:\/\//i.test(url)) throw new Error('Solo URLs http(s)');
   const t = o.timeoutS ?? 20;
   const run = o.runner ?? ejecutar;
+  if (!o.runner && !existsSync(o.bin))
+    throw new Error(
+      `Obscura no está instalado (no existe ${o.bin}). Configura OBSCURA_BIN en crm\.env; mientras tanto usa web_search`,
+    );
   return run(
     o.bin,
     ['fetch', url, '--dump', 'html', '--timeout', String(t), '--obey-robots'],

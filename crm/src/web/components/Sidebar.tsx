@@ -1,3 +1,4 @@
+import { AvisosInstalacion } from './AvisosInstalacion';
 import { NavLink } from 'react-router-dom';
 import { useApi } from '../lib/api';
 import type { ConteoLeccionesUi, Dashboard, EstadoApp } from '../lib/types';
@@ -38,13 +39,20 @@ export function Sidebar() {
   return (
     <aside className="flex h-full w-[220px] shrink-0 flex-col bg-deep text-ice">
       <div className="p-4">
-        <div className="rounded-lg bg-ice p-2">
-          <img
-            src="/logo-acit.png"
-            alt="ACITMX Integration Technology"
-            className="mx-auto h-12 w-auto"
-          />
-        </div>
+        {/* El logo de ACITMX pertenece solo a la oficina de Prospección; los demás pisos no lo heredan. */}
+        {oficinaId === OFICINA_PRINCIPAL ? (
+          <div className="rounded-lg bg-ice p-2">
+            <img
+              src="/logo-acit.png"
+              alt="ACITMX Integration Technology"
+              className="mx-auto h-12 w-auto"
+            />
+          </div>
+        ) : (
+          <div className="rounded-lg bg-deep-2 p-3 text-center text-lg font-bold tracking-wide">
+            OfficeAI-R
+          </div>
+        )}
         <p className="mt-3 text-center text-xs tracking-wide text-ice/70">
           {oficina?.nombre ?? 'Oficina'}
         </p>
@@ -59,6 +67,7 @@ export function Sidebar() {
           iniciar-crm.bat.
         </div>
       )}
+      <AvisosInstalacion estado={estado.data} />
       <nav className="flex-1 space-y-1 px-3" aria-label="Principal">
         {items.map((it) => (
           <NavLink

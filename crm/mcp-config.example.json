@@ -1,10 +1,11 @@
 {
+  "_nota": "Opcional y solo para pruebas manuales con un cliente MCP. El CRM lanza su propio proceso MCP al correr agentes; no necesitas este archivo. Sustituye <RAIZ_DEL_REPO> por la ruta donde clonaste el repositorio (con / en lugar de \). Requiere Node 22 en el PATH.",
   "mcpServers": {
     "acitmx-crm": {
-      "command": "C:\Users\Google\Desktop\AI Office\Prospecting\tools\node22\node.exe",
+      "command": "node",
       "args": [
-        "C:\Users\Google\Desktop\AI Office\Prospecting\crm\node_modules\tsx\dist\cli.mjs",
-        "C:\Users\Google\Desktop\AI Office\Prospecting\crm\src\mcp\index.ts"
+        "<RAIZ_DEL_REPO>/crm/node_modules/tsx/dist/cli.mjs",
+        "<RAIZ_DEL_REPO>/crm/src/mcp/index.ts"
       ],
       "env": { "CRM_AGENT": "NOMBRE_DEL_AGENTE" }
     }

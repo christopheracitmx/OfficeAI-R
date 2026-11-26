@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { expedienteListo, harness } from './helpers';
+import { DESTINATARIO_PRUEBA, expedienteListo, harness } from './helpers';
 
 describe('Seguridad de acceso', () => {
   it('rutas del dueño rechazan mutaciones sin Origin de la UI', async () => {
@@ -30,7 +30,7 @@ describe('Flujo completo del expediente', () => {
     expect(ok.body.enviados).toBe(1);
 
     expect(h.mailer.enviados).toHaveLength(1);
-    expect(h.mailer.enviados[0]!.to).toBe('christopher.rodriguez@acitmx.com');
+    expect(h.mailer.enviados[0]!.to).toBe(DESTINATARIO_PRUEBA);
     expect(h.mailer.enviados[0]!.from).toBe('info@mail.acitmx.net');
 
     const det = (await h.owner.get(`/api/prospectos/${prospecto_id}`)).body;

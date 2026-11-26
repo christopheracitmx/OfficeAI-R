@@ -3,6 +3,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { rutaObscura } from '../shared/obscura';
 import { CrmApi } from './api';
 import { crmTools } from './tools-crm';
 import { herramientasGenericas } from './tools-herramientas';
@@ -27,7 +28,7 @@ const token = existsSync(tokenFile) ? readFileSync(tokenFile, 'utf8').trim() : '
 const api = new CrmApi(base, token, agente, process.env['CRM_OFFICE'] ?? 'prospeccion');
 const web: WebDeps = {
   api,
-  obscura: { bin: resolve(raiz, process.env['OBSCURA_BIN'] ?? '../tools/obscura/obscura.exe') },
+  obscura: { bin: rutaObscura(raiz, process.env) },
   placesKey: process.env['GOOGLE_PLACES_API_KEY'] ?? '',
   limites: {
     paginas: Number(process.env['CRM_MAX_PAGINAS']) || 8,

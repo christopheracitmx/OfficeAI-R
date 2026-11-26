@@ -21,6 +21,9 @@ export interface Deps {
   dirOficinas?: string;
   /** `real` solo lo fija el servidor del CRM; todo lo demás (demo, pruebas) se muestra como demo. */
   dbModo?: 'real' | 'demo';
+  /** Raíz de la app (carpeta `crm`) y comprobador de Claude Code: solo los fija el servidor real. */
+  raiz?: string;
+  comprobarClaude?: () => Promise<string | null>;
   /** Fuentes de descubrimiento: red y esperas inyectables (pruebas) y carpeta de datasets locales. */
   fuentes?: {
     fetchFn?: typeof fetch;

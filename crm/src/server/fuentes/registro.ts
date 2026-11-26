@@ -14,21 +14,24 @@ export const FUENTES_DESCARTADAS: readonly FuenteDescartada[] = [
     id: 'facebook_instagram',
     nombre: 'Facebook / Instagram',
     veredicto: 'NO INTEGRAR',
-    motivo: 'Las condiciones de Meta prohíben la recolección automatizada; además rige «sin redes sociales».',
+    motivo:
+      'Las condiciones de Meta prohíben la recolección automatizada; además rige «sin redes sociales».',
     info_url: 'https://www.facebook.com/terms/',
   },
   {
     id: 'seccion_amarilla',
     nombre: 'Sección Amarilla',
     veredicto: 'NO INTEGRAR',
-    motivo: 'No hay permiso explícito para almacenar y reutilizar su base; sin permiso explícito se descarta.',
+    motivo:
+      'No hay permiso explícito para almacenar y reutilizar su base; sin permiso explícito se descarta.',
     info_url: 'https://www.seccionamarilla.com.mx/terminos-y-condiciones',
   },
   {
     id: 'yelp_fusion',
     nombre: 'Yelp Fusion',
     veredicto: 'NO INTEGRAR',
-    motivo: 'Prueba gratuita temporal; solo permite cachear 24 h; no trae el sitio web del negocio.',
+    motivo:
+      'Prueba gratuita temporal; solo permite cachear 24 h; no trae el sitio web del negocio.',
     info_url: 'https://docs.developer.yelp.com/docs/fusion-intro',
   },
   {
@@ -47,20 +50,30 @@ export const FUENTES_DESCARTADAS: readonly FuenteDescartada[] = [
   },
 ];
 
-export const fuentePorId = (id: string): FuenteAdapter | undefined => FUENTES.find((f) => f.id === id);
+export const fuentePorId = (id: string): FuenteAdapter | undefined =>
+  FUENTES.find((f) => f.id === id);
 
 export function tokenConfigurado(f: FuenteAdapter, env: NodeJS.ProcessEnv): boolean | null {
   return f.requiere_token ? Boolean(env[f.env_token ?? '']?.trim()) : null;
 }
 
-/** ¿Está activa para esta oficina? Sin fila: locales y APIs sin token = sí; APIs con token = solo si hay token. */
-export function fuenteActiva(db: Db, f: FuenteAdapter, officeId: string, env: NodeJS.ProcessEnv): boolean {
+/** ¿Está activa para esta oficina? Sin fila: según el valor por defecto; las APIs con token además exigen el token. */
+export function fuenteActiva(
+  db: Db,
+  f: FuenteAdapter,
+  officeId: string,
+  env: NodeJS.ProcessEnv,
+): boolean {
   const r = db
     .prepare('SELECT activa FROM fuentes_config WHERE fuente_id = ? AND office_id = ?')
     .get(f.id, officeId) as { activa: number } | undefined;
-  const base = r ? r.activa === 1 : true;
+  const base = r ? r.activa === 1 : activaPorDefecto(f);
   return base && (!f.requiere_token || Boolean(env[f.env_token ?? '']?.trim()));
 }
+
+/** Locales y APIs con token (quien pone el token quiere usarlas) = activas; Overpass público = opt-in del dueño. */
+export const activaPorDefecto = (f: FuenteAdapter): boolean =>
+  f.tipo === 'dataset_local' || f.requiere_token;
 
 export function activarFuente(db: Db, fuente: string, officeId: string, activa: boolean): void {
   db.prepare(
@@ -106,7 +119,7 @@ export function estadoFuentes(db: Db, officeId: string, env: NodeJS.ProcessEnv):
       tipo: f.tipo,
       requiere_token: f.requiere_token,
       token_configurado: tokenConfigurado(f, env),
-      activa: conf ? conf.activa === 1 : true,
+      activa: conf ? conf.activa === 1 : activaPorDefecto(f),
       limites: f.limites,
       licencia: f.licencia,
       atribucion: f.atribucion,

@@ -4,8 +4,9 @@ import { FuenteQuotaError } from './tipos';
 export const mesActual = (d = new Date()): string => d.toISOString().slice(0, 7);
 
 export function topeFuente(db: Db, fuente: string, defecto: number | null): number | null {
-  const r = db.prepare('SELECT valor FROM configuracion WHERE clave = ?').get(`fuente_tope_${fuente}`) as
-    { valor: string } | undefined;
+  const r = db
+    .prepare('SELECT valor FROM configuracion WHERE clave = ?')
+    .get(`fuente_tope_${fuente}`) as { valor: string } | undefined;
   if (!r) return defecto;
   const n = Number(r.valor);
   return Number.isInteger(n) && n >= 0 ? n : defecto;
@@ -34,11 +35,9 @@ export function consumirFuente(
     );
     usado = usoFuente(db, fuente, mes);
     if (tope !== null && usado + n > tope) throw new FuenteQuotaError(fuente, usado, tope);
-    db.prepare('UPDATE fuentes_uso SET contador = contador + ? WHERE fuente_id = ? AND mes = ?').run(
-      n,
-      fuente,
-      mes,
-    );
+    db.prepare(
+      'UPDATE fuentes_uso SET contador = contador + ? WHERE fuente_id = ? AND mes = ?',
+    ).run(n, fuente, mes);
     usado += n;
   })();
   return { usado, tope };

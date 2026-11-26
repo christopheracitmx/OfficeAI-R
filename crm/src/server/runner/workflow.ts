@@ -83,13 +83,20 @@ const fases = z.discriminatedUnion('tipo', [
     id: z.string(),
     cuenta: sql,
     fuentes: z.array(
-      z.object({
-        paso: z.string(),
-        rondas: z.number().int().positive().default(1),
-        requiere: z.string().optional(),
-        agotado: sql.optional(),
-        mensaje: z.string(),
-      }),
+      z
+        .object({
+          /** Paso de un agente de IA… */
+          paso: z.string().optional(),
+          /** …o descubridor de código de la oficina (por nombre): sin IA ni tokens. */
+          codigo: z.string().optional(),
+          rondas: z.number().int().positive().default(1),
+          requiere: z.string().optional(),
+          agotado: sql.optional(),
+          mensaje: z.string().default(''),
+        })
+        .refine((x) => Boolean(x.paso) !== Boolean(x.codigo), {
+          message: 'cada fuente lleva «paso» o «codigo» (uno solo)',
+        }),
     ),
   }),
   z.object({
@@ -154,7 +161,7 @@ export function validarWorkflow(json: unknown, officeId: string): Workflow {
     if (!ids.has(p)) throw new Error(`workflow: paso desconocido "${p}"`);
   };
   for (const f of wf.fases) {
-    if (f.tipo === 'descubrir') f.fuentes.forEach((x) => usa(x.paso));
+    if (f.tipo === 'descubrir') f.fuentes.forEach((x) => x.paso && usa(x.paso));
     if (f.tipo === 'lote') usa(f.paso);
     if (f.tipo === 'por_item')
       for (const n of f.flujo) {

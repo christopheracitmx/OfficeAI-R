@@ -119,12 +119,12 @@ export function Directorio() {
           ))}
         </select>
         <select
-          aria-label="Método"
+          aria-label="Fuente"
           className={sel}
           value={metodo}
           onChange={(e) => setMetodo(e.target.value)}
         >
-          <option value="">Cualquier método</option>
+          <option value="">Cualquier fuente</option>
           {Object.entries(METODO_ETIQUETA).map(([k, v]) => (
             <option key={k} value={k}>
               {v}
@@ -163,7 +163,18 @@ export function Directorio() {
           <table className="w-full text-left">
             <thead className="bg-ice text-xs uppercase tracking-wide text-muted">
               <tr>
-                {['Empresa', 'Giro', 'Zona', 'Método', 'Etapa', 'Origen', 'Fecha', ''].map((h) => (
+                {[
+                  'Empresa',
+                  'Giro',
+                  'Zona',
+                  'Fuente',
+                  'Tamaño',
+                  'Contacto',
+                  'Etapa',
+                  'Origen',
+                  'Fecha',
+                  '',
+                ].map((h) => (
                   <th key={h} className="px-4 py-3 font-medium">
                     {h}
                   </th>
@@ -189,8 +200,19 @@ export function Directorio() {
                   </td>
                   <td className="px-4 py-3 text-muted">{e.giro ?? '—'}</td>
                   <td className="px-4 py-3 text-muted">{e.zona ?? '—'}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" title={e.atribuciones ?? ''}>
                     {METODO_ETIQUETA[e.metodo_descubrimiento] ?? e.metodo_descubrimiento}
+                    {e.atribuciones ? (
+                      <span className="block max-w-[180px] truncate text-xs text-muted">
+                        {e.atribuciones}
+                      </span>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-3 text-muted">
+                    {e.personal_est != null ? `${e.personal_est}+ personas` : (e.tamano ?? '—')}
+                  </td>
+                  <td className="px-4 py-3 text-muted">
+                    {[e.telefono, e.correo].filter(Boolean).join(' · ') || '—'}
                   </td>
                   <td className="px-4 py-3">
                     {e.etapa}

@@ -3,8 +3,9 @@ import { DENUE_ATRIBUCION, DENUE_LICENCIA } from './import-denue';
 import type { CtxFuente, FuenteAdapter } from './tipos';
 
 function incluirSinTamano(ctx: CtxFuente): boolean {
-  const r = ctx.db.prepare("SELECT valor FROM configuracion WHERE clave = 'fuentes_incluir_sin_tamano'").get() as
-    { valor: string } | undefined;
+  const r = ctx.db
+    .prepare("SELECT valor FROM configuracion WHERE clave = 'fuentes_incluir_sin_tamano'")
+    .get() as { valor: string } | undefined;
   return r?.valor !== '0';
 }
 
@@ -24,13 +25,19 @@ function local(
     async probar(ctx) {
       const m = metaDataset(ctx.db, base.id);
       if (!m)
-        return { ok: false, detalle: 'Todavía no hay dataset importado (ver PASOS-MANUALES-FUENTES.md).' };
+        return {
+          ok: false,
+          detalle: 'Todavía no hay dataset importado (ver PASOS-MANUALES-FUENTES.md).',
+        };
       const n = (
         ctx.db
           .prepare('SELECT COUNT(*) AS n FROM dataset_registros WHERE fuente_id = ? LIMIT 1')
           .get(base.id) as { n: number }
       ).n;
-      return { ok: n > 0, detalle: `Dataset local ${m.version}: ${n} registros (sin red, sin cuota).` };
+      return {
+        ok: n > 0,
+        detalle: `Dataset local ${m.version}: ${n} registros (sin red, sin cuota).`,
+      };
     },
   };
 }
@@ -50,5 +57,6 @@ export const overtureLocal = local({
   licencia: 'CDLA Permissive 2.0 / Apache 2.0 / CC0 1.0 (según el origen de cada registro)',
   atribucion: '© Overture Maps Foundation (origen indicado por registro)',
   info_url: 'https://docs.overturemaps.org/attribution/',
-  limites: 'Consulta local: sin cuota ni tokens. Se actualiza importando un extracto nuevo (GeoJSON Lines).',
+  limites:
+    'Consulta local: sin cuota ni tokens. Se actualiza importando un extracto nuevo (GeoJSON Lines).',
 });

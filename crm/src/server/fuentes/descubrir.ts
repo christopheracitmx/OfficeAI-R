@@ -40,7 +40,11 @@ export interface ResumenDescubrir {
   cuota_agotada: boolean;
 }
 
-const vacio = (id: string, estado: ResultadoFuente['estado'], detalle?: string): ResultadoFuente => ({
+const vacio = (
+  id: string,
+  estado: ResultadoFuente['estado'],
+  detalle?: string,
+): ResultadoFuente => ({
   fuente_id: id,
   estado,
   encontrados: 0,
@@ -57,7 +61,19 @@ function bitacora(db: Db, o: OpcionesDescubrir, r: ResultadoFuente, consulta: st
   db.prepare(
     `INSERT INTO candidatos_fuente (office_id, corrida_id, fuente_id, consulta, encontrados, nuevos, fusionados, rechazados, estado, detalle, creado_en)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(o.officeId, o.corridaId ?? null, r.fuente_id, consulta, r.encontrados, r.nuevos, r.fusionados, rechazados, r.estado, r.detalle?.slice(0, 300) ?? null, nowIso());
+  ).run(
+    o.officeId,
+    o.corridaId ?? null,
+    r.fuente_id,
+    consulta,
+    r.encontrados,
+    r.nuevos,
+    r.fusionados,
+    rechazados,
+    r.estado,
+    r.detalle?.slice(0, 300) ?? null,
+    nowIso(),
+  );
 }
 
 /**
@@ -75,12 +91,18 @@ export async function descubrirPorFuentes(o: OpcionesDescubrir): Promise<Resumen
     min_personal: minPersonalConfig(db),
     office_id: o.officeId,
   };
-  const lista = (o.fuentes ?? FUENTES.map((f) => f.id)).map((id) => fuentePorId(id)).filter((f) => f !== undefined);
+  const lista = (o.fuentes ?? FUENTES.map((f) => f.id))
+    .map((id) => fuentePorId(id))
+    .filter((f) => f !== undefined);
   const resumen: ResumenDescubrir = { nuevos: 0, fuentes: [], cuota_agotada: false };
   for (const f of lista) {
     if (resumen.nuevos >= o.max) break;
     if (!fuenteActiva(db, f, o.officeId, o.env)) {
-      const r = vacio(f.id, 'omitida', f.requiere_token && !o.env[f.env_token ?? ''] ? 'Sin token' : 'Desactivada');
+      const r = vacio(
+        f.id,
+        'omitida',
+        f.requiere_token && !o.env[f.env_token ?? ''] ? 'Sin token' : 'Desactivada',
+      );
       resumen.fuentes.push(r);
       continue;
     }
@@ -91,15 +113,24 @@ export async function descubrirPorFuentes(o: OpcionesDescubrir): Promise<Resumen
       r.encontrados = candidatos.length;
       for (const c of candidatos) {
         if (resumen.nuevos >= o.max) break;
-        const x = registrarCandidato(db, c, { officeId: o.officeId, corridaId: o.corridaId, consulta, minPersonal: q.min_personal });
+        const x = registrarCandidato(db, c, {
+          officeId: o.officeId,
+          corridaId: o.corridaId,
+          consulta,
+          minPersonal: q.min_personal,
+        });
         if (x.status === 'creada') {
           r.nuevos++;
           resumen.nuevos++;
-          const e = db.prepare('SELECT nombre, zona FROM empresas WHERE id = ?').get(x.id) as { nombre: string; zona: string | null };
+          const e = db.prepare('SELECT nombre, zona FROM empresas WHERE id = ?').get(x.id) as {
+            nombre: string;
+            zona: string | null;
+          };
           r.empresas.push({ empresa_id: x.id, nombre: e.nombre, zona: e.zona });
         } else if (x.status === 'fusionada') r.fusionados++;
         else if (x.status === 'existente') r.existentes++;
-        else if (x.status === 'rechazada') r.rechazados[x.motivo] = (r.rechazados[x.motivo] ?? 0) + 1;
+        else if (x.status === 'rechazada')
+          r.rechazados[x.motivo] = (r.rechazados[x.motivo] ?? 0) + 1;
       }
       if (r.encontrados === 0) {
         r.estado = 'sin_datos';

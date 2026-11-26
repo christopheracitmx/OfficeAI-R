@@ -9,6 +9,7 @@ import {
   useToast,
 } from '../components/ui';
 import { PlanMedidor } from '../components/PlanMedidor';
+import { PanelFuentes } from '../components/PanelFuentes';
 import { ProgresoCorrida } from '../components/ProgresoCorrida';
 import { api, ApiError, useApi } from '../lib/api';
 import {
@@ -107,6 +108,7 @@ export function Corrida() {
                 <b>{activa.max_empresas}</b> empresas · desde {fechaCorta(activa.iniciada_en)}
               </p>
               <ProgresoCorrida corridaId={activa.id} />
+              <PanelFuentes corridaId={activa.id} />
               <div className="mt-4 flex gap-2">
                 <Button variante="peligro" onClick={() => void detener()}>
                   Detener corrida

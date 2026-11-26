@@ -60,6 +60,7 @@
       "roles": ["Cartografo"],
       "prompts": ["cartografo"],
       "herramientas": [
+        "fuente_buscar",
         "places_search",
         "crm_directorio_buscar",
         "crm_registrar_busqueda",
@@ -74,6 +75,8 @@
       "prompts": ["explorador"],
       "herramientas": [
         "obscura_extract",
+        "fuente_buscar",
+        "directorio_importar_candidatos",
         "crm_directorio_buscar",
         "crm_registrar_busqueda",
         "crm_upsert_empresa"
@@ -207,6 +210,10 @@
       "id": "descubriendo",
       "cuenta": "SELECT COUNT(*) FROM empresas WHERE corrida_id=:corrida AND fusionada_con IS NULL AND metodo_descubrimiento!='hallazgo_oportunista'",
       "fuentes": [
+        {
+          "codigo": "fuentes_gratuitas",
+          "rondas": 1
+        },
         {
           "paso": "cartografo",
           "rondas": 1,

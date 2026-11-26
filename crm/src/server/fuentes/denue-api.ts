@@ -38,7 +38,11 @@ const token = (ctx: CtxFuente): string => (ctx.env['DENUE_TOKEN'] ?? '').trim();
 
 /** Prefijo SCIAN -> segmentos de la URL (sector/subsector/rama/clase; 0 = todos). */
 function segmentosScian(p: string): string {
-  const s = [p.slice(0, 2), p.length >= 3 ? p.slice(0, 3) : '0', p.length >= 4 ? p.slice(0, 4) : '0'];
+  const s = [
+    p.slice(0, 2),
+    p.length >= 3 ? p.slice(0, 3) : '0',
+    p.length >= 4 ? p.slice(0, 4) : '0',
+  ];
   return `${s[0]}/${s[1]}/${s[2]}/${p.length >= 6 ? p : '0'}`;
 }
 

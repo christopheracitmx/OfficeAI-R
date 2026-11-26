@@ -74,7 +74,23 @@ export function giroDeScian(scian: string | undefined | null): string {
 /** Giro de la taxonomía -> prefijos SCIAN a consultar. «Cualquiera» = los sectores B2B prioritarios. */
 export function scianDeGiro(giro: string): string[] {
   if (!giro || /^cualquiera$/i.test(giro.trim()))
-    return ['31', '32', '33', '48', '49', '52', '54', '55', '56', '61', '62', '5415', '517', '721', '43'];
+    return [
+      '31',
+      '32',
+      '33',
+      '48',
+      '49',
+      '52',
+      '54',
+      '55',
+      '56',
+      '61',
+      '62',
+      '5415',
+      '517',
+      '721',
+      '43',
+    ];
   const set = new Set(SCIAN_GIRO.filter(([, g]) => g === giro).map(([p]) => p));
   return [...set];
 }

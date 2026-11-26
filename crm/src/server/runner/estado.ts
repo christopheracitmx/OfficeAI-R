@@ -15,9 +15,21 @@ export interface GanchoArgs {
 /** Código propio de una oficina, referenciado por nombre desde su workflow (p. ej. cerrar y avisar). */
 export type Gancho = (a: GanchoArgs) => Promise<void>;
 
+export interface DescubridorArgs {
+  db: Db;
+  corridaId: number;
+  params: Record<string, unknown>;
+  /** Cuántos elementos NUEVOS faltan para completar el lote. */
+  faltan: number;
+  evento: (agente: string, accion: string, detalle?: string) => void;
+}
+/** Descubrimiento por código (sin IA): devuelve cuántos elementos nuevos registró. */
+export type Descubridor = (a: DescubridorArgs) => Promise<{ nuevos: number; detalle: string }>;
+
 export interface OficinaDef {
   workflow: Workflow;
   ganchos: Record<string, Gancho>;
+  descubridores?: Record<string, Descubridor>;
   /** Herramientas MCP que la oficina puede usar (null = sin restricción). Se aplica en código. */
   herramientas?: readonly string[] | null;
 }

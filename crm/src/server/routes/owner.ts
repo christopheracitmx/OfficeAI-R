@@ -25,6 +25,7 @@ import { p10Router } from './p10';
 import { oficinasRouter } from './oficinas';
 import { ajustesRouter } from './oficinas-ajustes';
 import { datosRouter } from './datos';
+import { fuentesRouter } from './fuentes';
 import { ah, HttpError, idParam, oficinaDe, parse, qstr, type Deps } from './util';
 
 export function ownerRouter(d: Deps): Router {
@@ -68,6 +69,7 @@ export function ownerRouter(d: Deps): Router {
 
   // CSV/respaldos (antes de /prospectos/:id) y aprendizaje
   r.use(datosRouter(d));
+  r.use(fuentesRouter(d));
   r.use(aprendizajeRouter(d));
 
   // ---- Prospectos

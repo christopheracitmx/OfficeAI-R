@@ -115,6 +115,8 @@ export const CATALOGO: readonly HerramientaCatalogo[] = [
     'crm_finalizar_prospecto',
     'crm_actividad',
     'places_search',
+    'fuente_buscar',
+    'directorio_importar_candidatos',
   ].map((nombre): HerramientaCatalogo => ({
     nombre,
     descripcion: 'Herramienta específica del piso de prospección ACITMX.',

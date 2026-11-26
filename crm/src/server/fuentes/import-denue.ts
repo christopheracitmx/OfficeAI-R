@@ -7,7 +7,8 @@ import { correoNorm, nombreNorm, num, telefonoNorm, webNorm } from './normalizar
 import { esGobierno, estratoDe, giroDeScian, personalDeEstrato } from './scian';
 
 export const DENUE_LICENCIA = 'Términos de libre uso de la información del INEGI';
-export const DENUE_ATRIBUCION = 'Fuente: INEGI, Directorio Estadístico Nacional de Unidades Económicas (DENUE)';
+export const DENUE_ATRIBUCION =
+  'Fuente: INEGI, Directorio Estadístico Nacional de Unidades Económicas (DENUE)';
 const URL_DENUE = 'https://www.inegi.org.mx/app/mapa/denue/';
 
 export interface OpcionesImportDenue {
@@ -105,7 +106,8 @@ export async function importarDenue(
     for await (const fila of filasCsv(a)) {
       resumen.leidos++;
       const r = filaDenue(fila, estratoMin);
-      if ('descarte' in r) resumen.descartados[r.descarte] = (resumen.descartados[r.descarte] ?? 0) + 1;
+      if ('descarte' in r)
+        resumen.descartados[r.descarte] = (resumen.descartados[r.descarte] ?? 0) + 1;
       else registros.push(r);
     }
   const descartados = Object.values(resumen.descartados).reduce((x, y) => x + y, 0);
@@ -117,7 +119,10 @@ export async function importarDenue(
       version: o.version,
       fecha_dataset: o.fecha_dataset ?? null,
       descartados,
-      archivo: archivos.map((x) => basename(x)).join(', ').slice(0, 300),
+      archivo: archivos
+        .map((x) => basename(x))
+        .join(', ')
+        .slice(0, 300),
       nota: `Estrato mínimo conservado: ${estratoMin}`,
     },
     o.reemplazar ?? true,

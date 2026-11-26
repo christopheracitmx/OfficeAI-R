@@ -61,7 +61,12 @@ export function crearRunner(o: OpcionesRunner): RunnerEdificio {
     sembrarOficina(o.db, dirOficinas, wf);
     const def: OficinaDef =
       id === OFFICE_ID
-        ? oficinaProspeccion(wf, { mailer: o.mailer, from: o.from, baseUrl: o.baseUrl })
+        ? oficinaProspeccion(wf, {
+            mailer: o.mailer,
+            from: o.from,
+            baseUrl: o.baseUrl,
+            env: o.env,
+          })
         : { workflow: wf, ganchos: {}, herramientas: herramientasPermitidas(o.db, id) };
     return new Runner({
       db: o.db,

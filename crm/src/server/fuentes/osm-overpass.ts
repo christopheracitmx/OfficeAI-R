@@ -18,9 +18,15 @@ const LICENCIA = 'ODbL 1.0 (atribución; share-alike si se publica una base deri
 /** Giro de la taxonomía -> filtros de etiquetas OSM. */
 const FILTROS: Record<string, string[]> = {
   Manufactura: ['["industrial"]', '["man_made"="works"]', '["craft"]'],
-  'Logística y transporte': ['["industrial"~"warehouse|logistics|distribution"]', '["office"="logistics"]'],
+  'Logística y transporte': [
+    '["industrial"~"warehouse|logistics|distribution"]',
+    '["office"="logistics"]',
+  ],
   'Educación privada': ['["amenity"~"^(school|college|university)$"]'],
-  'Salud privada': ['["amenity"~"^(hospital|clinic)$"]', '["healthcare"~"hospital|clinic|laboratory"]'],
+  'Salud privada': [
+    '["amenity"~"^(hospital|clinic)$"]',
+    '["healthcare"~"hospital|clinic|laboratory"]',
+  ],
   'Corporativo y servicios profesionales': [
     '["office"~"^(company|consulting|lawyer|accountant|coworking)$"]',
   ],
@@ -49,7 +55,11 @@ const respuesta = z.object({
 
 const AREAS = { CDMX: 'MX-CMX', 'Estado de México': 'MX-MEX' } as const;
 
-export function construirConsulta(q: BusquedaFuente, estado: 'CDMX' | 'Estado de México', municipio?: string): string {
+export function construirConsulta(
+  q: BusquedaFuente,
+  estado: 'CDMX' | 'Estado de México',
+  municipio?: string,
+): string {
   const area = municipio
     ? `area["boundary"="administrative"]["admin_level"="6"]["name"="${municipio.replace(/["\\]/g, '')}"]->.z;`
     : `area["ISO3166-2"="${AREAS[estado]}"]->.z;`;
@@ -68,11 +78,25 @@ function aCandidato(
   if (!nombre || esGobierno(nombre, null)) return null;
   const calle = [t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' ');
   const cp = t['addr:postcode']?.replace(/\D/g, '').slice(0, 5);
-  const direccion = [calle, t['addr:suburb'], cp ? `C.P. ${cp}` : '', t['addr:city'], t['addr:state'] ?? estado]
+  const direccion = [
+    calle,
+    t['addr:suburb'],
+    cp ? `C.P. ${cp}` : '',
+    t['addr:city'],
+    t['addr:state'] ?? estado,
+  ]
     .filter(Boolean)
     .join(', ');
   const zona = derivarZona(direccion);
-  const categoria = [t['office'], t['industrial'], t['craft'], t['amenity'], t['healthcare'], t['tourism'], t['shop']]
+  const categoria = [
+    t['office'],
+    t['industrial'],
+    t['craft'],
+    t['amenity'],
+    t['healthcare'],
+    t['tourism'],
+    t['shop'],
+  ]
     .filter(Boolean)
     .join(' ');
   return {
@@ -140,8 +164,12 @@ export const osmOverpass: FuenteAdapter = {
     const z = resolverZona(q.zona);
     const esperar = ctx.esperar ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
     const out: Candidato[] = [];
-    const objetivos = z.municipios.length > 0 ? z.municipios.map((m) => [z.estados[0]!, m] as const) : z.estados.map((e) => [e, undefined] as const);
-    for (const [estado, muni] of objetivos) {
+    const objetivos =
+      z.municipios.length > 0
+        ? z.municipios.map((m) => [z.estados[0]!, m] as const)
+        : z.estados.map((e) => [e, undefined] as const);
+    for (const [i, [estado, muni]] of objetivos.entries()) {
+      if (i > 0) await esperar(PAUSA_MS); // pausa entre consultas (uso justo)
       ctx.consumir(1); // tope duro ANTES de la solicitud
       const datos = await consultar(ctx, construirConsulta(q, estado, muni));
       for (const e of datos.elements) {
@@ -149,18 +177,24 @@ export const osmOverpass: FuenteAdapter = {
         if (c) out.push(c);
       }
       if (out.length >= q.max * 3) break;
-      await esperar(PAUSA_MS);
     }
     // Primero los que traen contacto (más útiles para el Rastreador).
-    const peso = (c: Candidato) => Number(Boolean(c.sitio_web)) + Number(Boolean(c.telefono)) + Number(Boolean(c.correo));
+    const peso = (c: Candidato) =>
+      Number(Boolean(c.sitio_web)) + Number(Boolean(c.telefono)) + Number(Boolean(c.correo));
     return out.sort((a, b) => peso(b) - peso(a));
   },
 
   async probar(ctx) {
     try {
       ctx.consumir(1);
-      const d = await consultar(ctx, '[out:json][timeout:10];node(19.4326,-99.1332,19.4327,-99.1331);out count;');
-      return { ok: true, detalle: `Overpass respondió (${d.elements.length} elemento(s) de prueba).` };
+      const d = await consultar(
+        ctx,
+        '[out:json][timeout:10];node(19.4326,-99.1332,19.4327,-99.1331);out count;',
+      );
+      return {
+        ok: true,
+        detalle: `Overpass respondió (${d.elements.length} elemento(s) de prueba).`,
+      };
     } catch (e) {
       return { ok: false, detalle: e instanceof Error ? e.message : String(e) };
     }

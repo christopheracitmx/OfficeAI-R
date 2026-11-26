@@ -172,7 +172,9 @@ export function listarDirectorio(
   return db
     .prepare(
       `SELECT e.id, e.nombre, e.etapa, e.zona, e.municipio, e.sitio_web, e.metodo_descubrimiento,
-         e.origen_url, e.origen_nota, e.descartada_motivo, e.creado_en, g.nombre AS giro
+         e.origen_url, e.origen_nota, e.descartada_motivo, e.creado_en, g.nombre AS giro,
+         e.telefono, e.correo, e.scian, e.personal_est, e.tamano,
+         (SELECT group_concat(DISTINCT f.atribucion) FROM empresa_fuentes f WHERE f.empresa_id = e.id) AS atribuciones
        FROM empresas e LEFT JOIN taxonomia_giros g ON g.id = e.giro_id
        WHERE ${where.join(' AND ')} ORDER BY e.id DESC LIMIT 1000`,
     )

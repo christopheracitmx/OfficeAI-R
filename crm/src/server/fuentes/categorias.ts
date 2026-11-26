@@ -7,11 +7,20 @@ const REGLAS: [RegExp, string][] = [
   [/(hotel|motel|hostel|resort|lodging|tourism)/i, 'Hotelería y turismo'],
   [/(restaurant|food|bakery|cafe|beverage|brewery|bar_)/i, 'Alimentos y bebidas'],
   [/(bank|insurance|financ|credit|accounting_firm)/i, 'Financiero y seguros'],
-  [/(software|telecom|computer|internet|data_center|electronics_store|it_)/i, 'Tecnología y telecomunicaciones'],
-  [/(real_estate|construction|building_material|architect|contractor)/i, 'Construcción e inmobiliaria'],
+  [
+    /(software|telecom|computer|internet|data_center|electronics_store|it_)/i,
+    'Tecnología y telecomunicaciones',
+  ],
+  [
+    /(real_estate|construction|building_material|architect|contractor)/i,
+    'Construcción e inmobiliaria',
+  ],
   [/(agri|farm|livestock|greenhouse)/i, 'Agroindustria'],
   [/(shop|store|retail|supermarket|mall|market|dealer|wholesale)/i, 'Retail y comercio'],
-  [/(office|professional|consult|lawyer|legal|business|company|coworking|agency)/i, 'Corporativo y servicios profesionales'],
+  [
+    /(office|professional|consult|lawyer|legal|business|company|coworking|agency)/i,
+    'Corporativo y servicios profesionales',
+  ],
 ];
 
 export function giroDeCategoria(...categorias: (string | undefined | null)[]): string {

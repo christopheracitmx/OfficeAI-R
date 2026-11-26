@@ -21,6 +21,12 @@ export interface Deps {
   dirOficinas?: string;
   /** `real` solo lo fija el servidor del CRM; todo lo demás (demo, pruebas) se muestra como demo. */
   dbModo?: 'real' | 'demo';
+  /** Fuentes de descubrimiento: red y esperas inyectables (pruebas) y carpeta de datasets locales. */
+  fuentes?: {
+    fetchFn?: typeof fetch;
+    esperar?: (ms: number) => Promise<void>;
+    dirDatasets?: string;
+  };
 }
 
 export class HttpError extends Error {

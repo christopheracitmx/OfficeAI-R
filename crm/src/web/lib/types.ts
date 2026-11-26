@@ -144,6 +144,12 @@ export interface EmpresaDir {
   descartada_motivo: string | null;
   creado_en: string;
   giro: string | null;
+  telefono?: string | null;
+  correo?: string | null;
+  scian?: string | null;
+  personal_est?: number | null;
+  tamano?: string | null;
+  atribuciones?: string | null;
 }
 
 export interface Destinatario {
@@ -173,6 +179,10 @@ export const METODO_ETIQUETA: Record<string, string> = {
   hallazgo_oportunista: 'Hallazgo oportunista',
   referido: 'Referido',
   manual: 'Manual',
+  denue_local: 'DENUE (local)',
+  denue_api: 'DENUE (API)',
+  osm_overpass: 'OpenStreetMap',
+  overture_local: 'Overture Maps',
 };
 
 export const fechaCorta = (iso: string | null | undefined): string =>

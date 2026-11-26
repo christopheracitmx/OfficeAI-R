@@ -1,0 +1,8 @@
+id,nom_estab,raz_social,codigo_act,nombre_act,per_ocu,tipo_vial,nom_vial,numero_ext,nomb_asent,cod_postal,cve_ent,entidad,cve_mun,municipio,telefono,correoelec,www,latitud,longitud
+1001,Aceros del Valle,Aceros del Valle SA de CV,331111,Complejos siderurgicos,51 a 100 personas,CALLE,Industria,25,Parque Industrial Naucalpan,53370,15,MEXICO,057,Naucalpan de Juárez,5555550101,ventas@acerosdelvalle.example,www.acerosdelvalle.example,19.4800,-99.2300
+1002,Logística Norte,Logistica Norte SA de CV,484110,Autotransporte,251 y más personas,AVENIDA,Vallejo,100,Industrial Vallejo,02300,09,CIUDAD DE MEXICO,002,Azcapotzalco,5555550202,,,19.4900,-99.1700
+1003,Tienda de la Esquina,,461110,Abarrotes,0 a 5 personas,CALLE,Hidalgo,3,Centro,53000,15,MEXICO,057,Naucalpan de Juárez,5555550303,,,19.4700,-99.2400
+1004,Secretaría de Finanzas Municipal,,931210,Actividades gubernamentales,31 a 50 personas,CALLE,Palacio,1,Centro,53000,15,MEXICO,057,Naucalpan de Juárez,5555550404,,,19.4710,-99.2410
+1005,Fábrica de Jalisco,,332110,Manufactura,101 a 250 personas,CALLE,Alameda,9,Centro,44100,14,JALISCO,039,Guadalajara,3333330505,,,20.6700,-103.3500
+1006,Clínica Santa Fe,Clinica Santa Fe SA,621111,Consultorios medicos,11 a 30 personas,CALLE,Vasco de Quiroga,2000,Santa Fe,05348,09,CIUDAD DE MEXICO,004,Cuajimalpa de Morelos,5555550606,contacto@clinicasantafe.example,https://www.facebook.com/clinicasantafe,19.3600,-99.2600
+1007,Colegio del Bosque,,611111,Escuelas primarias privadas,"6 a 10 personas",CALLE,Bosque,"8, int 2",Bosques,53100,15,MEXICO,057,Naucalpan de Juárez,5555550707,,,19.4500,-99.2200

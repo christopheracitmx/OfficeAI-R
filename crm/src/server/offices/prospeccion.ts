@@ -1,6 +1,7 @@
 import type { Db } from '../db';
-import type { Gancho, OficinaDef } from '../runner/estado';
+import type { Descubridor, Gancho, OficinaDef } from '../runner/estado';
 import type { Workflow } from '../runner/workflow';
+import { descubrirPorFuentes } from '../fuentes/descubrir';
 import { procesarEnvios, type Mailer } from '../services/mailer';
 import { finalizarProspecto } from '../services/prospectos';
 
@@ -20,6 +21,10 @@ export interface OpcionesProspeccion {
   mailer: Mailer;
   from: string;
   baseUrl: string;
+  /** Variables de entorno (tokens de las fuentes gratuitas) y red inyectable para pruebas. */
+  env?: NodeJS.ProcessEnv;
+  fetchFn?: typeof fetch;
+  esperar?: (ms: number) => Promise<void>;
 }
 
 /**
@@ -49,6 +54,41 @@ function prospectoDeEmpresa(
     .get(empresaId) as { id: number; empresa_etapa: string } | undefined;
 }
 
+/**
+ * Descubrimiento por código (sin IA): consulta primero las fuentes gratuitas/locales y registra lo que
+ * encuentra, ya filtrado (gobierno, fuera de piloto, no_contactar, micronegocios) y sin duplicados.
+ * Google Places y los agentes completan solo lo que falte.
+ */
+export function descubridorFuentes(o: OpcionesProspeccion): Descubridor {
+  return async ({ db, corridaId, params, faltan, evento }) => {
+    const r = await descubrirPorFuentes({
+      db,
+      env: o.env ?? process.env,
+      officeId: OFFICE_ID,
+      corridaId,
+      zona: String(params['zona'] ?? 'CDMX'),
+      giro: String(params['giro'] ?? 'Cualquiera'),
+      max: faltan,
+      fetchFn: o.fetchFn,
+      esperar: o.esperar,
+    });
+    for (const f of r.fuentes.filter((x) => x.estado !== 'omitida'))
+      evento(
+        'Coordinador',
+        `fuente ${f.fuente_id}: ${f.estado}`,
+        `${f.nuevos} nuevas, ${f.fusionados} fusionadas${f.detalle ? ` · ${f.detalle}` : ''}`,
+      );
+    return {
+      nuevos: r.nuevos,
+      detalle: `${r.nuevos} empresas nuevas de ${r.fuentes.filter((x) => x.estado === 'ok').length} fuente(s)`,
+    };
+  };
+}
+
 export function oficinaProspeccion(workflow: Workflow, o: OpcionesProspeccion): OficinaDef {
-  return { workflow, ganchos: { finalizar_prospecto: ganchoFinalizar(o) } };
+  return {
+    workflow,
+    ganchos: { finalizar_prospecto: ganchoFinalizar(o) },
+    descubridores: { fuentes_gratuitas: descubridorFuentes(o) },
+  };
 }

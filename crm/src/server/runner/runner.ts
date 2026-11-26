@@ -138,6 +138,22 @@ export class Runner extends RunnerBase implements FlujoCtx {
     return this.lanzar(paso, mensaje);
   }
 
+  async descubrirCodigo(nombre: string, faltan: number): Promise<number> {
+    const e = this.ej!;
+    const fn = e.oficina.descubridores?.[nombre];
+    if (!fn)
+      throw new Error(`Descubridor desconocido en la oficina ${e.corrida.office_id}: ${nombre}`);
+    const r = await fn({
+      db: this.d.db,
+      corridaId: e.corrida.id,
+      params: e.corrida.params,
+      faltan,
+      evento: (agente, accion, detalle) => this.evento(agente, accion, detalle),
+    });
+    this.evento(this.wf.coordinador, `descubrimiento por código (${nombre})`, r.detalle);
+    return r.nuevos;
+  }
+
   async gancho(nombre: string, itemId: number): Promise<void> {
     const e = this.ej!;
     const g = e.oficina.ganchos[nombre];

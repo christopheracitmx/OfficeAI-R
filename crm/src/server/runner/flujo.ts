@@ -48,6 +48,8 @@ export interface FlujoCtx {
   registrarFallo(detalle: string): void;
   marcarCuota(): void;
   gancho(nombre: string, itemId: number): Promise<void>;
+  /** Fuente de descubrimiento de código (sin IA) de la oficina; devuelve los elementos nuevos. */
+  descubrirCodigo(nombre: string, faltan: number): Promise<number>;
   contar(resultado: string): void;
 }
 
@@ -78,23 +80,31 @@ async function descubrir(c: FlujoCtx, f: FaseDe<'descubrir'>): Promise<void> {
   let sinCuota = false;
   for (const fuente of f.fuentes) {
     if (n >= meta) break;
+    if (fuente.codigo) {
+      // Fuentes gratuitas por código: nunca pausan la corrida; si fallan, sigue la siguiente fuente.
+      c.chequear();
+      try {
+        await c.descubrirCodigo(fuente.codigo, meta - n);
+      } catch (e) {
+        c.registrarFallo(`${fuente.codigo}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+      n = cuenta();
+      continue;
+    }
+    const paso = fuente.paso!;
     if (!c.capacidad(fuente.requiere)) {
-      c.evento(
-        rolPrincipal(c, fuente.paso),
-        'omitido',
-        `${fuente.requiere} desactivado o sin llave`,
-      );
+      c.evento(rolPrincipal(c, paso), 'omitido', `${fuente.requiere} desactivado o sin llave`);
       continue;
     }
     if (fuente.agotado && verdadero(escalar(c.db, fuente.agotado, p))) {
       sinCuota = true;
-      c.evento(rolPrincipal(c, fuente.paso), 'omitido', 'Cuota mensual agotada');
+      c.evento(rolPrincipal(c, paso), 'omitido', 'Cuota mensual agotada');
       continue;
     }
     for (let ronda = 0; ronda < fuente.rondas && n < meta; ronda++) {
       const antes = n;
-      const r = await c.lanzarLote(fuente.paso, plantilla(fuente.mensaje, vars(meta - n)));
-      if (!r.ok) c.registrarFallo(`${fuente.paso}: ${r.error ?? 'falló'}`);
+      const r = await c.lanzarLote(paso, plantilla(fuente.mensaje, vars(meta - n)));
+      if (!r.ok) c.registrarFallo(`${paso}: ${r.error ?? 'falló'}`);
       if (r.cuota_agotada || (fuente.agotado && verdadero(escalar(c.db, fuente.agotado, p))))
         sinCuota = true;
       n = cuenta();

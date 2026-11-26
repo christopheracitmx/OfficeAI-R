@@ -31,7 +31,9 @@ function expedienteCompleto(db: Db, empresaId: number): Record<string, unknown> 
     .prepare(
       `SELECT e.id, e.nombre, e.etapa, e.descartada_motivo, e.metodo_descubrimiento, e.origen_url,
          e.origen_nota, e.direccion, e.municipio, e.codigo_postal, e.estado_mx, e.zona, e.sitio_web,
-         e.sitio_verificado, e.tamano, e.sucursales, e.resumen, g.nombre AS giro
+         e.sitio_verificado, e.tamano, e.sucursales, e.resumen, g.nombre AS giro,
+         e.scian, e.personal_est, e.telefono AS telefono_fuente, e.correo AS correo_fuente,
+         e.campos_fuente
        FROM empresas e LEFT JOIN taxonomia_giros g ON g.id = e.giro_id WHERE e.id = ?`,
     )
     .get(empresaId) as { id: number } | undefined;

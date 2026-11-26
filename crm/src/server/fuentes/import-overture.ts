@@ -12,7 +12,10 @@ import type { ResumenImport } from './import-denue';
 const LICENCIAS: [RegExp, string][] = [
   [/foursquare/i, 'Apache 2.0'],
   [/allthe ?places/i, 'CC0 1.0'],
-  [/(meta|microsoft|pinmeto|krick|rendersEO|dac|brightquery|birdeye|uberall|opentravel)/i, 'CDLA Permissive 2.0'],
+  [
+    /(meta|microsoft|pinmeto|krick|rendersEO|dac|brightquery|birdeye|uberall|opentravel)/i,
+    'CDLA Permissive 2.0',
+  ],
 ];
 
 const licenciaDe = (dataset: string): string =>
@@ -80,8 +83,11 @@ export function filaOverture(
     .join(', ');
   const region = dir?.region ?? '';
   const zona = derivarZona(direccion);
-  const estado =
-    /^MX-CMX$|^MX-DIF$/i.test(region) ? 'CDMX' : /^MX-MEX$/i.test(region) ? 'Estado de México' : zona.estado_mx;
+  const estado = /^MX-CMX$|^MX-DIF$/i.test(region)
+    ? 'CDMX'
+    : /^MX-MEX$/i.test(region)
+      ? 'Estado de México'
+      : zona.estado_mx;
   if (!estado) return { descarte: 'fuera_de_piloto' };
   if (esGobierno(nombre, null)) return { descarte: 'gobierno' };
   const categoria = p.taxonomy?.primary ?? p.categories?.primary ?? p.basic_category ?? null;
@@ -128,7 +134,8 @@ export async function importarOverture(
     if (!l.trim() || l.trim() === ',') continue;
     resumen.leidos++;
     const r = filaOverture(l, min, o.version);
-    if ('descarte' in r) resumen.descartados[r.descarte] = (resumen.descartados[r.descarte] ?? 0) + 1;
+    if ('descarte' in r)
+      resumen.descartados[r.descarte] = (resumen.descartados[r.descarte] ?? 0) + 1;
     else registros.push(r);
   }
   const descartados = Object.values(resumen.descartados).reduce((x, y) => x + y, 0);

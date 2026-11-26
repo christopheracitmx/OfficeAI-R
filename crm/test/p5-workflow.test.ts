@@ -32,7 +32,9 @@ describe('workflow de la oficina de prospección (definición en datos)', () => 
     const wf = cargarWorkflow(dir, 'prospeccion');
     const fuente = new ArchivosPrompts(dir);
     const mcp =
-      readFileSync('src/mcp/index.ts', 'utf8') + readFileSync('src/mcp/tools-crm.ts', 'utf8');
+      readFileSync('src/mcp/index.ts', 'utf8') +
+      readFileSync('src/mcp/tools-crm.ts', 'utf8') +
+      readFileSync('src/mcp/tools-fuentes.ts', 'utf8');
     for (const p of Object.values(wf.pasos)) {
       for (const n of p.prompts) expect(fuente.leer('prospeccion', n).length).toBeGreaterThan(50);
       for (const h of p.herramientas) expect(mcp).toContain(`'${h}'`);

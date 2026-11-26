@@ -6,7 +6,8 @@ import { nombreNorm, telefonoNorm } from './normalizar';
 import { esGobierno, tamanoDePersonal } from './scian';
 import type { Candidato } from './tipos';
 
-export type MotivoRechazo = 'gobierno' | 'no_contactar' | 'fuera_de_zona_piloto' | 'micronegocio' | 'sin_nombre';
+export type MotivoRechazo =
+  'gobierno' | 'no_contactar' | 'fuera_de_zona_piloto' | 'micronegocio' | 'sin_nombre';
 
 export type ResultadoRegistro =
   | { status: 'creada' | 'fusionada' | 'existente'; id: number }
@@ -21,8 +22,9 @@ export interface OpcionesRegistro {
 }
 
 export function minPersonalConfig(db: Db): number {
-  const r = db.prepare("SELECT valor FROM configuracion WHERE clave = 'fuentes_tamano_min'").get() as
-    { valor: string } | undefined;
+  const r = db
+    .prepare("SELECT valor FROM configuracion WHERE clave = 'fuentes_tamano_min'")
+    .get() as { valor: string } | undefined;
   const n = Number(r?.valor);
   return Number.isInteger(n) && n >= 0 ? n : 11;
 }
@@ -59,9 +61,11 @@ const primerasPalabras = (n: string): string => n.split(' ').slice(0, 2).join(' 
 /** Duplicado por registro ya traído, dominio, teléfono+nombre parecido o nombre normalizado+lugar. */
 export function buscarDuplicada(db: Db, officeId: string, c: Candidato): FilaEmpresa | undefined {
   const get = (sql: string, ...p: unknown[]) =>
-    db.prepare(`SELECT ${COLS} FROM empresas WHERE office_id = ? AND fusionada_con IS NULL AND ${sql} LIMIT 1`).get(officeId, ...p) as
-      | FilaEmpresa
-      | undefined;
+    db
+      .prepare(
+        `SELECT ${COLS} FROM empresas WHERE office_id = ? AND fusionada_con IS NULL AND ${sql} LIMIT 1`,
+      )
+      .get(officeId, ...p) as FilaEmpresa | undefined;
   const porRegistro = db
     .prepare(
       `SELECT e.id FROM empresa_fuentes f JOIN empresas e ON e.id = f.empresa_id
@@ -78,7 +82,9 @@ export function buscarDuplicada(db: Db, officeId: string, c: Candidato): FilaEmp
   const tel = telefonoNorm(c.telefono);
   if (tel) {
     for (const e of db
-      .prepare(`SELECT ${COLS} FROM empresas WHERE office_id = ? AND fusionada_con IS NULL AND telefono = ? LIMIT 5`)
+      .prepare(
+        `SELECT ${COLS} FROM empresas WHERE office_id = ? AND fusionada_con IS NULL AND telefono = ? LIMIT 5`,
+      )
       .all(officeId, tel) as FilaEmpresa[]) {
       const en = e.nombre_norm ?? nombreNorm(e.nombre);
       if (en === nn || primerasPalabras(en) === primerasPalabras(nn)) return e;
@@ -140,14 +146,22 @@ function fusionar(db: Db, e: FilaEmpresa, c: Candidato): void {
   const nuevos: Record<string, string | number | null> = {};
   const cand = camposDe(c);
   const vacios: [keyof FilaEmpresa, string][] = [
-    ['telefono', 'telefono'], ['correo', 'correo'], ['sitio_web', 'sitio_web'], ['scian', 'scian'],
-    ['personal_est', 'personal_est'], ['lat', 'lat'], ['direccion', 'direccion'],
+    ['telefono', 'telefono'],
+    ['correo', 'correo'],
+    ['sitio_web', 'sitio_web'],
+    ['scian', 'scian'],
+    ['personal_est', 'personal_est'],
+    ['lat', 'lat'],
+    ['direccion', 'direccion'],
   ];
-  for (const [col, k] of vacios) if ((e[col] === null || e[col] === '') && cand[k] !== undefined) nuevos[col] = cand[k]!;
+  for (const [col, k] of vacios)
+    if ((e[col] === null || e[col] === '') && cand[k] !== undefined) nuevos[col] = cand[k]!;
   if (cand['lng'] !== undefined && e.lat === null) nuevos['lng'] = cand['lng']!;
-  if (cand['estrato'] !== undefined && e.personal_est === null) nuevos['estrato'] = cand['estrato']!;
+  if (cand['estrato'] !== undefined && e.personal_est === null)
+    nuevos['estrato'] = cand['estrato']!;
   if (nuevos['sitio_web']) nuevos['dominio'] = dominioDe(String(nuevos['sitio_web']));
-  if (nuevos['personal_est'] !== undefined && !e.tamano) nuevos['tamano'] = tamanoDePersonal(Number(nuevos['personal_est']));
+  if (nuevos['personal_est'] !== undefined && !e.tamano)
+    nuevos['tamano'] = tamanoDePersonal(Number(nuevos['personal_est']));
   if (!e.nombre_norm) nuevos['nombre_norm'] = nombreNorm(e.nombre);
   const cols = Object.keys(nuevos);
   if (cols.length === 0) return;
@@ -166,14 +180,19 @@ export function registrarCandidato(db: Db, c: Candidato, o: OpcionesRegistro): R
   if (enNoContactar(db, nombre, dominio)) return { status: 'rechazada', motivo: 'no_contactar' };
   const zona = derivarZona(c.direccion);
   const estado = (c.estado_mx as typeof zona.estado_mx) ?? zona.estado_mx;
-  if (!enZonaPiloto(estado, zonasPiloto(db))) return { status: 'rechazada', motivo: 'fuera_de_zona_piloto' };
+  // Sin dirección ni estado (hallazgo de un agente) no se puede juzgar la zona: se admite, como en crm_upsert_empresa.
+  if ((c.direccion || c.estado_mx) && !enZonaPiloto(estado, zonasPiloto(db)))
+    return { status: 'rechazada', motivo: 'fuera_de_zona_piloto' };
   const min = o.minPersonal ?? minPersonalConfig(db);
-  if (c.tamano_est !== undefined && c.tamano_est < min) return { status: 'rechazada', motivo: 'micronegocio' };
+  if (c.tamano_est !== undefined && c.tamano_est < min)
+    return { status: 'rechazada', motivo: 'micronegocio' };
 
   const previa = buscarDuplicada(db, o.officeId, c);
   if (previa) {
     const eraDeEstaFuente = db
-      .prepare('SELECT 1 FROM empresa_fuentes WHERE empresa_id = ? AND fuente_id = ? AND registro_id = ?')
+      .prepare(
+        'SELECT 1 FROM empresa_fuentes WHERE empresa_id = ? AND fuente_id = ? AND registro_id = ?',
+      )
       .get(previa.id, c.fuente_id, c.registro_id);
     db.transaction(() => {
       fusionar(db, previa, c);
@@ -182,9 +201,9 @@ export function registrarCandidato(db: Db, c: Candidato, o: OpcionesRegistro): R
     return { status: eraDeEstaFuente ? 'existente' : 'fusionada', id: previa.id };
   }
 
-  const giro = db.prepare('SELECT id FROM taxonomia_giros WHERE nombre = ? COLLATE NOCASE').get(c.giro) as
-    | { id: number }
-    | undefined;
+  const giro = db
+    .prepare('SELECT id FROM taxonomia_giros WHERE nombre = ? COLLATE NOCASE')
+    .get(c.giro) as { id: number } | undefined;
   const cf: Record<string, string> = {};
   for (const k of Object.keys(camposDe(c))) cf[k] = c.fuente_id;
   const ahora = nowIso();
@@ -198,12 +217,33 @@ export function registrarCandidato(db: Db, c: Candidato, o: OpcionesRegistro): R
          VALUES (?, ?, ?, ?, ?, 'descubierta', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
-        nombre, nombreNorm(nombre), c.fuente_id, c.fuente_url ?? null,
-        `${c.fuente_id}${o.consulta ? `: ${o.consulta}` : ''}`.slice(0, 500), giro?.id ?? null,
-        c.direccion || null, zona.municipio ?? c.municipio ?? null, zona.codigo_postal ?? c.codigo_postal ?? null,
-        zona.ciudad, estado, zona.zona ?? (estado === 'CDMX' ? 'CDMX' : 'Edomex'), c.sitio_web ?? null, dominio,
-        tamanoDePersonal(c.tamano_est), o.corridaId ?? null, ahora, ahora, o.officeId, c.fuente_id, c.scian ?? null,
-        c.estrato ?? null, c.tamano_est ?? null, c.telefono ?? null, c.correo ?? null, c.lat ?? null, c.lng ?? null,
+        nombre,
+        nombreNorm(nombre),
+        c.fuente_id,
+        c.fuente_url ?? null,
+        `${c.fuente_id}${o.consulta ? `: ${o.consulta}` : ''}`.slice(0, 500),
+        giro?.id ?? null,
+        c.direccion || null,
+        zona.municipio ?? c.municipio ?? null,
+        zona.codigo_postal ?? c.codigo_postal ?? null,
+        zona.ciudad,
+        estado,
+        zona.zona ?? (estado === 'CDMX' ? 'CDMX' : 'Edomex'),
+        c.sitio_web ?? null,
+        dominio,
+        tamanoDePersonal(c.tamano_est),
+        o.corridaId ?? null,
+        ahora,
+        ahora,
+        o.officeId,
+        c.fuente_id,
+        c.scian ?? null,
+        c.estrato ?? null,
+        c.tamano_est ?? null,
+        c.telefono ?? null,
+        c.correo ?? null,
+        c.lat ?? null,
+        c.lng ?? null,
         JSON.stringify(cf),
       );
     id = Number(r.lastInsertRowid);

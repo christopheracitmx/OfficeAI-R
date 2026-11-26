@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { CrmApi } from './api';
 import { crmTools } from './tools-crm';
 import { herramientasGenericas } from './tools-herramientas';
+import { fuentesTools } from './tools-fuentes';
 import {
   extractSchema,
   obscuraExtract,
@@ -50,8 +51,8 @@ const permitida = (nombre: string): boolean => permitidas === null || permitidas
 
 const server = new McpServer({ name: 'acitmx-crm', version: '0.1.0' });
 
-for (const t of [...crmTools(api), ...herramientasGenericas(api)].filter((x) =>
-  permitida(x.name),
+for (const t of [...crmTools(api), ...herramientasGenericas(api), ...fuentesTools(api)].filter(
+  (x) => permitida(x.name),
 )) {
   server.registerTool(
     t.name,

@@ -37,7 +37,11 @@ export function webNorm(w: string | null | undefined): string | undefined {
     const u = new URL(v);
     if (!u.hostname.includes('.')) return undefined;
     // Una página de red social NO es el sitio de la empresa (regla: sin redes sociales).
-    if (/(facebook|instagram|twitter|tiktok|linkedin|youtube)\.com$|^wa\.me$/.test(u.hostname.replace(/^www\./, '')))
+    if (
+      /(facebook|instagram|twitter|tiktok|linkedin|youtube)\.com$|^wa\.me$/.test(
+        u.hostname.replace(/^www\./, ''),
+      )
+    )
       return undefined;
     return u.href.slice(0, 300);
   } catch {

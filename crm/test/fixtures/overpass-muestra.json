@@ -1,0 +1,54 @@
+{
+  "elements": [
+    {
+      "type": "node",
+      "id": 111,
+      "lat": 19.4802,
+      "lon": -99.2302,
+      "tags": {
+        "name": "Aceros del Valle",
+        "industrial": "factory",
+        "phone": "+52 55 5555 0101",
+        "website": "https://www.acerosdelvalle.example",
+        "addr:street": "Calle Industria",
+        "addr:housenumber": "25",
+        "addr:city": "Naucalpan de Juárez",
+        "addr:postcode": "53370",
+        "contact:facebook": "https://www.facebook.com/acerosdelvalle"
+      }
+    },
+    {
+      "type": "way",
+      "id": 222,
+      "center": { "lat": 19.5, "lon": -99.2 },
+      "tags": {
+        "name": "Bodegas Tepotzotlán",
+        "industrial": "warehouse",
+        "email": "info@bodegastepo.example",
+        "addr:city": "Tepotzotlán"
+      }
+    },
+    {
+      "type": "node",
+      "id": 333,
+      "lat": 19.4,
+      "lon": -99.1,
+      "tags": { "name": "Delegación Política Centro", "office": "government" }
+    },
+    {
+      "type": "node",
+      "id": 555,
+      "lat": 19.49,
+      "lon": -99.17,
+      "tags": {
+        "name": "Logistica Norte S.A. de C.V.",
+        "industrial": "logistics",
+        "email": "contacto@logisticanorte.example",
+        "website": "https://www.logisticanorte.example",
+        "addr:city": "Azcapotzalco",
+        "addr:postcode": "02300"
+      }
+    },
+    { "type": "node", "id": 444, "lat": 19.4, "lon": -99.1, "tags": { "industrial": "factory" } }
+  ]
+}

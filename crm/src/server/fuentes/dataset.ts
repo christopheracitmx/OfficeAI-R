@@ -42,8 +42,7 @@ export interface MetaDataset {
 
 export const metaDataset = (db: Db, fuente: string): MetaDataset | null =>
   (db.prepare('SELECT * FROM dataset_meta WHERE fuente_id = ?').get(fuente) as
-    | MetaDataset
-    | undefined) ?? null;
+    MetaDataset | undefined) ?? null;
 
 const COLUMNAS: (keyof RegistroDataset)[] = [
   'fuente_id',
@@ -144,7 +143,10 @@ export function buscarDataset(
   incluirSinTamano = true,
 ): Candidato[] {
   const z = resolverZona(q.zona);
-  const where: string[] = ['d.fuente_id = ?', `d.estado_mx IN (${z.estados.map(() => '?').join(',')})`];
+  const where: string[] = [
+    'd.fuente_id = ?',
+    `d.estado_mx IN (${z.estados.map(() => '?').join(',')})`,
+  ];
   const p: unknown[] = [fuente, ...z.estados];
   if (z.municipios.length > 0) {
     where.push(`d.municipio_norm IN (${z.municipios.map(() => '?').join(',')})`);

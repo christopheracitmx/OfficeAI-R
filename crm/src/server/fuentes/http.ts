@@ -46,7 +46,8 @@ export async function pedirJson(
         throw new ErrorFuente(ultimo, res.status);
       if (i < intentos) await esperar(o.esperaMs ?? 30000);
     } catch (e) {
-      if (e instanceof ErrorFuente) throw new ErrorFuente(sinSecretos(e.message, secretos), e.estado);
+      if (e instanceof ErrorFuente)
+        throw new ErrorFuente(sinSecretos(e.message, secretos), e.estado);
       ultimo = sinSecretos(e instanceof Error ? e.message : String(e), secretos);
       if (i < intentos) await esperar(o.esperaMs ?? 30000);
     }

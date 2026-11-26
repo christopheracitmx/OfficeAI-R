@@ -234,3 +234,10 @@ segmentation:
     - {id: P11-6, titulo: "Script datasets:importar, .env.example, pruebas (30 nuevas, divididas <=300 líneas)", estado: hecho, commit: 129cd1e}
     - {id: P11-7, titulo: "Demo 4099 con BD temporal y humo de UI con capturas (04-execution/capturas-p11)", estado: hecho, commit: ff06a65}
     - {id: P11-8, titulo: "Gates, PASOS-MANUALES-FUENTES.md, guía, meta-dungeon, Save Point", estado: hecho, commit: "git log: docs(P11)"}
+
+  P12-instalacion:
+    - {id: P12-1, titulo: "iniciar-crm.bat sin tools (Node del sistema 22-24, CRM_PORT, npm ci/build), OBSCURA_BIN configurable con aviso, mcp-config.example.json sin rutas absolutas", estado: hecho, commit: "git log: feat(P12-1/2/3)"}
+    - {id: P12-2, titulo: "CRM_DESTINATARIO_INICIAL (sin destinatario fijo), diagnostico en /api/estado y avisos en UI, pisos sin marca ACITMX, 5 pruebas nuevas", estado: hecho, commit: "git log: feat(P12-1/2/3)"}
+    - {id: P12-3, titulo: "GUIA-INSTALACION.md y enlaces en README y GUIA-PUESTA-EN-MARCHA", estado: hecho, commit: "git log: docs(P12-4)"}
+    - {id: P12-4, titulo: "Verificación desde cero en clon limpio; fixes: .npmrc ignore-scripts, errorlevel del .bat, prueba p8 intermitente", estado: hecho, commit: "git log: fix(P12)"}
+    - {id: P12-5, titulo: "Gates, evidencia, meta-dungeon, Save Point", estado: hecho, commit: "git log: docs(P12)"}

@@ -34,7 +34,7 @@ Límite: INEGI no publica una cuota oficial; el CRM aplica un tope mensual propi
 4. Copia los `.csv` a `crm\data\datasets\denue\` (créala si no existe).
 5. Importa por terminal, desde la carpeta `crm\` (la pantalla de Fuentes muestra el resultado, pero hoy no tiene botón de importar):
    ```
-   npm run datasets:importar -- denue data\datasets\denuerchivo.csv --version "DENUE 2026/05" --fecha 2026-05-29
+   npm run datasets:importar -- denue data\datasets\denue\archivo.csv --version "DENUE 2026/05" --fecha 2026-05-29
    ```
    Opciones: `--estrato-min 2` (personal mínimo; por defecto 2 = 6 a 10 personas), `--agregar` (no reemplaza lo anterior; úsalo cuando importes varios archivos uno por uno).
 6. Se guardan solo registros de CDMX y Estado de México; se descartan gobierno (SCIAN 93 y palabras clave) y micronegocios. La pantalla muestra versión, fecha y número de registros.

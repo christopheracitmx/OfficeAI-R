@@ -144,7 +144,7 @@ export async function fetchHtml(url: string, o: OpcionesFetch): Promise<string> 
   const run = o.runner ?? ejecutar;
   if (!o.runner && !existsSync(o.bin))
     throw new Error(
-      `Obscura no está instalado (no existe ${o.bin}). Configura OBSCURA_BIN en crm\.env; mientras tanto usa web_search`,
+      `Obscura no está instalado (no existe ${o.bin}). Configura OBSCURA_BIN en el archivo crm/.env; mientras tanto usa web_search`,
     );
   return run(
     o.bin,

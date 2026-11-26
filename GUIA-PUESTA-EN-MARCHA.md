@@ -1,12 +1,14 @@
-# ACITMX Prospecting Office — guía de puesta en marcha
+# OfficeAI-R — guía de puesta en marcha (operación diaria)
+
+> ¿Instalas desde cero o en otro equipo? Sigue primero **[GUIA-INSTALACION.md](GUIA-INSTALACION.md)** (requisitos, Node, Claude Code, Obscura, `.env`, primer arranque). Esta guía describe cómo usar la app ya instalada.
 
 La oficina de agentes ya vive DENTRO del CRM (runner propio). No se usa Munder Difflin.
 
 ## 1. Una sola vez
 1. Verifica que Claude Code esté instalado y con sesión de tu suscripción: en una terminal, `claude auth status` debe decir `loggedIn: true` y `authMethod: claude.ai`. (Si no, ejecuta `claude` y entra con tu cuenta.)
 2. Doble clic en `iniciar-crm.bat`. Crea `crm\.env`; llénalo:
-   - `RESEND_API_KEY` (dominio mail.acitmx.net verificado en Resend; remitente info@mail.acitmx.net)
-   - `GOOGLE_PLACES_API_KEY` (opcional: en Google Cloud pon cuota diaria baja + alerta de presupuesto; el CRM ya limita a 4,900/mes). Sin llave, los agentes descubren empresas solo con búsqueda web.
+   - `RESEND_API_KEY` y `RESEND_FROM` (un dominio verificado en Resend; ver GUIA-INSTALACION.md, sección 3.4)
+   - `GOOGLE_PLACES_API_KEY` (opcional: en Google Cloud pon cuota diaria baja + alerta de presupuesto; el CRM ya limita a 4,900/mes; ver advertencia de costos en GUIA-INSTALACION.md). Sin llave, los agentes descubren empresas solo con búsqueda web.
 3. En el CRM → Configuración → «Correos de reportes»: confirma tu correo y pulsa **Enviar prueba**.
 
 ## 2. Cada vez que quieras prospectar

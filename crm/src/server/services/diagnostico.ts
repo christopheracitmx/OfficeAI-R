@@ -57,14 +57,14 @@ export async function diagnosticar(
       ruta,
       aviso: hayObscura
         ? null
-        : `No se encontró Obscura en ${ruta}. El CRM funciona, pero los agentes leerán sitios web solo con la búsqueda web de Claude. Instálalo o ajusta OBSCURA_BIN en crm\.env (ver GUIA-INSTALACION.md).`,
+        : `No se encontró Obscura en ${ruta}. El CRM funciona, pero los agentes leerán sitios web solo con la búsqueda web de Claude. Instálalo o ajusta OBSCURA_BIN en el archivo crm/.env (ver GUIA-INSTALACION.md).`,
     },
     destinatarios: {
       activos,
       aviso:
         activos > 0
           ? null
-          : 'Sin destinatarios: no se enviará ninguna alerta por correo. Agrega al menos uno en Configuración → Correos de reportes (o define CRM_DESTINATARIO_INICIAL en crm\.env antes del primer arranque).',
+          : 'Sin destinatarios: no se enviará ninguna alerta por correo. Agrega al menos uno en Configuración → Correos de reportes (o define CRM_DESTINATARIO_INICIAL en el archivo crm/.env antes del primer arranque).',
     },
   };
 }

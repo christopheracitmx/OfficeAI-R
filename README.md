@@ -11,12 +11,13 @@ paquetes exportables/importables y un asistente **Nuevo piso** (con IA o formula
 ## Estructura
 - `crm/` — aplicación (Express + SQLite + React + Three.js, MCP para agentes, runner). Ver `crm/package.json`.
 - `docs/dungeons/` — documentación por capas (metodología Dungeons): especificación, decisiones, Save Points.
-- `GUIA-PUESTA-EN-MARCHA.md` — cómo instalar y operar. `iniciar-crm.bat` — arranque en Windows.
+- `GUIA-INSTALACION.md` — **instalación desde cero en Windows** (empieza aquí).
+- `GUIA-PUESTA-EN-MARCHA.md` — cómo operar la app ya instalada. `iniciar-crm.bat` — arranque en Windows.
 - `CONFIGURACION-MUNDER.md` — referencia histórica (Munder Difflin ya no se usa).
 
 ## No incluido en el repositorio
 `tools/` (Node portable, Obscura y clones de referencia), `.env` (claves), `crm/data/` (base SQLite, token del agente) y
-skills de terceros en `.claude/`. Reinstálalos siguiendo la guía; crea `crm/.env` desde `crm/.env.example`.
+skills de terceros en `.claude/`. Reinstálalos siguiendo `GUIA-INSTALACION.md`; crea `crm/.env` desde `crm/.env.example`. `iniciar-crm.bat` funciona sin `tools/` (usa el Node del sistema, 22 a 24).
 
 ## Seguridad
 Los agentes son asistentes internos: no contactan prospectos ni mencionan precios; los correos salen solo a los

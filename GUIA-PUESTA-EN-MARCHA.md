@@ -124,3 +124,11 @@ Las 9 fases (el menú de la izquierda te deja saltar entre ellas; cada fase tien
 Nada se crea hasta que marques «Apruebo este borrador». «Edición avanzada» muestra el borrador como JSON validado campo por campo. Al crear: el piso aparece en el Edificio con sus agentes, Biblioteca inicial, colecciones y prompts; ahí los editas en las pantallas de siempre (Prompts, Biblioteca, Personalizar, Flujo avanzado). El prompt de la Arquitecta es editable (`/api/constructor/prompt`); los candados fijos siempre se añaden en código.
 
 Para correr el piso nuevo: selecciónalo en el selector de piso, ve a **Corrida** y escribe la tarea; verás el estimado de consumo antes de confirmar.
+
+## 3k. Fuentes gratuitas de descubrimiento (P11)
+
+Antes de gastar cuota de Google Places, la corrida consulta por código (sin IA, sin gastar tu plan) el DENUE de INEGI, OpenStreetMap y Overture, filtra gobierno, micronegocios y duplicados, y registra las empresas con su fuente y licencia. Los agentes Cartógrafo y Explorador completan lo que falte.
+
+- Estado y ajustes: **Configuración → Fuentes de descubrimiento** (token configurado sí/no, cuota usada/tope, fecha del dataset, activar por piso, «Probar conexión», licencia y atribución).
+- **Directorio** ahora tiene columnas Fuente, Tamaño y Contacto, y filtro por fuente. **Corrida** muestra «Candidatos por fuente».
+- Lo que debes hacer tú (token, descargas, importar datasets): `PASOS-MANUALES-FUENTES.md`. Sin hacer nada, todo sigue funcionando como antes (solo Places y agentes).

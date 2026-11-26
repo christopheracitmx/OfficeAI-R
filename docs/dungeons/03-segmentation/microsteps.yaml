@@ -224,3 +224,13 @@ segmentation:
     - {id: P10b-2, titulo: "Prompt Arquitecta versionado, sesiones, motor conversacional (IA + formulario), prueba controlada, rutas", estado: hecho, commit: "git log: P10b"}
     - {id: P10b-3, titulo: "UI Nuevo piso (9 fases, chat con consumo, formulario sin IA, vista previa 3D, JSON avanzado)", estado: hecho, commit: "git log: P10b"}
     - {id: P10b-4, titulo: "Tests CLI simulado (9), humo 3D 4099 con capturas, LIVE de 1 turno, gates, Quality Gate, pre-deploy, docs, Save Point final", estado: hecho, commit: "git log: P10b"}
+
+  P11-fuentes-gratuitas:
+    - {id: P11-1, titulo: "Investigación y matriz de decisión de fuentes (docs 17-interview/fuentes-descubrimiento.md)", estado: hecho, commit: f64f7b5}
+    - {id: P11-2, titulo: "Migración 009, adaptadores DENUE/OSM/Overture, registro, cuotas, dedupe y fusión por campo", estado: hecho, commit: eb3143b}
+    - {id: P11-3, titulo: "Rutas del dueño y de agente, herramientas MCP fuente_buscar y directorio_importar_candidatos", estado: hecho, commit: 1ea3982}
+    - {id: P11-4, titulo: "Runner: descubrimiento por código antes de agentes; prompts versionados", estado: hecho, commit: 1ea3982}
+    - {id: P11-5, titulo: "UI Configuración > Fuentes de descubrimiento, Directorio (fuente/tamaño/contacto), panel en Corrida", estado: hecho, commit: 1ea3982}
+    - {id: P11-6, titulo: "Script datasets:importar, .env.example, pruebas (30 nuevas, divididas <=300 líneas)", estado: hecho, commit: 129cd1e}
+    - {id: P11-7, titulo: "Demo 4099 con BD temporal y humo de UI con capturas (04-execution/capturas-p11)", estado: hecho, commit: ff06a65}
+    - {id: P11-8, titulo: "Gates, PASOS-MANUALES-FUENTES.md, guía, meta-dungeon, Save Point", estado: hecho, commit: "git log: docs(P11)"}

@@ -26,3 +26,24 @@ quality_gate:
     - "Defecto previo no bloqueante: removeChild al desmontar el Canvas 3D (ver meta-dungeon decisiones_p10)."
     - "Prueba LIVE larga (corrida completa de un piso generado con Claude real) NO ejecutada: consume plan compartido."
     - "Paquetes en ZIP no implementados (solo JSON). Arrastrar/soltar de salas sigue pendiente (P9)."
+
+quality_gate_p11:
+  fecha: 2026-11-26
+  alcance: "P11 fuentes gratuitas de descubrimiento"
+  resultado: APROBADO_CON_NOTAS
+  gates:
+    typecheck: "npx tsc --noEmit: 0 errores"
+    lint: "npx eslint . --max-warnings 0: 0"
+    formato: "prettier --check: todo ok salvo .depcheckrc.json (excepción previa)"
+    tests: "vitest: 282 pasan, 2 omitidos, 1 flaky previo (p8-edificio-runner, también falla sin los cambios P11 en la línea base; pasa al reintentar)"
+    build: "npm run build: ok"
+    audit: "npm audit --audit-level=high: 0 vulnerabilidades"
+    depcheck: "sin problemas"
+    circulares: "madge: sin ciclos"
+    react_doctor: "0 críticos/errores; 59 avisos del mismo tipo que antes (puntaje 73 vs 72); ninguno en archivos nuevos"
+    tamano_archivos: "ningún archivo de src/ ni test/ supera 300 líneas (pruebas divididas)"
+  evidencia: "docs/dungeons/04-execution/capturas-p11 (humo con red simulada, BD temporal, puerto 4099 cerrado al terminar)"
+  no_verificado:
+    - "DENUE API en vivo (sin token)"
+    - "Layout real del CSV masivo (solo muestras sintéticas)"
+    - "Overpass en vivo (no se ejecutó)"

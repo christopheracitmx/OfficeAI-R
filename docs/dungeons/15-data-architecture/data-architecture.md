@@ -86,3 +86,11 @@ Prospectos por semana; por nivel A/B/C; por giro; por zona (estado_mx); embudo p
 
 ## Migraciones
 Archivos SQL numerados (`001_init.sql`, ...) aplicados al arrancar; la capa de acceso a datos queda aislada (repositorios) para poder pasar de SQLite a otra base sin tocar la API.
+
+## Fuentes gratuitas de descubrimiento (P11, 2026-11-26)
+
+Complementa el directorio propio: antes de Places se consultan por código DENUE (local y API), Overture (local) y OSM/Overpass (opt-in). Detalle de licencias y límites: `17-interview/fuentes-descubrimiento.md`.
+
+- `empresas`: nuevos métodos `denue_local`, `denue_api`, `osm_overpass`, `overture_local`; columnas `nombre_norm`, `fuente_id`, `scian`, `estrato`, `personal_est`, `telefono`, `correo`, `lat`, `lng`, `campos_fuente` (fuente por campo).
+- `empresa_fuentes` (UNIQUE empresa+fuente+registro; licencia y atribución por registro), `dataset_registros` y `dataset_meta` (datasets locales de CDMX/Edomex con versión y fecha), `fuentes_config` (activa por oficina), `fuentes_uso` (contador mensual y tope duro), `candidatos_fuente` (bitácora por corrida).
+- Todo con `office_id` de la empresa; solo la oficina de prospección usa fuentes. Datos locales en `crm/data/datasets/` (no se versiona).

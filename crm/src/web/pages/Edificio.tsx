@@ -214,7 +214,8 @@ export function Edificio() {
               Ver edificio en 3D
             </Link>
             <Button onClick={() => setGaleria(true)}>Galería e importar</Button>
-            <Button variante="primario" onClick={() => setDialogo({ modo: 'crear', o: null })}>
+            <Button onClick={() => setDialogo({ modo: 'crear', o: null })}>Piso vacío</Button>
+            <Button variante="primario" onClick={() => navegar('/edificio/nuevo')}>
               Nuevo piso
             </Button>
           </>

@@ -55,3 +55,11 @@ Parámetros SQL con nombre: `:corrida`, `:meta`, `:item`.
 - Una oficina nueva con carpeta propia recibe sus prompts y agentes de forma automática en `sembrarOficina`.
 
 Pendiente (P6.5/P7): lecciones y reflexión, desempeño, vista de edificio/pisos y 3D, parámetros de corrida por oficina en la UI (hoy el formulario es el de prospección).
+
+
+## Herramientas, paquetes y Constructor (P10, hecho)
+- **Catálogo único** (`src/shared/catalogo.ts`): nombre, descripción, categoría, riesgos y `requiere_config` de cada herramienta; el Constructor solo propone las genéricas. Una integración fuera del catálogo se guarda como `requiere_herramienta_nueva` con su especificación.
+- **Por piso** (`herramientasPermitidas`): lista en `oficinas.herramientas_json`; `archivos_*` solo existen con `archivos_activo = 1`; el correo de `notificar_interno` con `correo_activo = 1`.
+- **Paquete de oficina** (`src/shared/paquete.ts`): JSON `formato: officeai-paquete`, versión 1; agentes, flujo, prompts, habilidades, Biblioteca, esquema de colecciones, planta 3D, apariencias, herramientas y candados. Sin datos operativos ni secretos. Validación en `paquete-validar.ts` (los flujos importados solo consultan `salidas_agente`, `actividad_agentes`, `coleccion_registros`, `colecciones`, `corridas` y `agentes`, en solo lectura).
+- **Constructor**: `constructor-sesion.ts` (sesiones, turno de IA, edición), `constructor-crear.ts` (prueba controlada y creación), `constructor-compilar.ts` (borrador → paquete: un paso por agente, fases `lote` con rondas QA acotadas por `devoluciones_max`), `constructor-arquitecta.ts` (prompt versionado en la oficina interna `_edificio`). Rutas `/api/constructor/*` (`routes/constructor.ts`).
+- Las oficinas generadas corren con parámetros genéricos `{tarea, max_items}` (pantalla Corrida).

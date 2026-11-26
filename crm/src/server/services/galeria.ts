@@ -230,4 +230,11 @@ export function paqueteDePlantilla(db: Db, id: string): PaqueteOficina {
   return c.paquete;
 }
 
+/** Borrador de una plantilla (para arrancar el Constructor desde ella). */
+export function borradorDePlantilla(id: string): BorradorParcial {
+  const p = PLANTILLAS.find((x) => x.id === id);
+  if (!p) throw new KbError(404, 'Plantilla desconocida');
+  return structuredClone(p.borrador);
+}
+
 export type { BorradorCompleto };

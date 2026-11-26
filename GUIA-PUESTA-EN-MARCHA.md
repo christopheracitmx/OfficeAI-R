@@ -95,3 +95,32 @@ En `crm\` (con `tools\node22` en el PATH): `npm run build` y luego `npx tsx test
 En la barra lateral, **Personalizar** (también desde "Ver oficina" y el panel de cada agente). Tres pestañas: Personajes, Salas y Oficina. Cada cambio se ve al instante en la vista previa 3D y se guarda solo; hay Deshacer/Rehacer, Versiones, Comparar con default, Aleatorio, Guardar como preset, Importar y Exportar. Los presets de equipo (uniforme, casual, formal, aleatorio 50/50) están arriba en Personajes.
 
 Para ver esta función en tu CRM real: **cierra y vuelve a abrir el CRM** (iniciar-crm.bat). Al arrancar aplica la migración 007 conservando tus datos (hace un respaldo automático antes). El editor de salas usa tamaño y posición numéricos; arrastrar y soltar queda como mejora.
+
+
+## 3i. Datos, herramientas del piso y paquetes (P10a)
+
+Para ver todo esto en tu CRM real: **cierra y vuelve a abrir el CRM** (`iniciar-crm.bat`). Al arrancar se aplica la migración 008 conservando tus datos (hace un respaldo automático antes en `crm\data\backups`).
+
+- **Datos** (barra lateral): las tablas del piso activo. «Nueva colección» te deja definir campos (texto, número, fecha, sí/no, enlace, lista de opciones) y un **campo clave** que evita duplicados. Cada registro guarda su **fuente** (enlace o nota) y su historial; nada se borra, solo se **archiva** (y se puede restaurar). «Exportar CSV» baja la tabla (protegida contra fórmulas de Excel). Los agentes escriben con `coleccion_upsert`, que valida el esquema, evita duplicados y exige la fuente.
+- **Configuración → Herramientas del piso** (solo en pisos nuevos; Prospección conserva sus herramientas):
+  - Marca qué herramientas puede usar cada piso. Se aplica **en código**: un agente no puede usar una herramienta no marcada aunque su prompt la pida.
+  - **Archivos**: apagado por defecto. Autoriza carpetas (ruta absoluta, por ejemplo `C:\Documentos\Facturas`) y actívalo. Los agentes solo pueden listar y leer texto dentro de esas carpetas; «mover» manda el archivo a `_cuarentena` dentro de la misma carpeta, **nunca borra**, y puedes **Revertir** desde el registro.
+  - **Correo de avisos**: apagado por defecto. Con él, `notificar_interno` además de la Actividad manda un correo **solo** a los destinatarios internos activos (pestaña «Correos de reportes»), máximo 10 por hora.
+  - **Candados**: los de seguridad (sin contacto externo, sin borrado, solo internos) son fijos. Solo puedes relajar los **topes de consumo**, con una confirmación explícita; queda en el Registro de cambios.
+- **Edificio → Galería e importar**: 4 plantillas base (Vacía, Base de datos, Archivos/CRM, Noticias del sector) y la importación de un paquete `.json`. Antes de crear ves un resumen de qué se creará; el paquete **nunca** trae datos operativos ni secretos. En cada tarjeta de piso, **Exportar paquete** baja ese piso como `.json` (el piso de Prospección no se exporta porque usa herramientas propias: se duplica).
+
+## 3j. Cómo crear un piso nuevo (Constructor «Nuevo piso», P10b)
+
+En **Edificio → Nuevo piso** (el botón «Piso vacío» sigue creando uno mínimo). Tienes tres formas de empezar:
+
+1. **Con asistente (IA)**: conversas con la «Arquitecta de oficinas». Cada mensaje tuyo es **una** llamada de IA (Sonnet, esfuerzo bajo) y gasta unos 4,000-6,000 tokens de tu plan (se muestra el estimado en pantalla). La IA recibe solo el resumen de lo ya decidido, no toda la conversación. Si tu reserva del plan está alcanzada, o no hay motor, el asistente se **pausa y te avisa**; puedes seguir con el formulario.
+2. **Formulario guiado (sin IA)**: las mismas fases llenando campos; no gasta plan.
+3. **Desde una plantilla** de la galería.
+
+Las 9 fases (el menú de la izquierda te deja saltar entre ellas; cada fase tiene su formulario aunque uses la IA, para corregir a mano):
+
+1. Objetivo y entregable · 2. Datos de entrada/salida y dónde se guardan · 3. Agentes (rol, área, género «Auto» = reparto 50/50, QA) y rondas de devolución · 4. Herramientas del catálogo (lo que no esté queda marcado «requiere herramienta nueva» con su especificación) · 5. Biblioteca inicial (pega texto) · 6. Candados y reglas extra · 7. **Vista previa 3D** del piso propuesto · 8. **Prueba controlada** (opcional, una llamada de IA sin efectos; muestra el consumo y pide confirmación) · 9. **Crear el piso**.
+
+Nada se crea hasta que marques «Apruebo este borrador». «Edición avanzada» muestra el borrador como JSON validado campo por campo. Al crear: el piso aparece en el Edificio con sus agentes, Biblioteca inicial, colecciones y prompts; ahí los editas en las pantallas de siempre (Prompts, Biblioteca, Personalizar, Flujo avanzado). El prompt de la Arquitecta es editable (`/api/constructor/prompt`); los candados fijos siempre se añaden en código.
+
+Para correr el piso nuevo: selecciónalo en el selector de piso, ve a **Corrida** y escribe la tarea; verás el estimado de consumo antes de confirmar.

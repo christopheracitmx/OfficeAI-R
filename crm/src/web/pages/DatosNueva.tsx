@@ -179,18 +179,13 @@ export function DatosNueva({
         <div className="mt-2 flex items-center gap-4">
           <Button
             disabled={filas.length >= 30}
-            onClick={() =>
+            onClick={() => {
+              const uid = ++proximo.current;
               setFilas((fs) => [
                 ...fs,
-                {
-                  uid: ++proximo.current,
-                  etiqueta: '',
-                  tipo: 'texto',
-                  requerido: false,
-                  opciones: '',
-                },
-              ])
-            }
+                { uid, etiqueta: '', tipo: 'texto', requerido: false, opciones: '' },
+              ]);
+            }}
           >
             + Agregar campo
           </Button>

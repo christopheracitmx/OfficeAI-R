@@ -221,6 +221,6 @@ segmentation:
 
   P10b-constructor:
     - {id: P10b-1, titulo: "Núcleo: borrador, compilación a paquete validado, generador 3D", estado: hecho, commit: "git log: feat(P10a)"}
-    - {id: P10b-2, titulo: "Prompt Arquitecta, sesiones, motor conversacional (IA + formulario), rutas", estado: pendiente}
-    - {id: P10b-3, titulo: "UI Nuevo piso (9 fases) + vista previa 3D", estado: pendiente}
-    - {id: P10b-4, titulo: "Tests CLI simulado, humo 3D 4099, gates, Quality Gate, pre-deploy, docs, Save Point final", estado: pendiente}
+    - {id: P10b-2, titulo: "Prompt Arquitecta versionado, sesiones, motor conversacional (IA + formulario), prueba controlada, rutas", estado: hecho, commit: "git log: P10b"}
+    - {id: P10b-3, titulo: "UI Nuevo piso (9 fases, chat con consumo, formulario sin IA, vista previa 3D, JSON avanzado)", estado: hecho, commit: "git log: P10b"}
+    - {id: P10b-4, titulo: "Tests CLI simulado (9), humo 3D 4099 con capturas, LIVE de 1 turno, gates, Quality Gate, pre-deploy, docs, Save Point final", estado: hecho, commit: "git log: P10b"}

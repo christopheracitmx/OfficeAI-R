@@ -1,0 +1,20 @@
+pre_deploy_checklist:
+  fecha: 2026-11-26
+  estado: APPROVED
+  items:
+    - {item: "Typecheck 0 errores", ok: true}
+    - {item: "Lint 0 warnings", ok: true}
+    - {item: "Tests 100% pasan (253)", ok: true}
+    - {item: "Build de producción", ok: true}
+    - {item: "npm audit alto/crítico = 0", ok: true}
+    - {item: "depcheck limpio", ok: true}
+    - {item: "madge sin ciclos", ok: true}
+    - {item: "react-doctor 0 críticos/altos", ok: true}
+    - {item: "Sin datos simulados en el runtime de producción (CLI simulado y demo solo en test/)", ok: true}
+    - {item: "Migración 008 probada sobre BD con datos y con respaldo previo", ok: true}
+    - {item: "Estados loading/vacío/error en Datos, Herramientas del piso, Galería y Nuevo piso", ok: true}
+    - {item: "Candados fijos al final de todos los prompts (incluida la Arquitecta)", ok: true}
+    - {item: "Servidor solo en 127.0.0.1; Origin check en rutas del dueño; BD real (4010) no tocada en pruebas", ok: true}
+  para_el_dueno:
+    - "Cierra y vuelve a abrir el CRM (iniciar-crm.bat): se aplica la migración 008 con respaldo automático."
+    - "Archivos y correo vienen APAGADOS; actívalos por piso en Configuración > Herramientas del piso."

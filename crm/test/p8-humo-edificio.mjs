@@ -45,7 +45,7 @@ await page.getByRole('button', { name: 'Crear piso' }).click();
 await page.getByText('Prospección Norte').first().waitFor({ timeout: 8000 });
 ok(await page.getByText('Piso 2').first().isVisible(), 'el piso duplicado aparece como piso 2');
 // y uno vacío
-await page.getByRole('button', { name: 'Nuevo piso' }).click();
+await page.getByRole('button', { name: 'Piso vacío' }).click();
 await page.getByRole('dialog').getByRole('textbox').first().fill('Noticias del sector');
 await page.getByRole('button', { name: 'Crear piso' }).click();
 await page.getByText('Noticias del sector').first().waitFor({ timeout: 8000 });

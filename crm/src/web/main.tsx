@@ -9,6 +9,7 @@ import { Aprendizaje } from './pages/Aprendizaje';
 import { Biblioteca } from './pages/Biblioteca';
 import { Configuracion } from './pages/Configuracion';
 import { Datos } from './pages/Datos';
+import { NuevoPiso } from './pages/NuevoPiso';
 import { DetalleProspecto } from './pages/DetalleProspecto';
 import { Directorio } from './pages/Directorio';
 import { Embudo } from './pages/Embudo';
@@ -78,6 +79,7 @@ function Layout() {
             <Route path="/corrida" element={<CorridaSegunOficina />} />
             <Route path="/biblioteca" element={<Biblioteca />} />
             <Route path="/datos" element={<Datos />} />
+            <Route path="/edificio/nuevo" element={<NuevoPiso />} />
             <Route path="/prompts" element={<Prompts />} />
             <Route path="/habilidades" element={<Habilidades />} />
             <Route path="/aprendizaje" element={<Aprendizaje />} />

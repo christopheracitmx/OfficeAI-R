@@ -1,0 +1,28 @@
+quality_gate:
+  fecha: 2026-11-26
+  alcance: "P10a (herramientas, datos, paquetes) + P10b (Constructor Nuevo piso)"
+  resultado: APROBADO_CON_NOTAS
+  gates:
+    typecheck: {comando: "npx tsc --noEmit", resultado: "0 errores"}
+    lint: {comando: "npx eslint . --max-warnings 0", resultado: "0 errores, 0 warnings"}
+    formato: {comando: "npx prettier --check .", resultado: "todo ok salvo .depcheckrc.json (excepción previa y aceptada)"}
+    tests: {comando: "npx vitest run", resultado: "253 pasan, 2 omitidos (LIVE) en 32 archivos"}
+    build: {comando: "npm run build", resultado: "ok"}
+    audit: {comando: "npm audit --audit-level=high", resultado: "0 vulnerabilidades"}
+    depcheck: {comando: "npx -y depcheck", resultado: "sin problemas"}
+    circulares: {comando: "npx -y madge --circular --extensions ts,tsx src/", resultado: "sin ciclos"}
+    react_doctor: {comando: "npx -y react-doctor", resultado: "0 críticos, 0 errores; solo avisos de estilo/rendimiento de la misma clase que el código previo (puntaje 72)"}
+    tamano_archivos: "ningún archivo de src/ ni test/ supera 300 líneas"
+  pruebas_reales:
+    humo_3d: "test/p10-humo-nuevo-piso.mjs: 18 comprobaciones OK (conversación simulada completa, vista previa 3D, prueba controlada, crear, piso en Edificio y 3D). Capturas en docs/dungeons/04-execution/capturas-p10/"
+    live_claude: "1 turno real del asistente (3,893 tokens ponderados), BD temporal, puerto 4099 cerrado después"
+  restricciones_verificadas:
+    - "Sin contacto externo, sin borrado físico, solo destinatarios internos (candados fijos)"
+    - "Migración 008 con datos previos en BD de archivo: conserva datos, respaldo automático, idempotente"
+    - "Aislamiento por office_id en colecciones, archivos, paquetes y sesiones"
+    - "Sandbox de archivos: traversal, rutas relativas, NUL, enlaces hacia fuera y prefijos parecidos rechazados"
+    - "Importación: JSON inválido o gigante rechazado (400/413), zod estricto, herramientas fuera del catálogo rechazadas"
+  notas:
+    - "Defecto previo no bloqueante: removeChild al desmontar el Canvas 3D (ver meta-dungeon decisiones_p10)."
+    - "Prueba LIVE larga (corrida completa de un piso generado con Claude real) NO ejecutada: consume plan compartido."
+    - "Paquetes en ZIP no implementados (solo JSON). Arrastrar/soltar de salas sigue pendiente (P9)."

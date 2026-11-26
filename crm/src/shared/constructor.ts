@@ -126,7 +126,14 @@ export function faltantes(b: BorradorParcial): string[] {
   const r = borradorCompleto.safeParse(b);
   if (r.success) return [];
   return [
-    ...new Set(r.error.issues.map((i) => `${i.path.join('.') || 'borrador'}: ${i.message}`)),
+    ...new Set(
+      r.error.issues.map((i) => {
+        const campo = i.path.join('.') || 'borrador';
+        return i.message.includes('received undefined')
+          ? `falta definir ${campo}`
+          : `${campo}: ${i.message}`;
+      }),
+    ),
   ].slice(0, 8);
 }
 

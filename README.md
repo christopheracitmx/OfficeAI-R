@@ -4,6 +4,10 @@ Plataforma local para operar "oficinas" de agentes de IA con un mini-CRM, una of
 que usa tu suscripción de Claude Code. La primera oficina es la de **prospección B2B de ACITMX** (Lenovo y Aruba);
 la arquitectura es dirigida por datos para crear más oficinas (pisos) con otros flujos.
 
+## Qué incluye
+Oficinas (pisos) en un edificio 3D, personalizables; Datos (colecciones con fuente), archivos seguros y avisos internos por piso;
+paquetes exportables/importables y un asistente **Nuevo piso** (con IA o formulario) que arma un piso nuevo validado.
+
 ## Estructura
 - `crm/` — aplicación (Express + SQLite + React + Three.js, MCP para agentes, runner). Ver `crm/package.json`.
 - `docs/dungeons/` — documentación por capas (metodología Dungeons): especificación, decisiones, Save Points.

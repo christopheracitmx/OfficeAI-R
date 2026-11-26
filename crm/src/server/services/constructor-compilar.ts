@@ -105,7 +105,17 @@ export function compilarBorrador(
   });
   const idOficina = idDesdeNombre(db, b.nombre);
   const equipo = resolverEquipo(
-    agentes.map((a) => ({
+    [
+      {
+        id: 'Coordinador',
+        persona: undefined,
+        genero: undefined,
+        rol: 'Coordinador',
+        area: 'Dirección',
+        tarea: 'Coordina al equipo y cuida los candados',
+      },
+      ...agentes,
+    ].map((a) => ({
       id: a.id,
       persona: a.persona,
       genero: a.genero,
